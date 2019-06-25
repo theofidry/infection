@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Test Suite" tests="6" assertions="6" errors="0" failures="0" skipped="0" time="0.024978">
+    <testsuite name="MultilineStatement\CalculatorTest" file="/Users/tfidry/Project/Humbug/infection/tests/Fixtures/e2e/Multiline_Statement/tests/CalculatorTest.php" tests="6" assertions="6" errors="0" failures="0" skipped="0" time="0.024978">
+      <testcase name="testCalculateInMultipleLines" class="MultilineStatement\CalculatorTest" classname="MultilineStatement.CalculatorTest" file="/Users/tfidry/Project/Humbug/infection/tests/Fixtures/e2e/Multiline_Statement/tests/CalculatorTest.php" line="18" assertions="1" time="0.018112"/>
+      <testcase name="testCalculateInMultipleLinesCustom" class="MultilineStatement\CalculatorTest" classname="MultilineStatement.CalculatorTest" file="/Users/tfidry/Project/Humbug/infection/tests/Fixtures/e2e/Multiline_Statement/tests/CalculatorTest.php" line="25" assertions="1" time="0.001564"/>
+      <testcase name="testCalculateInSingleLine" class="MultilineStatement\CalculatorTest" classname="MultilineStatement.CalculatorTest" file="/Users/tfidry/Project/Humbug/infection/tests/Fixtures/e2e/Multiline_Statement/tests/CalculatorTest.php" line="32" assertions="1" time="0.001324"/>
+      <testcase name="testCalculateInMultipleLinesFloat" class="MultilineStatement\CalculatorTest" classname="MultilineStatement.CalculatorTest" file="/Users/tfidry/Project/Humbug/infection/tests/Fixtures/e2e/Multiline_Statement/tests/CalculatorTest.php" line="39" assertions="1" time="0.001306"/>
+      <testcase name="testCalculateInSingleLineFloat" class="MultilineStatement\CalculatorTest" classname="MultilineStatement.CalculatorTest" file="/Users/tfidry/Project/Humbug/infection/tests/Fixtures/e2e/Multiline_Statement/tests/CalculatorTest.php" line="46" assertions="1" time="0.001343"/>
+      <testcase name="testCalculationsAreTheSame" class="MultilineStatement\CalculatorTest" classname="MultilineStatement.CalculatorTest" file="/Users/tfidry/Project/Humbug/infection/tests/Fixtures/e2e/Multiline_Statement/tests/CalculatorTest.php" line="53" assertions="1" time="0.001329"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

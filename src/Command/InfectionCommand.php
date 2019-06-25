@@ -50,6 +50,11 @@ use Infection\Process\Builder\ProcessBuilder;
 use Infection\Process\Runner\InitialTestsRunner;
 use Infection\Process\Runner\MutationTestingRunner;
 use Infection\Process\Runner\TestRunConstraintChecker;
+use Infection\Temporary\Configuration;
+use Infection\Temporary\FileCollector;
+use Infection\Temporary\ProcessBuilder as TemporaryProcessBuilder;
+use Infection\Temporary\ProcessExecutor;
+use Infection\Temporary\Runner\FirstRunner;
 use Infection\TestFramework\Coverage\CodeCoverageData;
 use Infection\TestFramework\Coverage\CoverageDoesNotExistException;
 use Infection\TestFramework\HasExtraNodeVisitors;
@@ -249,34 +254,35 @@ final class InfectionCommand extends BaseCommand
         $container->get('memory.limit.applier')->applyMemoryLimitFromProcess($initialTestSuitProcess, $adapter);
 
         $codeCoverageData = $this->getCodeCoverageData($testFrameworkKey);
-        $mutationsGenerator = new MutationsGenerator(
-            $container->get('src.dirs'),
-            $container->get('exclude.paths'),
+
+        $mutantRunner = new FirstRunner(
+            new FileCollector(),
+            new Configuration(
+                $container->get('src.dirs'),
+                $container->get('exclude.paths'),
+                $input->getOption('filter'),
+                $input->getOption('only-covered')
+            ),
             $codeCoverageData,
+            $this->eventDispatcher,
+            $container->get('parser'),
             $container->get('mutators'),
-            $this->eventDispatcher,
-            $container->get('parser')
-        );
-
-        $mutations = $mutationsGenerator->generate(
-            $input->getOption('only-covered'),
-            $input->getOption('filter'),
-            $adapter instanceof HasExtraNodeVisitors ? $adapter->getMutationsCollectionNodeVisitors() : []
-        );
-
-        $mutationTestingRunner = new MutationTestingRunner(
-            $processBuilder,
-            $container->get('parallel.process.runner'),
+            $adapter instanceof HasExtraNodeVisitors
+                ? $adapter->getMutationsCollectionNodeVisitors()
+                : [],
             $container->get('mutant.creator'),
-            $this->eventDispatcher,
-            $mutations
+            new TemporaryProcessBuilder(
+                $processBuilder,
+                $testFrameworkOptions
+            ),
+            new ProcessExecutor(
+                $container->get('parallel.process.runner'),
+                (int) $this->input->getOption('threads')
+            )
         );
 
-        $mutationTestingRunner->run(
-            (int) $this->input->getOption('threads'),
-            $codeCoverageData,
-            $testFrameworkOptions->getForMutantProcess()
-        );
+        $mutantRunner->run();
+
         /** @var TestRunConstraintChecker $constraintChecker */
         $constraintChecker = $container->get('test.run.constraint.checker');
 

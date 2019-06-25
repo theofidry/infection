@@ -1,0 +1,27 @@
+# pack-refs with: peeled fully-peeled 
+cea85a84b00f2795341ebbbca4fa396347f2494e refs/heads/1.1
+f302da795894ad40fa3d2ea52b73d9267f4cd160 refs/heads/issue-12
+6ddc744049960cad6878d2b9c82d7ccd37afb061 refs/heads/master
+720f2646b9e29541faefba452c733b039194f839 refs/pull/1/head
+001dc309464719cbfb2141a4a79ae57fca2b4b5e refs/pull/11/head
+ee68242dba3e81b8f4becffc4990b7da4c06ed3d refs/pull/16/head
+f5dbc9d874f2b5d3edb17c03aebe5aa5ca300aaf refs/pull/17/head
+3c7c215986fb4e9f09a087d32990f00ab914aa05 refs/pull/18/head
+4a02d4d65986ecc9da36c7432fa7faf364618e60 refs/pull/19/head
+7075d9f108f2c4a0e0ec5d6a1abf97648a04a42f refs/pull/2/head
+cbaa3d200de14512d3cab98f3cccf6d386b3300c refs/pull/20/head
+a6bdc9c3c6aada2b9ab77d16d9e746b7830b0a81 refs/pull/3/head
+e71c4cb32fbc6348e506aec18f8fcb74f3492566 refs/pull/3/merge
+54d2436e79560afa2ea4004118794498f7a92e09 refs/pull/6/head
+d77c747911bb8dd3a2a26f5fc0d3386cc0dfdd1f refs/pull/6/merge
+80e75e39bd6895a2240f5f959a5fec2df501d339 refs/pull/7/head
+2ba3155347e9915c8c28f364ed8b98f57478b4ca refs/tags/1.0.0
+^c7428acdb62ece0a45e6306f1ae85e1c05b09c01
+f8407b26f19747f613a552977303934650037f0d refs/tags/1.1.0
+^23af31f402993cfd94e99cbc4b782e9a78eb0e97
+dd5fa6462205b9b524ac7dff681e658cbfba9fb8 refs/tags/1.1.1
+^bc37d50fea7d017d3d340f230811c9f1d7280af4
+147ede13c40497a83f67718ae891c8e87cd76a64 refs/tags/2.0.0
+^e8ba02eed7bbbb9e59e43dedd3dddeff4a56b0c4
+96ece708fc3af9337567a880c2322950d96e2885 refs/tags/3.0.0
+^edf8a461cf1d4005f19fb0b6b8b95a9f7fa0adc4

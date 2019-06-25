@@ -36,11 +36,12 @@ declare(strict_types=1);
 namespace Infection\Mutant;
 
 use Infection\MutationInterface;
+use Infection\Temporary\Mutant as TemporaryMutant;
 
 /**
  * @internal
  */
-final class Mutant implements MutantInterface
+final class Mutant implements MutantInterface, TemporaryMutant
 {
     /**
      * @var string

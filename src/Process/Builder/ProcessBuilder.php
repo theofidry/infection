@@ -38,6 +38,7 @@ namespace Infection\Process\Builder;
 use Infection\Console\Util\PhpProcess;
 use Infection\Mutant\MutantInterface;
 use Infection\Process\MutantProcess;
+use Infection\Process\MutantProcessInterface;
 use Infection\TestFramework\AbstractTestFrameworkAdapter;
 use Symfony\Component\Process\Process;
 
@@ -88,7 +89,7 @@ class ProcessBuilder
         return $process;
     }
 
-    public function getProcessForMutant(MutantInterface $mutant, string $testFrameworkExtraOptions = ''): MutantProcess
+    public function getProcessForMutant(MutantInterface $mutant, string $testFrameworkExtraOptions = ''): MutantProcessInterface
     {
         $process = new Process(
             $this->testFrameworkAdapter->getMutantCommandLine(
