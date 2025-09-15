@@ -33,53 +33,12 @@
 
 declare(strict_types=1);
 
-namespace Infection\TestFramework;
+namespace newSrc\TestFramework\Coverage\Locator;
 
-use DOMDocument;
-use DOMElement;
-use DOMNodeList;
-use DOMXPath;
-use Webmozart\Assert\Assert;
-
-/**
- * @internal
- *
- * @property DOMDocument $document
- */
-final readonly class SafeDOMXPath
+interface ReportLocator
 {
-    private DOMXPath $xPath;
-
-    public function __construct(
-        private DOMDocument $document,
-    ) {
-        $this->xPath = new DOMXPath($document);
-    }
-
-    public function __get(string $property): DOMDocument
-    {
-        return $this->$property;
-    }
-
-    public static function fromString(string $content): self
-    {
-        $document = new DOMDocument();
-        $success = @$document->loadXML($content);
-
-        Assert::true($success);
-
-        return new self($document);
-    }
-
     /**
-     * @return DOMNodeList<DOMElement>
+     * @throws NoReportFound
      */
-    public function query(string $query): DOMNodeList
-    {
-        $nodes = @$this->xPath->query($query);
-
-        Assert::isInstanceOf($nodes, DOMNodeList::class);
-
-        return $nodes;
-    }
+    public function locate(): string;
 }

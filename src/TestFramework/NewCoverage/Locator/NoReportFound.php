@@ -33,19 +33,10 @@
 
 declare(strict_types=1);
 
-namespace Infection\Tests\TestFramework\Coverage\XmlReport;
+namespace newSrc\TestFramework\Coverage\Locator;
 
-use Infection\TestFramework\DOM\XPathFactory;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
-#[CoversClass(XPathFactory::class)]
-final class XPathFactoryTest extends TestCase
+final class NoReportFound extends RuntimeException
 {
-    public function test_it_removes_namespace(): void
-    {
-        $xPath = XPathFactory::createXPath('<?xml version="1.0"?><phpunit xmlns="http://schema.phpunit.de/coverage/1.0"></phpunit>');
-
-        $this->assertStringNotContainsString('xmlns', $xPath->document->saveXML());
-    }
 }

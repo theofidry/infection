@@ -42,7 +42,7 @@ use Infection\TestFramework\Coverage\ProxyTrace;
 use Infection\TestFramework\Coverage\SourceMethodLineRange;
 use Infection\TestFramework\Coverage\TestLocations;
 use Infection\TestFramework\Coverage\Trace;
-use Infection\TestFramework\SafeDOMXPath;
+use Infection\TestFramework\XML\SafeDOMXPath;
 use function Later\lazy;
 use Webmozart\Assert\Assert;
 
@@ -74,7 +74,7 @@ class XmlCoverageParser
 
     private static function retrieveTestLocations(SafeDOMXPath $xPath): TestLocations
     {
-        $linesNode = $xPath->query('/phpunit/file/totals/lines')[0];
+        $linesNode = $xPath->queryList('/phpunit/file/totals/lines')[0];
 
         $percentage = $linesNode->getAttribute('percent');
 
@@ -82,16 +82,17 @@ class XmlCoverageParser
             return new TestLocations();
         }
 
-        $coveredLineNodes = $xPath->query('/phpunit/file/coverage/line');
+        $coveredLineNodes = $xPath->queryList('/phpunit/file/coverage/line');
 
         if ($coveredLineNodes->length === 0) {
             return new TestLocations();
         }
 
-        $coveredMethodNodes = $xPath->query('/phpunit/file/class/method');
+        // Not entirely sure why we need the methods here
+        $coveredMethodNodes = $xPath->queryList('/phpunit/file/class/method');
 
         if ($coveredMethodNodes->length === 0) {
-            $coveredMethodNodes = $xPath->query('/phpunit/file/trait/method');
+            $coveredMethodNodes = $xPath->queryList('/phpunit/file/trait/method');
         }
 
         return new TestLocations(

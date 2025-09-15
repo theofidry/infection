@@ -33,19 +33,23 @@
 
 declare(strict_types=1);
 
-namespace Infection\Tests\TestFramework\Coverage\XmlReport;
+namespace newSrc\TestFramework\Coverage\Locator;
 
-use Infection\TestFramework\DOM\XPathFactory;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
-
-#[CoversClass(XPathFactory::class)]
-final class XPathFactoryTest extends TestCase
+final class MemoizedLocator implements ReportLocator
 {
-    public function test_it_removes_namespace(): void
-    {
-        $xPath = XPathFactory::createXPath('<?xml version="1.0"?><phpunit xmlns="http://schema.phpunit.de/coverage/1.0"></phpunit>');
+    private string $location;
 
-        $this->assertStringNotContainsString('xmlns', $xPath->document->saveXML());
+    public function __construct(
+        private readonly ReportLocator $decoratedLocator,
+    ) {
+    }
+
+    public function locate(): string
+    {
+        if (!isset($this->location)) {
+            $this->location = $this->decoratedLocator->locate();
+        }
+
+        return $this->location;
     }
 }

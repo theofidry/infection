@@ -33,19 +33,62 @@
 
 declare(strict_types=1);
 
-namespace Infection\Tests\TestFramework\Coverage\XmlReport;
+namespace Infection\TestFramework\NewCoverage\PHPUnitXml\Index;
 
-use Infection\TestFramework\DOM\XPathFactory;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+use DOMElement;
+use function str_ends_with;
+use function substr;
+use Symfony\Component\Filesystem\Path;
+use Webmozart\Assert\Assert;
 
-#[CoversClass(XPathFactory::class)]
-final class XPathFactoryTest extends TestCase
+/**
+ * Represents information about a source file from the index file of the PHPUnit
+ * XML coverage report.
+ *
+ * TODO: to replace SourceFileInfoProvider
+ */
+final readonly class SourceFileIndexXmlInfo
 {
-    public function test_it_removes_namespace(): void
-    {
-        $xPath = XPathFactory::createXPath('<?xml version="1.0"?><phpunit xmlns="http://schema.phpunit.de/coverage/1.0"></phpunit>');
+    public function __construct(
+        public string $sourcePathname,
+        public string $coveragePathname,
+        private LinesCoverageSummary $linesCoverageSummary,
+    ) {
+    }
 
-        $this->assertStringNotContainsString('xmlns', $xPath->document->saveXML());
+    public function hasExecutedCode(): bool
+    {
+        return $this->linesCoverageSummary->executed > 0;
+    }
+
+    public static function fromNode(
+        DOMElement $node,
+        string $coverageDirPathname,
+        string $coverageProjectSource,
+    ): self {
+        $coverageRelativePath = $node->getAttribute('href');
+        $coveragePathname = Path::join($coverageDirPathname, $coverageRelativePath);
+        Assert::true(str_ends_with($coveragePathname, '.php.xml'));
+
+        $sourcePathname = Path::join(
+            $coverageProjectSource,
+            substr(
+                $coverageRelativePath,
+                0,
+                -4,
+            ),
+        );
+
+        $totals = $node->firstElementChild;
+        Assert::string('totals', $totals->tagName);
+
+        $lines = $totals->firstElementChild;
+        Assert::string('lines', $totals->tagName);
+
+        return new self(
+            $sourcePathname,
+            $coveragePathname,
+            LinesCoverageSummary::fromNode($lines),
+        );
     }
 }

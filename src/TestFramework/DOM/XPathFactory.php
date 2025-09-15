@@ -33,11 +33,11 @@
 
 declare(strict_types=1);
 
-namespace Infection\TestFramework\Coverage\XmlReport;
+namespace Infection\TestFramework\DOM;
 
 use DOMDocument;
 use Infection\CannotBeInstantiated;
-use Infection\TestFramework\SafeDOMXPath;
+use Infection\TestFramework\XML\SafeDOMXPath;
 use function Safe\preg_replace;
 use Webmozart\Assert\Assert;
 

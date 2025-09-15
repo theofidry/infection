@@ -33,19 +33,11 @@
 
 declare(strict_types=1);
 
-namespace Infection\Tests\TestFramework\Coverage\XmlReport;
+namespace newSrc\TestFramework\Coverage\JUnit;
 
-use Infection\TestFramework\DOM\XPathFactory;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+// TODO: rather than converting directly to iterable<SourceFileInfoProvider>, this adds a layer of abstraction to expose the report as a PHP object.
+//  Need to be revisted.
 
-#[CoversClass(XPathFactory::class)]
-final class XPathFactoryTest extends TestCase
+final class PHPUnitXmlReport
 {
-    public function test_it_removes_namespace(): void
-    {
-        $xPath = XPathFactory::createXPath('<?xml version="1.0"?><phpunit xmlns="http://schema.phpunit.de/coverage/1.0"></phpunit>');
-
-        $this->assertStringNotContainsString('xmlns', $xPath->document->saveXML());
-    }
 }

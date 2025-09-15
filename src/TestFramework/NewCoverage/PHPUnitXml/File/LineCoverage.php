@@ -33,19 +33,47 @@
 
 declare(strict_types=1);
 
-namespace Infection\Tests\TestFramework\Coverage\XmlReport;
+namespace Infection\TestFramework\NewCoverage\PHPUnitXml\File;
 
-use Infection\TestFramework\DOM\XPathFactory;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+use function array_map;
+use DOMElement;
+use function iterator_to_array;
+use Webmozart\Assert\Assert;
 
-#[CoversClass(XPathFactory::class)]
-final class XPathFactoryTest extends TestCase
+/**
+ * This represents the information available in the `file.coverage.line` element
+ * of a source file of the PHPUnit XML coverage report.
+ */
+final readonly class LineCoverage
 {
-    public function test_it_removes_namespace(): void
-    {
-        $xPath = XPathFactory::createXPath('<?xml version="1.0"?><phpunit xmlns="http://schema.phpunit.de/coverage/1.0"></phpunit>');
+    /**
+     * @param int<0, max> $lineNumber
+     * @param non-empty-list<string> $coveredBy
+     */
+    public function __construct(
+        public int $lineNumber,
+        public array $coveredBy,
+    ) {
+    }
 
-        $this->assertStringNotContainsString('xmlns', $xPath->document->saveXML());
+    public static function fromNode(
+        DOMElement $node,
+    ): self {
+        Assert::same('line', $node->tagName);
+
+        return new self(
+            (int) $node->getAttribute('nr'),
+            array_map(
+                self::parseCoveredBy(...),
+                iterator_to_array($node->getElementsByTagName('covered')),
+            ),
+        );
+    }
+
+    private static function parseCoveredBy(DOMElement $node): string
+    {
+        Assert::same('covered', $node->tagName);
+
+        return $node->getAttribute('by');
     }
 }

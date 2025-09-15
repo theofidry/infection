@@ -39,7 +39,8 @@ use function array_filter;
 use const DIRECTORY_SEPARATOR;
 use function file_exists;
 use function implode;
-use Infection\TestFramework\SafeDOMXPath;
+use Infection\TestFramework\DOM\XPathFactory;
+use Infection\TestFramework\XML\SafeDOMXPath;
 use Safe\Exceptions\FilesystemException;
 use function Safe\file_get_contents;
 use function Safe\realpath;
@@ -96,7 +97,7 @@ class SourceFileInfoProvider
 
     private function retrieveSourceFileInfo(SafeDOMXPath $xPath): SplFileInfo
     {
-        $fileNode = $xPath->query('/phpunit/file')[0];
+        $fileNode = $xPath->queryList('/phpunit/file')[0];
 
         Assert::notNull($fileNode);
 
