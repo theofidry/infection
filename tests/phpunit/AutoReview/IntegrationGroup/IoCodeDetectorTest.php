@@ -89,7 +89,7 @@ final class IoCodeDetectorTest extends TestCase
             <<<'PHP'
                 <?php
 
-                use Symfony\Component\Filesystem\Filesystem;
+                use Infection\FileSystem\FileSystem;
 
                 (new Filesystem)->dumpFile('foo.php', '');
                 PHP,

@@ -136,6 +136,7 @@ final class IoCodeDetector
 
     private const ARBITRARY_STATEMENTS = [
         'use Symfony\Component\Filesystem\Filesystem;',
+        'use Infection\FileSystem\FileSystem;',
     ];
 
     /**

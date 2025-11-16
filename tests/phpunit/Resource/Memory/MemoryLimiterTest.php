@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Resource\Memory;
 
+use Infection\FileSystem\FileSystem;
 use Infection\Resource\Memory\MemoryLimiter;
 use Infection\Resource\Memory\MemoryLimiterEnvironment;
 use Infection\TestFramework\AbstractTestFrameworkAdapter;
@@ -47,14 +48,13 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use function sprintf;
-use Symfony\Component\Filesystem\Filesystem;
 
 #[Group('integration')]
 #[CoversClass(MemoryLimiter::class)]
 final class MemoryLimiterTest extends FileSystemTestCase
 {
     /**
-     * @var Filesystem|MockObject
+     * @var FileSystem|MockObject
      */
     private $fileSystemMock;
 
@@ -70,7 +70,7 @@ final class MemoryLimiterTest extends FileSystemTestCase
 
     protected function setUp(): void
     {
-        $this->fileSystemMock = $this->createMock(Filesystem::class);
+        $this->fileSystemMock = $this->createMock(FileSystem::class);
         $this->adapterMock = $this->createMock(AbstractTestFrameworkAdapter::class);
         $this->environmentMock = $this->createMock(MemoryLimiterEnvironment::class);
 

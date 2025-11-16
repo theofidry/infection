@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Tests\FileSystem\Locator;
 
+use Infection\FileSystem\FileSystem;
 use Infection\FileSystem\Locator\FileNotFound;
 use Infection\FileSystem\Locator\RootsFileLocator;
 use Infection\Framework\OperatingSystem;
@@ -45,7 +46,6 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use function Safe\realpath;
 use function sprintf;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 /**
@@ -58,13 +58,13 @@ final class RootsFileLocatorTest extends TestCase
     private const FIXTURES_DIR = __DIR__ . '/../../Fixtures/Locator';
 
     /**
-     * @var Filesystem
+     * @var FileSystem
      */
     private $filesystem;
 
     protected function setUp(): void
     {
-        $this->filesystem = new Filesystem();
+        $this->filesystem = new FileSystem();
     }
 
     /**

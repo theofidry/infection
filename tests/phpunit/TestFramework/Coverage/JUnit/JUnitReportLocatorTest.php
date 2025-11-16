@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\TestFramework\Coverage\JUnit;
 
 use const DIRECTORY_SEPARATOR;
+use Infection\FileSystem\FileSystem;
 use Infection\FileSystem\Locator\FileNotFound;
 use Infection\Framework\OperatingSystem;
 use Infection\TestFramework\Coverage\JUnit\JUnitReportLocator;
@@ -46,7 +47,6 @@ use PHPUnit\Framework\Attributes\Group;
 use function Safe\chdir;
 use function Safe\touch;
 use function sprintf;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 #[Group('integration')]
@@ -108,7 +108,7 @@ final class JUnitReportLocatorTest extends FileSystemTestCase
     #[DataProvider('jUnitPathsProvider')]
     public function test_it_can_find_more_exotic_junit_file_names(string $jUnitRelativePaths): void
     {
-        (new Filesystem())->dumpFile($jUnitRelativePaths, '');
+        (new FileSystem())->dumpFile($jUnitRelativePaths, '');
 
         $expected = Path::canonicalize($this->tmp . DIRECTORY_SEPARATOR . $jUnitRelativePaths);
 

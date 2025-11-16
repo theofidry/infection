@@ -39,6 +39,7 @@ use function array_map;
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\StrykerConfig;
 use Infection\Console\LogVerbosity;
+use Infection\FileSystem\FileSystem;
 use Infection\Logger\DebugFileLogger;
 use Infection\Logger\FederatedLogger;
 use Infection\Logger\FileLogger;
@@ -63,7 +64,6 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use Symfony\Component\Filesystem\Filesystem;
 
 #[Group('integration')]
 #[CoversClass(FileLoggerFactory::class)]
@@ -80,7 +80,7 @@ final class FileLoggerFactoryTest extends TestCase
     private $resultsCollector;
 
     /**
-     * @var Filesystem|MockObject
+     * @var FileSystem|MockObject
      */
     private $fileSystemMock;
 
@@ -89,7 +89,7 @@ final class FileLoggerFactoryTest extends TestCase
         $this->metricsCalculator = new MetricsCalculator(2);
         $this->resultsCollector = new ResultsCollector();
 
-        $this->fileSystemMock = $this->createMock(Filesystem::class);
+        $this->fileSystemMock = $this->createMock(FileSystem::class);
     }
 
     public function test_it_does_not_create_any_logger_for_no_verbosity_level_and_no_badge(): void

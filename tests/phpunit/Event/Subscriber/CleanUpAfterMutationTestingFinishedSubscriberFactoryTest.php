@@ -38,25 +38,25 @@ namespace Infection\Tests\Event\Subscriber;
 use Infection\Event\Subscriber\CleanUpAfterMutationTestingFinishedSubscriber;
 use Infection\Event\Subscriber\CleanUpAfterMutationTestingFinishedSubscriberFactory;
 use Infection\Event\Subscriber\NullSubscriber;
+use Infection\FileSystem\FileSystem;
 use Infection\Tests\Fixtures\Console\FakeOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Filesystem\Filesystem;
 
 #[Group('integration')]
 #[CoversClass(CleanUpAfterMutationTestingFinishedSubscriberFactory::class)]
 final class CleanUpAfterMutationTestingFinishedSubscriberFactoryTest extends TestCase
 {
     /**
-     * @var Filesystem|MockObject
+     * @var FileSystem|MockObject
      */
     private $fileSystemMock;
 
     protected function setUp(): void
     {
-        $this->fileSystemMock = $this->createMock(Filesystem::class);
+        $this->fileSystemMock = $this->createMock(FileSystem::class);
         $this->fileSystemMock
             ->expects($this->never())
             ->method($this->anything())

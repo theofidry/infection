@@ -36,9 +36,9 @@ declare(strict_types=1);
 namespace Infection\FileSystem\Locator;
 
 use const DIRECTORY_SEPARATOR;
+use Infection\FileSystem\FileSystem;
 use function is_file;
 use function Safe\realpath;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
 
@@ -52,7 +52,7 @@ final readonly class RootsFileLocator implements Locator
      */
     public function __construct(
         private array $roots,
-        private Filesystem $filesystem,
+        private FileSystem $filesystem,
     ) {
         Assert::allString($roots);
     }

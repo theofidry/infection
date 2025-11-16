@@ -37,13 +37,13 @@ namespace Infection\Logger;
 
 use function implode;
 use function in_array;
+use Infection\FileSystem\FileSystem;
 use const PHP_EOL;
 use Psr\Log\LoggerInterface;
 use function Safe\file_put_contents;
 use function sprintf;
 use function str_starts_with;
 use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @internal
@@ -54,7 +54,7 @@ final readonly class FileLogger implements MutationTestingResultsLogger
 
     public function __construct(
         private string $filePath,
-        private Filesystem $fileSystem,
+        private FileSystem $fileSystem,
         private LineMutationTestingResultsLogger $lineLogger,
         private LoggerInterface $logger,
     ) {

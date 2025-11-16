@@ -42,6 +42,7 @@ use Infection\Event\MutantProcessWasFinished;
 use Infection\Event\MutationTestingWasFinished;
 use Infection\Event\MutationTestingWasStarted;
 use Infection\Event\Subscriber\MutationTestingConsoleLoggerSubscriber;
+use Infection\FileSystem\FileSystem;
 use Infection\Logger\FederatedLogger;
 use Infection\Logger\FileLogger;
 use Infection\Metrics\MetricsCalculator;
@@ -62,7 +63,6 @@ use function Safe\stream_get_contents;
 use function str_replace;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
-use Symfony\Component\Filesystem\Filesystem;
 
 #[Group('integration')]
 #[CoversClass(MutationTestingConsoleLoggerSubscriber::class)]
@@ -459,13 +459,13 @@ final class MutationTestingConsoleLoggerSubscriberTest extends TestCase
                 new FederatedLogger(
                     new FileLogger(
                         'relative/path.log',
-                        new Filesystem(),
+                        new FileSystem(),
                         new DummyLineMutationTestingResultsLogger([]),
                         new FakeLogger(),
                     ),
                     new FileLogger(
                         '/absolute/path.html',
-                        new Filesystem(),
+                        new FileSystem(),
                         new DummyLineMutationTestingResultsLogger([]),
                         new FakeLogger(),
                     ),

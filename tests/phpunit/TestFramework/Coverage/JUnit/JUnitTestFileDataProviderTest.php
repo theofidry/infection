@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Tests\TestFramework\Coverage\JUnit;
 
+use Infection\FileSystem\FileSystem;
 use Infection\TestFramework\Coverage\JUnit\JUnitReportLocator;
 use Infection\TestFramework\Coverage\JUnit\JUnitTestFileDataProvider;
 use InvalidArgumentException;
@@ -44,7 +45,6 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use function Safe\file_put_contents;
-use function Safe\tempnam;
 use function Safe\unlink;
 
 #[Group('integration')]
@@ -80,7 +80,7 @@ final class JUnitTestFileDataProviderTest extends TestCase
 
         $this->provider = new JUnitTestFileDataProvider($this->jUnitLocatorMock);
 
-        $this->tempfile = tempnam('', '');
+        $this->tempfile = (new FileSystem())->tmpFile('test');
     }
 
     protected function tearDown(): void

@@ -58,6 +58,7 @@ use Infection\Event\Subscriber\MutationGeneratingConsoleLoggerSubscriber;
 use Infection\Event\Subscriber\NullSubscriber;
 use Infection\Event\Subscriber\StopInfectionOnSigintSignalSubscriber;
 use Infection\FileSystem\DummyFileSystem;
+use Infection\FileSystem\FileSystem;
 use Infection\FileSystem\Finder\ConcreteComposerExecutableFinder;
 use Infection\FileSystem\Finder\NonExecutableFinder;
 use Infection\FileSystem\Finder\TestFrameworkFinder;
@@ -127,6 +128,7 @@ final class ProjectCodeProvider
         DummyFileSystem::class,
         XdebugHandler::class,
         NullSubscriber::class,
+        FileSystem::class,
         FormatterName::class,
         ShellCommandLineExecutor::class,
         CpuCoresCountProvider::class,
@@ -166,6 +168,7 @@ final class ProjectCodeProvider
      */
     public const NON_FINAL_EXTENSION_CLASSES = [
         ConsoleHelper::class,
+        FileSystem::class,
         SourceDirGuesser::class,
         TestFrameworkFinder::class,
         StrykerDashboardClient::class,
@@ -305,9 +308,6 @@ final class ProjectCodeProvider
             ->files()
             ->name('*.php')
             ->in(__DIR__ . '/../../../../tests')
-            ->notName('Helpers.php')
-            ->notName('DummySymfony5FileSystem.php')
-            ->notName('DummySymfony6FileSystem.php')
             ->exclude([
                 'autoloaded',
                 'benchmark',

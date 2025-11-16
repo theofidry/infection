@@ -149,6 +149,10 @@ parameters:
             identifier: argument.type
             path: ../tests/phpunit/Configuration/ConfigurationFactoryTest.php
 
+        -
+            message: '#Do not use magic number#'
+            path: ../src/FileSystem/FileSystem.php
+
     level: 8
     paths:
         - ../src

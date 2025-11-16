@@ -37,12 +37,12 @@ namespace Infection\Logger;
 
 use Infection\Configuration\Entry\Logs;
 use Infection\Console\LogVerbosity;
+use Infection\FileSystem\FileSystem;
 use Infection\Logger\Html\HtmlFileLogger;
 use Infection\Logger\Html\StrykerHtmlReportBuilder;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @internal
@@ -53,7 +53,7 @@ class FileLoggerFactory
     public function __construct(
         private readonly MetricsCalculator $metricsCalculator,
         private readonly ResultsCollector $resultsCollector,
-        private readonly Filesystem $filesystem,
+        private readonly FileSystem $filesystem,
         private readonly string $logVerbosity,
         private readonly bool $debugMode,
         private readonly bool $onlyCoveredCode,

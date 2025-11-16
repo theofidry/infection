@@ -39,6 +39,7 @@ use function array_map;
 use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\AbstractTestFramework\TestFrameworkAdapterFactory;
 use Infection\Config\ValueProvider\PCOVDirectoryProvider;
+use Infection\FileSystem\FileSystem;
 use Infection\TestFramework\CommandLineBuilder;
 use Infection\TestFramework\Coverage\JUnit\JUnitTestCaseSorter;
 use Infection\TestFramework\PhpUnit\CommandLine\ArgumentsAndOptionsBuilder;
@@ -50,7 +51,6 @@ use Infection\TestFramework\PhpUnit\Config\XmlConfigurationVersionProvider;
 use Infection\TestFramework\VersionParser;
 use function Safe\file_get_contents;
 use SplFileInfo;
-use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
 
 /**
@@ -81,7 +81,7 @@ final class PhpUnitAdapterFactory implements TestFrameworkAdapterFactory
 
         $configManipulator = new XmlConfigurationManipulator(
             new PathReplacer(
-                new Filesystem(),
+                new FileSystem(),
                 $testFrameworkConfigDir,
             ),
             $testFrameworkConfigDir,

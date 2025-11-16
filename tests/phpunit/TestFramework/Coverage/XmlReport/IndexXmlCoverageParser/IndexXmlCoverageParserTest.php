@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\TestFramework\Coverage\XmlReport\IndexXmlCoverageParser;
 
 use function array_diff;
+use Infection\FileSystem\FileSystem;
 use Infection\TestFramework\Coverage\XmlReport\IndexXmlCoverageParser;
 use Infection\TestFramework\Coverage\XmlReport\NoLineExecuted;
 use Infection\TestFramework\Coverage\XmlReport\NoLineExecutedInDiffLinesMode;
@@ -50,7 +51,6 @@ use PHPUnit\Framework\TestCase;
 use function Safe\file_get_contents;
 use function Safe\preg_replace;
 use function sprintf;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use Traversable;
 
@@ -62,13 +62,13 @@ final class IndexXmlCoverageParserTest extends TestCase
 
     private static ?string $fixturesOldXmlFileName = null;
 
-    private Filesystem $filesystem;
+    private FileSystem $filesystem;
 
     private IndexXmlCoverageParser $parser;
 
     protected function setUp(): void
     {
-        $this->filesystem = new Filesystem();
+        $this->filesystem = new FileSystem();
         $this->parser = new IndexXmlCoverageParser(false);
     }
 
@@ -233,7 +233,7 @@ final class IndexXmlCoverageParserTest extends TestCase
 
         self::$fixturesXmlFileName = Path::canonicalize(XmlCoverageFixtures::FIXTURES_COVERAGE_DIR . '/generated_index.xml');
 
-        (new Filesystem())->dumpFile(self::$fixturesXmlFileName, $correctedXml);
+        (new FileSystem())->dumpFile(self::$fixturesXmlFileName, $correctedXml);
 
         return self::$fixturesXmlFileName;
     }
@@ -260,7 +260,7 @@ final class IndexXmlCoverageParserTest extends TestCase
 
         self::$fixturesOldXmlFileName = Path::canonicalize(XmlCoverageFixtures::FIXTURES_OLD_COVERAGE_DIR . '/generated_index.xml');
 
-        (new Filesystem())->dumpFile(self::$fixturesOldXmlFileName, $correctedXml);
+        (new FileSystem())->dumpFile(self::$fixturesOldXmlFileName, $correctedXml);
 
         return self::$fixturesOldXmlFileName;
     }

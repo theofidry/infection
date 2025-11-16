@@ -39,13 +39,13 @@ use const DIRECTORY_SEPARATOR;
 use Infection\Config\ConsoleHelper;
 use Infection\Config\ValueProvider\ExcludeDirsProvider;
 use Infection\Console\IO;
+use Infection\FileSystem\FileSystem;
 use function microtime;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use function random_int;
 use function Safe\mkdir;
-use Symfony\Component\Filesystem\Filesystem;
 use function sys_get_temp_dir;
 
 #[Group('integration')]
@@ -58,7 +58,7 @@ final class ExcludeDirsProviderTest extends BaseProviderTestCase
     private $workspace;
 
     /**
-     * @var Filesystem
+     * @var FileSystem
      */
     private $fileSystem;
 
@@ -72,7 +72,7 @@ final class ExcludeDirsProviderTest extends BaseProviderTestCase
         $this->workspace = sys_get_temp_dir() . '/exclude' . microtime(true) . random_int(100, 999);
         mkdir($this->workspace, 0777, true);
 
-        $this->fileSystem = new Filesystem();
+        $this->fileSystem = new FileSystem();
 
         $this->provider = new ExcludeDirsProvider(
             $this->createMock(ConsoleHelper::class),

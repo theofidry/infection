@@ -56,6 +56,9 @@ return RectorConfig::configure()
         ],
     )
     ->withSkip([
+        AddCoversClassAttributeRector::class => [
+            __DIR__ . '/tests/phpunit/FileSystem/FileSystemTestCase.php',
+        ],
         ReadOnlyPropertyRector::class => [
             // property can't be readonly as it's returned by reference and may be updated
             __DIR__ . '/src/TestFramework/Coverage/TestLocations.php',

@@ -41,6 +41,7 @@ use Infection\Event\EventDispatcher\EventDispatcher;
 use Infection\Event\MutantProcessWasFinished;
 use Infection\Event\MutationTestingWasFinished;
 use Infection\Event\MutationTestingWasStarted;
+use Infection\FileSystem\FileSystem;
 use Infection\IterableCounter;
 use Infection\Mutant\Mutant;
 use Infection\Mutant\MutantExecutionResult;
@@ -49,7 +50,6 @@ use Infection\Mutation\Mutation;
 use Infection\Process\Factory\MutantProcessContainerFactory;
 use Infection\Process\MutantProcessContainer;
 use function Pipeline\take;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @internal
@@ -65,7 +65,7 @@ class MutationTestingRunner
         private readonly MutantFactory $mutantFactory,
         private readonly ProcessRunner $processRunner,
         private readonly EventDispatcher $eventDispatcher,
-        private readonly Filesystem $fileSystem,
+        private readonly FileSystem $fileSystem,
         private readonly DiffSourceCodeMatcher $diffSourceCodeMatcher,
         private readonly bool $runConcurrently,
         private readonly float $timeout,

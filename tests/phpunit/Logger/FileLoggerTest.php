@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
+use Infection\FileSystem\FileSystem;
 use Infection\Framework\Str;
 use Infection\Logger\FileLogger;
 use Infection\Tests\FileSystem\FileSystemTestCase;
@@ -44,7 +45,6 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LogLevel;
 use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
 
 #[Group('integration')]
 #[CoversClass(FileLogger::class)]
@@ -53,7 +53,7 @@ final class FileLoggerTest extends FileSystemTestCase
     private const LOG_FILE_PATH = '/path/to/text.log';
 
     /**
-     * @var Filesystem|MockObject
+     * @var FileSystem|MockObject
      */
     private $fileSystemMock;
 
@@ -66,7 +66,7 @@ final class FileLoggerTest extends FileSystemTestCase
     {
         parent::setUp();
 
-        $this->fileSystemMock = $this->createMock(Filesystem::class);
+        $this->fileSystemMock = $this->createMock(FileSystem::class);
         $this->logger = new DummyLogger();
     }
 

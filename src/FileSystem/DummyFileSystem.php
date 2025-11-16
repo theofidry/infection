@@ -35,13 +35,12 @@ declare(strict_types=1);
 
 namespace Infection\FileSystem;
 
-use Symfony\Component\Filesystem\Filesystem;
 use Traversable;
 
 /**
  * @internal
  */
-final class DummyFileSystem extends Filesystem
+final class DummyFileSystem extends FileSystem
 {
     public function copy(string $originFile, string $targetFile, bool $overwriteNewerFiles = false): void
     {
@@ -118,5 +117,18 @@ final class DummyFileSystem extends Filesystem
 
     public function appendToFile(string $filename, $content, bool $lock = false): void
     {
+    }
+
+    public function tmpFile(
+        string $prefix,
+        string $suffix = '',
+        ?string $targetDirectory = null,
+    ): string {
+        return '';
+    }
+
+    public function tmpDir(string $prefix, ?string $targetDirectory = null): string
+    {
+        return '';
     }
 }

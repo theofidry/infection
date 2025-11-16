@@ -36,7 +36,7 @@ declare(strict_types=1);
 namespace Infection\Event\Subscriber;
 
 use Infection\Event\MutationTestingWasFinished;
-use Symfony\Component\Filesystem\Filesystem;
+use Infection\FileSystem\FileSystem;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -47,7 +47,7 @@ final readonly class CleanUpAfterMutationTestingFinishedSubscriber implements Ev
     private const PHPUNIT_RESULT_CACHE_PATTERN = '/\.phpunit\.result\.cache\.(.*)/';
 
     public function __construct(
-        private Filesystem $filesystem,
+        private FileSystem $filesystem,
         private string $tmpDir,
     ) {
     }

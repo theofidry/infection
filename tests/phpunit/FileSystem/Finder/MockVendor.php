@@ -37,10 +37,10 @@ namespace Infection\Tests\FileSystem\Finder;
 
 use function array_filter;
 use function implode;
+use Infection\FileSystem\FileSystem;
 use Infection\Framework\OperatingSystem;
 use const PHP_EOL;
 use function Safe\file_put_contents;
-use Symfony\Component\Filesystem\Filesystem;
 
 final class MockVendor
 {
@@ -75,7 +75,7 @@ final class MockVendor
 
     public function __construct(
         private readonly string $tmpDir,
-        private readonly Filesystem $fileSystem,
+        private readonly FileSystem $fileSystem,
     ) {
         $vendorDir = $this->tmpDir . '/vendor';
         $this->vendorBinDir = $vendorDir . '/bin';

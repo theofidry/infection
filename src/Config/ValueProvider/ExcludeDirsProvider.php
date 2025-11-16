@@ -44,6 +44,7 @@ use const GLOB_ONLYDIR;
 use function in_array;
 use Infection\Config\ConsoleHelper;
 use Infection\Console\IO;
+use Infection\FileSystem\FileSystem;
 use Infection\FileSystem\Locator\Locator;
 use Infection\FileSystem\Locator\RootsFileOrDirectoryLocator;
 use function Safe\glob;
@@ -51,7 +52,6 @@ use function str_contains;
 use function str_replace;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @internal
@@ -63,7 +63,7 @@ final readonly class ExcludeDirsProvider
     public function __construct(
         private ConsoleHelper $consoleHelper,
         private QuestionHelper $questionHelper,
-        private Filesystem $filesystem,
+        private FileSystem $filesystem,
     ) {
     }
 

@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\StaticAnalysis\PHPStan\Adapter;
 
 use Generator;
+use Infection\FileSystem\FileSystem;
 use Infection\StaticAnalysis\PHPStan\Adapter\PHPStanAdapter;
 use Infection\StaticAnalysis\PHPStan\Mutant\PHPStanMutantExecutionResultFactory;
 use Infection\StaticAnalysis\PHPStan\Process\PHPStanMutantProcessFactory;
@@ -48,7 +49,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use function sprintf;
-use Symfony\Component\Filesystem\Filesystem;
 
 #[Group('integration')]
 #[CoversClass(PHPStanAdapter::class)]
@@ -66,7 +66,7 @@ final class PHPStanAdapterTest extends TestCase
     {
         $this->commandLineBuilder = $this->createMock(CommandLineBuilder::class);
         $this->mutantExecutionResultFactory = $this->createMock(PHPStanMutantExecutionResultFactory::class);
-        $this->fileSystem = $this->createMock(Filesystem::class);
+        $this->fileSystem = $this->createMock(FileSystem::class);
 
         $this->adapter = new PHPStanAdapter(
             $this->fileSystem,

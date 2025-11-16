@@ -37,6 +37,7 @@ namespace Infection\Tests\FileSystem\Finder;
 
 use function explode;
 use function getenv;
+use Infection\FileSystem\FileSystem;
 use Infection\FileSystem\Finder\ComposerExecutableFinder;
 use Infection\FileSystem\Finder\Exception\FinderException;
 use Infection\FileSystem\Finder\TestFrameworkFinder;
@@ -52,7 +53,6 @@ use function Safe\putenv;
 use function Safe\realpath;
 use function sprintf;
 use function strlen;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 
 /**
@@ -71,7 +71,7 @@ final class TestFrameworkFinderTest extends FileSystemTestCase
     private static $pathName;
 
     /**
-     * @var Filesystem
+     * @var FileSystem
      */
     private $fileSystem;
 
@@ -91,7 +91,7 @@ final class TestFrameworkFinderTest extends FileSystemTestCase
 
         parent::setUp();
 
-        $this->fileSystem = new Filesystem();
+        $this->fileSystem = new FileSystem();
 
         $this->composerFinder = $this->createMock(ComposerExecutableFinder::class);
         $this->composerFinder->method('find')
@@ -107,7 +107,7 @@ final class TestFrameworkFinderTest extends FileSystemTestCase
 
     public function test_it_can_load_a_custom_path(): void
     {
-        $filename = $this->fileSystem->tempnam($this->tmp, 'test');
+        $filename = $this->fileSystem->tmpFile('test', targetDirectory: $this->tmp);
 
         $frameworkFinder = new TestFrameworkFinder($this->composerFinder);
 
@@ -116,7 +116,7 @@ final class TestFrameworkFinderTest extends FileSystemTestCase
 
     public function test_invalid_custom_path_throws_exception(): void
     {
-        $filename = $this->fileSystem->tempnam($this->tmp, 'test');
+        $filename = $this->fileSystem->tmpFile('test', targetDirectory: $this->tmp);
         // Remove it so that the file doesn't exist
         $this->fileSystem->remove($filename);
 
