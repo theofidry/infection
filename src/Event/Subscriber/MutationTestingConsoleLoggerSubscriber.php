@@ -35,8 +35,6 @@ declare(strict_types=1);
 
 namespace Infection\Event\Subscriber;
 
-use function count;
-use function floor;
 use Generator;
 use Infection\Console\OutputFormatter\OutputFormatter;
 use Infection\Differ\DiffColorizer;
@@ -45,18 +43,20 @@ use Infection\Event\MutationTestingWasFinished;
 use Infection\Event\MutationTestingWasStarted;
 use Infection\Logger\FederatedLogger;
 use Infection\Logger\FileLogger;
-use Infection\Logger\MutationTestingResultsLogger;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Infection\Mutant\MutantExecutionResult;
+use Infection\Report\Reporter;
 use LogicException;
+use Symfony\Component\Console\Output\OutputInterface;
+use function count;
+use function floor;
 use function sprintf;
 use function str_pad;
-use const STR_PAD_LEFT;
 use function str_repeat;
 use function str_starts_with;
 use function strlen;
-use Symfony\Component\Console\Output\OutputInterface;
+use const STR_PAD_LEFT;
 
 /**
  * @internal
@@ -274,9 +274,9 @@ final class MutationTestingConsoleLoggerSubscriber implements EventSubscriber
     }
 
     /**
-     * @param array<int, MutationTestingResultsLogger> $allLoggers
+     * @param array<int, Reporter> $allLoggers
      *
-     * @return Generator<MutationTestingResultsLogger>
+     * @return Generator<Reporter>
      */
     private function getFileLoggers(array $allLoggers): Generator
     {

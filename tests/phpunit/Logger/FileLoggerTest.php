@@ -86,7 +86,7 @@ final class FileLoggerTest extends FileSystemTestCase
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame([], $this->logger->getLogs());
     }
@@ -100,7 +100,7 @@ final class FileLoggerTest extends FileSystemTestCase
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame([], $this->logger->getLogs());
     }
@@ -114,7 +114,7 @@ final class FileLoggerTest extends FileSystemTestCase
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame(
             [
@@ -143,7 +143,7 @@ final class FileLoggerTest extends FileSystemTestCase
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame(
             [

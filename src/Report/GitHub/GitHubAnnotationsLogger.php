@@ -33,19 +33,21 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\GitHub;
 
-use function getenv;
+use Infection\Logger\LineMutationTestingResultsLogger;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\DataReporter\DataProducer;
+use Symfony\Component\Filesystem\Path;
+use function getenv;
 use function Safe\shell_exec;
 use function str_replace;
-use Symfony\Component\Filesystem\Path;
 use function trim;
 
 /**
  * @internal
  */
-final class GitHubAnnotationsLogger implements LineMutationTestingResultsLogger
+final class GitHubAnnotationsLogger implements DataProducer
 {
     public const DEFAULT_OUTPUT = 'php://stdout';
 
@@ -61,10 +63,8 @@ final class GitHubAnnotationsLogger implements LineMutationTestingResultsLogger
         }
     }
 
-    public function getLogLines(): array
+    public function produce(): iterable|string
     {
-        $lines = [];
-
         foreach ($this->resultsCollector->getEscapedExecutionResults() as $escapedExecutionResult) {
             $error = [
                 'line' => $escapedExecutionResult->getOriginalStartingLine(),
@@ -75,14 +75,12 @@ final class GitHubAnnotationsLogger implements LineMutationTestingResultsLogger
                     TEXT,
             ];
 
-            $lines[] = $this->buildAnnotation(
+            yield $this->buildAnnotation(
                 /* @phpstan-ignore-next-line expects string, string|null given */
                 Path::makeRelative($escapedExecutionResult->getOriginalFilePath(), $this->loggerProjectRootDirectory),
                 $error,
             );
         }
-
-        return $lines;
     }
 
     /**

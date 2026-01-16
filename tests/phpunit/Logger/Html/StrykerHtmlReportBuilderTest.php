@@ -35,11 +35,8 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger\Html;
 
-use function array_map;
-use function implode;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\Framework\Str;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
 use Infection\Metrics\Collector;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
@@ -49,20 +46,23 @@ use Infection\Mutator\FunctionSignature\PublicVisibility;
 use Infection\Mutator\IgnoreMutator;
 use Infection\Mutator\Removal\ArrayItemRemoval;
 use Infection\Mutator\Removal\MethodCallRemoval;
+use Infection\Report\Stryker\StrykerHtmlReportBuilder;
 use Infection\Testing\MutatorName;
 use JsonSchema\Validator;
-use function Later\now;
-use const PHP_EOL;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use function array_map;
+use function implode;
+use function Later\now;
 use function Safe\base64_decode;
 use function Safe\file_get_contents;
 use function Safe\json_decode;
 use function Safe\json_encode;
 use function Safe\realpath;
 use function sprintf;
+use const PHP_EOL;
 
 #[Group('integration')]
 #[CoversClass(StrykerHtmlReportBuilder::class)]

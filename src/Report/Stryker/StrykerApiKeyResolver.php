@@ -33,15 +33,41 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Stryker;
+
+use Infection\Environment\CouldNotResolveStrykerApiKey;
+use function array_key_exists;
+use function array_slice;
+use function is_string;
 
 /**
  * @internal
+ *
+ * @see https://github.com/stryker-mutator/stryker-handbook/blob/master/dashboard.md#send-a-report-direcly-from-stryker
  */
-interface MutationTestingResultsLogger
+final class StrykerApiKeyResolver
 {
     /**
-     * Logs results of Mutation Testing to somewhere
+     * @param array<string, string> $environment
+     *
+     * @throws CouldNotResolveStrykerApiKey
      */
-    public function log(): void;
+    public function resolve(array $environment): string
+    {
+        $names = [
+            'INFECTION_BADGE_API_KEY', // deprecated
+            'INFECTION_DASHBOARD_API_KEY',
+            'STRYKER_DASHBOARD_API_KEY',
+        ];
+
+        foreach ($names as $name) {
+            if (!array_key_exists($name, $environment) || !is_string($environment[$name])) {
+                continue;
+            }
+
+            return $environment[$name];
+        }
+
+        throw CouldNotResolveStrykerApiKey::from(...array_slice($names, 1));
+    }
 }

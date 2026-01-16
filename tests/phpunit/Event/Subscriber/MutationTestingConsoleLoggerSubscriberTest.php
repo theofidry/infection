@@ -50,7 +50,7 @@ use Infection\Mutant\MutantExecutionResult;
 use Infection\Process\Runner\ProcessRunner;
 use Infection\Tests\Fixtures\Logger\DummyLineMutationTestingResultsLogger;
 use Infection\Tests\Fixtures\Logger\FakeLogger;
-use Infection\Tests\Logger\FakeMutationTestingResultsLogger;
+use Infection\Tests\Logger\FakeReporter;
 use const PHP_EOL;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -461,9 +461,9 @@ final class MutationTestingConsoleLoggerSubscriberTest extends TestCase
                         new DummyLineMutationTestingResultsLogger([]),
                         new FakeLogger(),
                     ),
-                    new FakeMutationTestingResultsLogger(),
+                    new FakeReporter(),
                 ),
-                new FakeMutationTestingResultsLogger(),
+                new FakeReporter(),
             ),
             0,
             withUncovered: true,

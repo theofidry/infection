@@ -33,40 +33,50 @@
 
 declare(strict_types=1);
 
-namespace Infection\Environment;
+namespace Infection\Report\Stryker;
 
-use function array_key_exists;
-use function array_slice;
-use function is_string;
+use Infection\Configuration\Entry\Logs;
+use Infection\Environment\BuildContextResolver;
+use Infection\Metrics\MetricsCalculator;
+use Infection\Report\Reporter;
+use Infection\Report\Stryker\Http\StrykerCurlClient;
+use Infection\Report\Stryker\Http\StrykerDashboardClient;
+use OndraM\CiDetector\CiDetector;
+use Psr\Log\LoggerInterface;
 
 /**
  * @internal
- *
- * @see https://github.com/stryker-mutator/stryker-handbook/blob/master/dashboard.md#send-a-report-direcly-from-stryker
+ * @final
  */
-final class StrykerApiKeyResolver
+class StrykerLoggerFactory
 {
-    /**
-     * @param array<string, string> $environment
-     *
-     * @throws CouldNotResolveStrykerApiKey
-     */
-    public function resolve(array $environment): string
+    public function __construct(
+        private readonly MetricsCalculator $metricsCalculator,
+        private readonly StrykerHtmlReportBuilder $strykerHtmlReportBuilder,
+        private readonly CiDetector $ciDetector,
+        private readonly LoggerInterface $logger,
+    ) {
+    }
+
+    public function createFromLogEntries(Logs $logConfig): ?Reporter
     {
-        $names = [
-            'INFECTION_BADGE_API_KEY', // deprecated
-            'INFECTION_DASHBOARD_API_KEY',
-            'STRYKER_DASHBOARD_API_KEY',
-        ];
+        $strykerConfig = $logConfig->getStrykerConfig();
 
-        foreach ($names as $name) {
-            if (!array_key_exists($name, $environment) || !is_string($environment[$name])) {
-                continue;
-            }
-
-            return $environment[$name];
+        if ($strykerConfig === null) {
+            return null;
         }
 
-        throw CouldNotResolveStrykerApiKey::from(...array_slice($names, 1));
+        return new StrykerLogger(
+            new BuildContextResolver($this->ciDetector),
+            new StrykerApiKeyResolver(),
+            new StrykerDashboardClient(
+                new StrykerCurlClient(),
+                $this->logger,
+            ),
+            $this->metricsCalculator,
+            $this->strykerHtmlReportBuilder,
+            $strykerConfig,
+            $this->logger,
+        );
     }
 }

@@ -37,11 +37,11 @@ namespace Infection\Tests\Logger;
 
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\StrykerConfig;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
-use Infection\Logger\StrykerLogger;
-use Infection\Logger\StrykerLoggerFactory;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\Stryker\StrykerHtmlReportBuilder;
+use Infection\Report\Stryker\StrykerLogger;
+use Infection\Report\Stryker\StrykerLoggerFactory;
 use Infection\Tests\Fixtures\FakeCiDetector;
 use Infection\Tests\Fixtures\Logger\FakeLogger;
 use PHPUnit\Framework\Attributes\CoversClass;

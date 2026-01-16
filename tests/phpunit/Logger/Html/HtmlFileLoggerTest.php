@@ -36,9 +36,9 @@ declare(strict_types=1);
 namespace Infection\Tests\Logger\Html;
 
 use Infection\Logger\Html\HtmlFileLogger;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\Stryker\StrykerHtmlReportBuilder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

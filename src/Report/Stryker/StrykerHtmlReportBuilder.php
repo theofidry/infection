@@ -33,20 +33,9 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger\Html;
+namespace Infection\Report\Stryker;
 
-use function array_filter;
-use function array_key_exists;
-use function array_keys;
-use function array_map;
-use function array_merge;
-use function array_reduce;
-use function array_slice;
-use function array_unique;
 use ArrayObject;
-use function current;
-use function implode;
-use function in_array;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\Framework\Str;
 use Infection\Metrics\MetricsCalculator;
@@ -60,10 +49,22 @@ use Infection\Mutator\MutatorFactory;
 use Infection\Mutator\MutatorResolver;
 use Infection\Mutator\ProfileList;
 use Infection\Mutator\Removal\MethodCallRemoval;
+use PhpParser\NodeAbstract;
+use Symfony\Component\Filesystem\Path;
+use Webmozart\Assert\Assert;
+use function array_filter;
+use function array_key_exists;
+use function array_keys;
+use function array_map;
+use function array_merge;
+use function array_reduce;
+use function array_slice;
+use function array_unique;
+use function current;
+use function implode;
+use function in_array;
 use function ltrim;
 use function md5;
-use const PHP_EOL;
-use PhpParser\NodeAbstract;
 use function Safe\file_get_contents;
 use function Safe\preg_match;
 use function Safe\preg_split;
@@ -71,8 +72,7 @@ use function sprintf;
 use function str_starts_with;
 use function strlen;
 use function substr;
-use Symfony\Component\Filesystem\Path;
-use Webmozart\Assert\Assert;
+use const PHP_EOL;
 
 /**
  * @internal
@@ -179,7 +179,7 @@ final readonly class StrykerHtmlReportBuilder
     }
 
     /**
-     * @param array<string, MutantExecutionResult[]> $resultsByPath
+     * @param MutantExecutionResult $resultsByPath
      *
      * @return ArrayObject<string, array<mixed>|string>
      */
@@ -211,7 +211,7 @@ final readonly class StrykerHtmlReportBuilder
     }
 
     /**
-     * @return array<string, MutantExecutionResult[]>
+     * @return MutantExecutionResult
      */
     private function retrieveResultsByPath(): array
     {

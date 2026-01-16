@@ -33,30 +33,15 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger\Http;
+namespace Infection\Tests\Logger;
 
-use Webmozart\Assert\Assert;
+use Infection\Report\Reporter;
+use Infection\Tests\UnsupportedMethod;
 
-/**
- * @internal
- */
-final readonly class Response
+final class FakeReporter implements Reporter
 {
-    public const HTTP_OK = 200;
-
-    public const HTTP_CREATED = 201;
-
-    public const HTTP_MAX_ERROR_CODE = 599;
-
-    public function __construct(
-        public int $statusCode,
-        public string $body,
-    ) {
-        Assert::range(
-            $statusCode,
-            self::HTTP_OK,
-            self::HTTP_MAX_ERROR_CODE,
-            'Expected an HTTP status code. Got "%s"',
-        );
+    public function report(): void
+    {
+        throw UnsupportedMethod::method(self::class, __FUNCTION__);
     }
 }

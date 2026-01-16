@@ -33,49 +33,30 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger\Http;
+namespace Infection\Report\Stryker\Http;
 
-use function in_array;
-use Psr\Log\LoggerInterface;
-use function sprintf;
+use Webmozart\Assert\Assert;
 
 /**
  * @internal
  */
-class StrykerDashboardClient
+final readonly class Response
 {
+    public const HTTP_OK = 200;
+
+    public const HTTP_CREATED = 201;
+
+    public const HTTP_MAX_ERROR_CODE = 599;
+
     public function __construct(
-        private readonly StrykerCurlClient $client,
-        private readonly LoggerInterface $logger,
+        public int $statusCode,
+        public string $body,
     ) {
-    }
-
-    public function sendReport(
-        string $repositorySlug,
-        string $branch,
-        string $apiKey,
-        string $reportJson,
-    ): void {
-        $response = $this->client->request(
-            $repositorySlug,
-            $branch,
-            $apiKey,
-            $reportJson,
+        Assert::range(
+            $statusCode,
+            self::HTTP_OK,
+            self::HTTP_MAX_ERROR_CODE,
+            'Expected an HTTP status code. Got "%s"',
         );
-
-        $statusCode = $response->statusCode;
-
-        if (!in_array($statusCode, [Response::HTTP_OK, Response::HTTP_CREATED], true)) {
-            $this->logger->warning(sprintf(
-                'Stryker dashboard returned an unexpected response code: %s',
-                $statusCode),
-            );
-        }
-
-        $this->logger->notice(sprintf(
-            'Dashboard response:%s%s',
-            "\r\n",
-            $response->body,
-        ));
     }
 }

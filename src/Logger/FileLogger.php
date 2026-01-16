@@ -35,20 +35,21 @@ declare(strict_types=1);
 
 namespace Infection\Logger;
 
+use Infection\Report\Reporter;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 use function implode;
 use function in_array;
-use const PHP_EOL;
-use Psr\Log\LoggerInterface;
 use function Safe\file_put_contents;
 use function sprintf;
 use function str_starts_with;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
+use const PHP_EOL;
 
 /**
  * @internal
  */
-final readonly class FileLogger implements MutationTestingResultsLogger
+final readonly class FileLogger implements Reporter
 {
     public const ALLOWED_PHP_STREAMS = ['php://stdout', 'php://stderr'];
 
@@ -60,7 +61,7 @@ final readonly class FileLogger implements MutationTestingResultsLogger
     ) {
     }
 
-    public function log(): void
+    public function report(): void
     {
         $content = implode(PHP_EOL, $this->lineLogger->getLogLines());
 

@@ -33,65 +33,49 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger\Http;
+namespace Infection\Report\Stryker\Http;
 
-use const CURLINFO_HTTP_CODE;
-use const CURLOPT_CUSTOMREQUEST;
-use const CURLOPT_HEADER;
-use const CURLOPT_HTTPHEADER;
-use const CURLOPT_POSTFIELDS;
-use const CURLOPT_RETURNTRANSFER;
-use const CURLOPT_URL;
-use function Safe\curl_exec;
-use function Safe\curl_getinfo;
-use function Safe\curl_init;
-use function Safe\curl_setopt;
+use Psr\Log\LoggerInterface;
+use function in_array;
 use function sprintf;
 
 /**
- * Sends a CURL request to the Stryker dashboard API.
- *
  * @internal
- * @final
- *
- * @see https://stryker-mutator.io/docs/General/dashboard
- * @see https://github.com/stryker-mutator/mutation-testing-elements/blob/master/packages/report-schema/src/mutation-testing-report-schema.json
  */
-class StrykerCurlClient
+class StrykerDashboardClient
 {
-    private const STRYKER_DASHBOARD_API_BASE_URL = 'https://dashboard.stryker-mutator.io/api/reports';
+    public function __construct(
+        private readonly StrykerCurlClient $client,
+        private readonly LoggerInterface $logger,
+    ) {
+    }
 
-    public function request(
+    public function sendReport(
         string $repositorySlug,
-        string $version,
+        string $branch,
         string $apiKey,
         string $reportJson,
-    ): Response {
-        $url = sprintf(
-            '%s/%s/%s',
-            self::STRYKER_DASHBOARD_API_BASE_URL,
+    ): void {
+        $response = $this->client->request(
             $repositorySlug,
-            $version,
+            $branch,
+            $apiKey,
+            $reportJson,
         );
 
-        $headers = [
-            'Content-Type: application/json',
-            'Host: dashboard.stryker-mutator.io',
-            sprintf('X-Api-Key: %s', $apiKey),
-        ];
+        $statusCode = $response->statusCode;
 
-        $handle = curl_init();
+        if (!in_array($statusCode, [Response::HTTP_OK, Response::HTTP_CREATED], true)) {
+            $this->logger->warning(sprintf(
+                'Stryker dashboard returned an unexpected response code: %s',
+                $statusCode),
+            );
+        }
 
-        curl_setopt($handle, CURLOPT_URL, $url);
-        curl_setopt($handle, CURLOPT_CUSTOMREQUEST, 'PUT');
-        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($handle, CURLOPT_POSTFIELDS, $reportJson);
-        curl_setopt($handle, CURLOPT_HEADER, true);
-
-        $body = (string) curl_exec($handle);
-        $statusCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-
-        return new Response($statusCode, $body);
+        $this->logger->notice(sprintf(
+            'Dashboard response:%s%s',
+            "\r\n",
+            $response->body,
+        ));
     }
 }

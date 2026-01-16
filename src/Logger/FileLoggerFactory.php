@@ -38,9 +38,11 @@ namespace Infection\Logger;
 use Infection\Configuration\Entry\Logs;
 use Infection\Console\LogVerbosity;
 use Infection\Logger\Html\HtmlFileLogger;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\GitHub\GitHubAnnotationsLogger;
+use Infection\Report\Reporter;
+use Infection\Report\Stryker\StrykerHtmlReportBuilder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -64,7 +66,7 @@ class FileLoggerFactory
     ) {
     }
 
-    public function createFromLogEntries(Logs $logConfig): MutationTestingResultsLogger
+    public function createFromLogEntries(Logs $logConfig): Reporter
     {
         $loggers = [];
 
@@ -121,7 +123,7 @@ class FileLoggerFactory
         }
     }
 
-    private function wrapWithFileLogger(string $filePath, LineMutationTestingResultsLogger $lineLogger): MutationTestingResultsLogger
+    private function wrapWithFileLogger(string $filePath, LineMutationTestingResultsLogger $lineLogger): Reporter
     {
         return new FileLogger(
             $filePath,

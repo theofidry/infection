@@ -35,8 +35,8 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
-use Infection\Logger\GitHubAnnotationsLogger;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\GitHub\GitHubAnnotationsLogger;
 use Infection\Tests\EnvVariableManipulation\BacksUpEnvironmentVariables;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;

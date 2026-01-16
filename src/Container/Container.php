@@ -35,7 +35,6 @@ declare(strict_types=1);
 
 namespace Infection\Container;
 
-use function array_filter;
 use DIContainer\Container as DIContainer;
 use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\CI\MemoizedCiDetector;
@@ -88,9 +87,6 @@ use Infection\Git\CommandLineGit;
 use Infection\Git\Git;
 use Infection\Logger\FederatedLogger;
 use Infection\Logger\FileLoggerFactory;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
-use Infection\Logger\MutationTestingResultsLogger;
-use Infection\Logger\StrykerLoggerFactory;
 use Infection\Metrics\FilteringResultsCollectorFactory;
 use Infection\Metrics\MaxTimeoutsChecker;
 use Infection\Metrics\MetricsCalculator;
@@ -117,6 +113,9 @@ use Infection\Process\Runner\MutationTestingRunner;
 use Infection\Process\Runner\ParallelProcessRunner;
 use Infection\Process\Runner\ProcessRunner;
 use Infection\Process\ShellCommandLineExecutor;
+use Infection\Report\Reporter;
+use Infection\Report\Stryker\StrykerHtmlReportBuilder;
+use Infection\Report\Stryker\StrykerLoggerFactory;
 use Infection\Resource\Memory\MemoryFormatter;
 use Infection\Resource\Memory\MemoryLimiter;
 use Infection\Resource\Memory\MemoryLimiterEnvironment;
@@ -154,7 +153,6 @@ use Infection\TestFramework\Tracing\TraceProvider;
 use Infection\TestFramework\Tracing\TraceProviderAdapterTracer;
 use Infection\TestFramework\Tracing\Tracer;
 use OndraM\CiDetector\CiDetector;
-use function php_ini_loaded_file;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
@@ -166,6 +164,8 @@ use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\Assert\Assert;
+use function array_filter;
+use function php_ini_loaded_file;
 
 /**
  * @internal
@@ -471,7 +471,7 @@ final class Container extends DIContainer
                     $config->processTimeout,
                 );
             },
-            MutationTestingResultsLogger::class => static fn (self $container): MutationTestingResultsLogger => new FederatedLogger(...array_filter([
+            Reporter::class => static fn (self $container): Reporter => new FederatedLogger(...array_filter([
                 $container->getFileLoggerFactory()->createFromLogEntries(
                     $container->getConfiguration()->logs,
                 ),
@@ -866,9 +866,9 @@ final class Container extends DIContainer
         return $this->get(StrykerLoggerFactory::class);
     }
 
-    public function getMutationTestingResultsLogger(): MutationTestingResultsLogger
+    public function getMutationTestingResultsLogger(): Reporter
     {
-        return $this->get(MutationTestingResultsLogger::class);
+        return $this->get(Reporter::class);
     }
 
     public function getTargetDetectionStatusesProvider(): TargetDetectionStatusesProvider

@@ -35,7 +35,6 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
-use function array_map;
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\StrykerConfig;
 use Infection\Console\LogVerbosity;
@@ -44,18 +43,18 @@ use Infection\Logger\FederatedLogger;
 use Infection\Logger\FileLogger;
 use Infection\Logger\FileLoggerFactory;
 use Infection\Logger\GitHubActionsLogTextFileLogger;
-use Infection\Logger\GitHubAnnotationsLogger;
 use Infection\Logger\GitLabCodeQualityLogger;
 use Infection\Logger\Html\HtmlFileLogger;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
 use Infection\Logger\JsonLogger;
-use Infection\Logger\MutationTestingResultsLogger;
 use Infection\Logger\PerMutatorLogger;
 use Infection\Logger\SummaryFileLogger;
 use Infection\Logger\SummaryJsonLogger;
 use Infection\Logger\TextFileLogger;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\GitHub\GitHubAnnotationsLogger;
+use Infection\Report\Reporter;
+use Infection\Report\Stryker\StrykerHtmlReportBuilder;
 use Infection\Tests\Fixtures\Logger\FakeLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -64,6 +63,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Filesystem\Filesystem;
+use function array_map;
 
 #[Group('integration')]
 #[CoversClass(FileLoggerFactory::class)]
@@ -356,7 +356,7 @@ final class FileLoggerFactoryTest extends TestCase
 
     private function assertRegisteredLoggersAre(
         array $expectedLoggerClasses,
-        MutationTestingResultsLogger $logger,
+        Reporter $logger,
     ): void {
         $this->assertInstanceOf(FederatedLogger::class, $logger);
 
