@@ -35,13 +35,13 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
-use Infection\Logger\SummaryFileLogger;
 use Infection\Metrics\MetricsCalculator;
+use Infection\Report\Summary\TextSummaryProducer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(SummaryFileLogger::class)]
+#[CoversClass(TextSummaryProducer::class)]
 final class SummaryFileLoggerTest extends TestCase
 {
     use CreateMetricsCalculator;
@@ -52,7 +52,7 @@ final class SummaryFileLoggerTest extends TestCase
         MetricsCalculator $metricsCalculator,
         string $expectedContents,
     ): void {
-        $logger = new SummaryFileLogger($metricsCalculator);
+        $logger = new TextSummaryProducer($metricsCalculator);
 
         $this->assertLoggedContentIs($expectedContents, $logger);
     }

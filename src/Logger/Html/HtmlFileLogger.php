@@ -35,21 +35,21 @@ declare(strict_types=1);
 
 namespace Infection\Logger\Html;
 
-use Infection\Logger\LineMutationTestingResultsLogger;
+use Infection\Report\Framework\DataProducer;
 use Infection\Report\Stryker\StrykerHtmlReportBuilder;
 use function Safe\json_encode;
 
 /**
  * @internal
  */
-final readonly class HtmlFileLogger implements LineMutationTestingResultsLogger
+final readonly class HtmlFileLogger implements DataProducer
 {
     public function __construct(
         private StrykerHtmlReportBuilder $strykerHtmlReportBuilder,
     ) {
     }
 
-    public function getLogLines(): array
+    public function produce(): array
     {
         return [
             <<<"HTML"

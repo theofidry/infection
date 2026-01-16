@@ -35,8 +35,8 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
-use Infection\Logger\GitHubActionsLogTextFileLogger;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\Text\GitHubActionsLogTextFileLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

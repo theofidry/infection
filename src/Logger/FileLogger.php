@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Logger;
 
+use Infection\Report\Framework\DataProducer;
 use Infection\Report\Reporter;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -56,14 +57,14 @@ final readonly class FileLogger implements Reporter
     public function __construct(
         private string $filePath,
         private Filesystem $fileSystem,
-        private LineMutationTestingResultsLogger $lineLogger,
+        private DataProducer $lineLogger,
         private LoggerInterface $logger,
     ) {
     }
 
     public function report(): void
     {
-        $content = implode(PHP_EOL, $this->lineLogger->getLogLines());
+        $content = implode(PHP_EOL, $this->lineLogger->produce());
 
         // If the output should be written to a stream then just write it directly
         if (str_starts_with($this->filePath, 'php://')) {

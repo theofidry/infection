@@ -33,9 +33,9 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Summary;
 
-use Infection\Metrics\MetricsCalculator;
+use Infection\Report\Framework\DataProducer;
 
 /**
  * Simple loggers recording the mutation result counts. This is mostly intended for internal
@@ -43,28 +43,28 @@ use Infection\Metrics\MetricsCalculator;
  *
  * @internal
  */
-final readonly class SummaryFileLogger implements LineMutationTestingResultsLogger
+final readonly class TextSummaryProducer implements DataProducer
 {
     public function __construct(
-        private MetricsCalculator $metricsCalculator,
+        private Summarizer $summarizer,
     ) {
     }
 
-    public function getLogLines(): array
+    public function produce(): iterable|string
     {
-        return [
-            'Total: ' . $this->metricsCalculator->getTotalMutantsCount(),
-            '',
-            'Killed by Test Framework: ' . $this->metricsCalculator->getKilledByTestsCount(),
-            'Killed by Static Analysis: ' . $this->metricsCalculator->getKilledByStaticAnalysisCount(),
-            'Errored: ' . $this->metricsCalculator->getErrorCount(),
-            'Syntax Errors: ' . $this->metricsCalculator->getSyntaxErrorCount(),
-            'Escaped: ' . $this->metricsCalculator->getEscapedCount(),
-            'Timed Out: ' . $this->metricsCalculator->getTimedOutCount(),
-            'Skipped: ' . $this->metricsCalculator->getSkippedCount(),
-            'Ignored: ' . $this->metricsCalculator->getIgnoredCount(),
-            'Not Covered: ' . $this->metricsCalculator->getNotTestedCount(),
-            '',
-        ];
+        $summary = $this->summarizer->summarize();
+
+        yield 'Total: ' . $summary->totalMutantsCount;
+        yield '';
+        yield 'Killed by Test Framework: ' . $summary->killedCount;
+        yield 'Killed by Static Analysis: ' . $summary->notCoveredCount;
+        yield 'Errored: ' . $summary->escapedCount;
+        yield 'Syntax Errors: ' . $summary->errorCount;
+        yield 'Escaped: ' . $summary->syntaxErrorCount;
+        yield 'Timed Out: ' . $summary->skippedCount;
+        yield 'Skipped: ' . $summary->ignoredCount;
+        yield 'Ignored: ' . $summary->timeOutCount;
+        yield 'Not Covered: ' . $summary->msi;
+        yield '';
     }
 }

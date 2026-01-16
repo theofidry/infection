@@ -33,21 +33,22 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Text;
 
-use function array_map;
-use function explode;
-use function implode;
 use Infection\Framework\Str;
 use Infection\Metrics\ResultsCollector;
 use Infection\Mutant\MutantExecutionResult;
-use const PHP_EOL;
+use Infection\Report\Framework\DataProducer;
+use function array_map;
+use function explode;
+use function implode;
 use function sprintf;
+use const PHP_EOL;
 
 /**
  * @internal
  */
-abstract readonly class BaseTextFileLogger implements LineMutationTestingResultsLogger
+abstract readonly class BaseTextFileLogger implements DataProducer
 {
     public function __construct(
         private ResultsCollector $resultsCollector,
@@ -57,7 +58,7 @@ abstract readonly class BaseTextFileLogger implements LineMutationTestingResults
     ) {
     }
 
-    public function getLogLines(): array
+    public function produce(): array
     {
         $separateSections = false;
 

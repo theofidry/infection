@@ -35,9 +35,8 @@ declare(strict_types=1);
 
 namespace Infection\Report\GitHub;
 
-use Infection\Logger\LineMutationTestingResultsLogger;
 use Infection\Metrics\ResultsCollector;
-use Infection\Report\DataReporter\DataProducer;
+use Infection\Report\Framework\DataProducer;
 use Symfony\Component\Filesystem\Path;
 use function getenv;
 use function Safe\shell_exec;
@@ -45,9 +44,15 @@ use function str_replace;
 use function trim;
 
 /**
+ * This producer
+ *Supposed to be used only with GitHub Actions. This logger prints GitHub Annotation warnings for escaped Mutants right in the Pull Request.
+ *
+ *
+ * @link https://infection.github.io/guide/command-line-options.html#logger-github
+ *
  * @internal
  */
-final class GitHubAnnotationsLogger implements DataProducer
+final class GitHubAnnotationsProducer implements DataProducer
 {
     public const DEFAULT_OUTPUT = 'php://stdout';
 

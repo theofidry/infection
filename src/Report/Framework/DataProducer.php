@@ -33,15 +33,18 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Framework;
 
 /**
+ * Service for producing mutation testing results report content. It does not
+ * care about the encoding or destination.
+ *
  * @internal
  */
-interface LineMutationTestingResultsLogger
+interface DataProducer
 {
     /**
-     * @return string[]
+     * @return iterable<string>|string
      */
-    public function getLogLines(): array;
+    public function produce(): iterable|string;
 }

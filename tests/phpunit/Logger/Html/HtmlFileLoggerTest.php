@@ -49,7 +49,7 @@ final class HtmlFileLoggerTest extends TestCase
     {
         $htmlLogger = new HtmlFileLogger(new StrykerHtmlReportBuilder(new MetricsCalculator(2), new ResultsCollector()));
 
-        $logLines = $htmlLogger->getLogLines();
+        $logLines = $htmlLogger->produce();
 
         $this->assertSame(
             <<<'HTML'

@@ -33,44 +33,47 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Summary;
 
-use Infection\Metrics\MetricsCalculator;
+use Infection\Report\Framework\DataProducer;
 use function json_encode;
 use const JSON_THROW_ON_ERROR;
 
 /**
  * @internal
  */
-final readonly class SummaryJsonLogger implements LineMutationTestingResultsLogger
+final readonly class JsonSummaryProducer implements DataProducer
 {
     public function __construct(
-        private MetricsCalculator $metricsCalculator,
+        private Summarizer $summarizer,
     ) {
     }
 
     /**
      * @return array{0: string}
      */
-    public function getLogLines(): array
+    public function produce(): array
     {
-        $data = [
-            'stats' => [
-                'totalMutantsCount' => $this->metricsCalculator->getTotalMutantsCount(),
-                'killedCount' => $this->metricsCalculator->getKilledByTestsCount(),
-                'notCoveredCount' => $this->metricsCalculator->getNotTestedCount(),
-                'escapedCount' => $this->metricsCalculator->getEscapedCount(),
-                'errorCount' => $this->metricsCalculator->getErrorCount(),
-                'syntaxErrorCount' => $this->metricsCalculator->getSyntaxErrorCount(),
-                'skippedCount' => $this->metricsCalculator->getSkippedCount(),
-                'ignoredCount' => $this->metricsCalculator->getIgnoredCount(),
-                'timeOutCount' => $this->metricsCalculator->getTimedOutCount(),
-                'msi' => $this->metricsCalculator->getMutationScoreIndicator(),
-                'mutationCodeCoverage' => $this->metricsCalculator->getCoverageRate(),
-                'coveredCodeMsi' => $this->metricsCalculator->getCoveredCodeMutationScoreIndicator(),
-            ],
-        ];
+        $summary = $this->summarizer->summarize();
 
-        return [json_encode($data, JSON_THROW_ON_ERROR)];
+        return json_encode(
+            [
+                'stats' => [
+                    $summary->totalMutantsCount,
+                    $summary->killedCount,
+                    $summary->notCoveredCount,
+                    $summary->escapedCount,
+                    $summary->errorCount,
+                    $summary->syntaxErrorCount,
+                    $summary->skippedCount,
+                    $summary->ignoredCount,
+                    $summary->timeOutCount,
+                    $summary->msi,
+                    $summary->mutationCodeCoverage,
+                    $summary->coveredCodeMsi,
+                ],
+            ],
+            JSON_THROW_ON_ERROR,
+        );
     }
 }

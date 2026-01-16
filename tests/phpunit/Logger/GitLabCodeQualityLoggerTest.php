@@ -36,18 +36,18 @@ declare(strict_types=1);
 namespace Infection\Tests\Logger;
 
 use Infection\Framework\Str;
-use Infection\Logger\GitLabCodeQualityLogger;
 use Infection\Metrics\ResultsCollector;
 use Infection\Mutant\DetectionStatus;
 use Infection\Mutator\Loop\For_;
+use Infection\Report\GitLab\GitLabCodeQualityLogger;
 use Infection\Tests\EnvVariableManipulation\BacksUpEnvironmentVariables;
-use const JSON_THROW_ON_ERROR;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use function Safe\base64_decode;
 use function Safe\json_decode;
+use const JSON_THROW_ON_ERROR;
 
 #[Group('integration')]
 #[CoversClass(GitLabCodeQualityLogger::class)]
@@ -164,7 +164,7 @@ final class GitLabCodeQualityLoggerTest extends TestCase
 
         $logger = new GitLabCodeQualityLogger($resultsCollector, null);
 
-        $this->assertStringContainsString('"path":"foo\/bar"', $logger->getLogLines()[0]);
+        $this->assertStringContainsString('"path":"foo\/bar"', $logger->produce()[0]);
     }
 
     public function test_it_logs_correctly_with_custom_project_dir(): void
@@ -176,7 +176,7 @@ final class GitLabCodeQualityLoggerTest extends TestCase
 
         $logger = new GitLabCodeQualityLogger($resultsCollector, '/custom/project/dir/');
 
-        $this->assertStringContainsString('"path":"foo\/bar"', $logger->getLogLines()[0]);
+        $this->assertStringContainsString('"path":"foo\/bar"', $logger->produce()[0]);
     }
 
     /**
@@ -184,7 +184,7 @@ final class GitLabCodeQualityLoggerTest extends TestCase
      */
     private function assertLoggedContentIs(array $expectedJson, GitLabCodeQualityLogger $logger): void
     {
-        $this->assertSame($expectedJson, json_decode($logger->getLogLines()[0], true, JSON_THROW_ON_ERROR));
+        $this->assertSame($expectedJson, json_decode($logger->produce()[0], true, JSON_THROW_ON_ERROR));
     }
 
     private static function createNonUtf8CharactersCollector(): ResultsCollector

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Infection\Report;
 
-use Infection\Report\DataReporter\DataProducer;
-use Infection\Report\Writer\ReportWriter;
+use Infection\Report\Framework\DataProducer;
+use Infection\Report\Framework\Writer\ReportWriter;
 
 final readonly class ComposableReporter implements Reporter
 {

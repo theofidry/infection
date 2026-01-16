@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Infection\Report\Writer;
+namespace Infection\Report\Framework\Writer;
 
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Output\StreamOutput;
 use UnexpectedValueException;
 use function is_string;
 

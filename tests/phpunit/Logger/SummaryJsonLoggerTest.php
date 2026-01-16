@@ -35,20 +35,20 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
-use Infection\Logger\SummaryJsonLogger;
 use Infection\Metrics\Collector;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Mutant\DetectionStatus;
 use Infection\Mutator\Loop\For_;
-use const JSON_THROW_ON_ERROR;
+use Infection\Report\Summary\JsonSummaryProducer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use function Safe\json_decode;
+use const JSON_THROW_ON_ERROR;
 
 #[Group('integration')]
-#[CoversClass(SummaryJsonLogger::class)]
+#[CoversClass(JsonSummaryProducer::class)]
 final class SummaryJsonLoggerTest extends TestCase
 {
     use CreateMetricsCalculator;
@@ -61,7 +61,7 @@ final class SummaryJsonLoggerTest extends TestCase
         MetricsCalculator $metricsCalculator,
         array $expectedContents,
     ): void {
-        $logger = new SummaryJsonLogger($metricsCalculator);
+        $logger = new JsonSummaryProducer($metricsCalculator);
 
         $this->assertLoggedContentIs($expectedContents, $logger);
     }
@@ -152,9 +152,9 @@ final class SummaryJsonLoggerTest extends TestCase
     /**
      * @param array<string, array<string, float|int>> $expectedJson
      */
-    private function assertLoggedContentIs(array $expectedJson, SummaryJsonLogger $logger): void
+    private function assertLoggedContentIs(array $expectedJson, JsonSummaryProducer $logger): void
     {
-        $this->assertSame($expectedJson, json_decode($logger->getLogLines()[0], true, JSON_THROW_ON_ERROR));
+        $this->assertSame($expectedJson, json_decode($logger->produce()[0], true, JSON_THROW_ON_ERROR));
     }
 
     private static function createUncoveredMetricsCalculator(): MetricsCalculator

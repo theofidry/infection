@@ -36,7 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\Logger;
 
 use Infection\Metrics\ResultsCollector;
-use Infection\Report\GitHub\GitHubAnnotationsLogger;
+use Infection\Report\GitHub\GitHubAnnotationsProducer;
 use Infection\Tests\EnvVariableManipulation\BacksUpEnvironmentVariables;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -44,7 +44,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 #[Group('integration')]
-#[CoversClass(GitHubAnnotationsLogger::class)]
+#[CoversClass(GitHubAnnotationsProducer::class)]
 final class GitHubAnnotationsLoggerTest extends TestCase
 {
     use BacksUpEnvironmentVariables;
@@ -73,9 +73,9 @@ final class GitHubAnnotationsLoggerTest extends TestCase
         ResultsCollector $resultsCollector,
         array $expectedLines,
     ): void {
-        $logger = new GitHubAnnotationsLogger($resultsCollector, null);
+        $logger = new GitHubAnnotationsProducer($resultsCollector, null);
 
-        $this->assertSame($expectedLines, $logger->getLogLines());
+        $this->assertSame($expectedLines, $logger->produce());
     }
 
     public static function metricsProvider(): iterable
@@ -101,9 +101,9 @@ final class GitHubAnnotationsLoggerTest extends TestCase
 
         $resultsCollector = self::createCompleteResultsCollector();
 
-        $logger = new GitHubAnnotationsLogger($resultsCollector, null);
+        $logger = new GitHubAnnotationsProducer($resultsCollector, null);
 
-        $this->assertStringContainsString('warning file=foo/bar', $logger->getLogLines()[0]);
+        $this->assertStringContainsString('warning file=foo/bar', $logger->produce()[0]);
     }
 
     public function test_it_logs_correctly_with_custom_github_workspace(): void
@@ -113,8 +113,8 @@ final class GitHubAnnotationsLoggerTest extends TestCase
 
         $resultsCollector = self::createCompleteResultsCollector();
 
-        $logger = new GitHubAnnotationsLogger($resultsCollector, '/custom/project/dir/');
+        $logger = new GitHubAnnotationsProducer($resultsCollector, '/custom/project/dir/');
 
-        $this->assertStringContainsString('warning file=foo/bar', $logger->getLogLines()[0]);
+        $this->assertStringContainsString('warning file=foo/bar', $logger->produce()[0]);
     }
 }

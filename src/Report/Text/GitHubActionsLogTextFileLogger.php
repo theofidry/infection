@@ -33,12 +33,12 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Text;
 
 use Infection\Mutant\MutantExecutionResult;
-use const PHP_EOL;
 use function sprintf;
 use function trim;
+use const PHP_EOL;
 
 /**
  * Uses the GitHub Actions line grouping feature to make the output more digestable and collapsable.

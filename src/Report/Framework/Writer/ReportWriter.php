@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Infection\Report\Writer;
+namespace Infection\Report\Framework\Writer;
 
 /**
  * Represents the hesitation to which the report is written/sent to. It can be

@@ -38,23 +38,23 @@ namespace Infection\Tests\Logger;
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\StrykerConfig;
 use Infection\Console\LogVerbosity;
-use Infection\Logger\DebugFileLogger;
 use Infection\Logger\FederatedLogger;
 use Infection\Logger\FileLogger;
-use Infection\Logger\FileLoggerFactory;
-use Infection\Logger\GitHubActionsLogTextFileLogger;
-use Infection\Logger\GitLabCodeQualityLogger;
 use Infection\Logger\Html\HtmlFileLogger;
 use Infection\Logger\JsonLogger;
 use Infection\Logger\PerMutatorLogger;
-use Infection\Logger\SummaryFileLogger;
-use Infection\Logger\SummaryJsonLogger;
-use Infection\Logger\TextFileLogger;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
-use Infection\Report\GitHub\GitHubAnnotationsLogger;
+use Infection\Report\Debug\DebugProducer;
+use Infection\Report\Framework\Factory\FileLoggerFactory;
+use Infection\Report\GitHub\GitHubAnnotationsProducer;
+use Infection\Report\GitLab\GitLabCodeQualityLogger;
 use Infection\Report\Reporter;
 use Infection\Report\Stryker\StrykerHtmlReportBuilder;
+use Infection\Report\Summary\JsonSummaryProducer;
+use Infection\Report\Summary\TextSummaryProducer;
+use Infection\Report\Text\GitHubActionsLogTextFileLogger;
+use Infection\Report\Text\TextFileLogger;
 use Infection\Tests\Fixtures\Logger\FakeLogger;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -177,7 +177,7 @@ final class FileLoggerFactoryTest extends TestCase
                 null,
                 null,
             ),
-            [GitHubActionsLogTextFileLogger::class, GitHubAnnotationsLogger::class],
+            [GitHubActionsLogTextFileLogger::class, GitHubAnnotationsProducer::class],
         ];
 
         yield 'html logger' => [
@@ -209,7 +209,7 @@ final class FileLoggerFactoryTest extends TestCase
                 null,
                 null,
             ),
-            [SummaryFileLogger::class],
+            [TextSummaryProducer::class],
         ];
 
         yield 'debug logger' => [
@@ -225,7 +225,7 @@ final class FileLoggerFactoryTest extends TestCase
                 null,
                 null,
             ),
-            [DebugFileLogger::class],
+            [DebugProducer::class],
         ];
 
         yield 'json logger' => [
@@ -289,7 +289,7 @@ final class FileLoggerFactoryTest extends TestCase
                 null,
                 null,
             ),
-            [GitHubAnnotationsLogger::class],
+            [GitHubAnnotationsProducer::class],
         ];
 
         yield 'summary-json logger' => [
@@ -305,7 +305,7 @@ final class FileLoggerFactoryTest extends TestCase
                 null,
                 'summary-json',
             ),
-            [SummaryJsonLogger::class],
+            [JsonSummaryProducer::class],
         ];
 
         yield 'all loggers' => [
@@ -324,13 +324,13 @@ final class FileLoggerFactoryTest extends TestCase
             [
                 TextFileLogger::class,
                 HtmlFileLogger::class,
-                SummaryFileLogger::class,
+                TextSummaryProducer::class,
                 JsonLogger::class,
                 GitLabCodeQualityLogger::class,
-                DebugFileLogger::class,
+                DebugProducer::class,
                 PerMutatorLogger::class,
-                SummaryJsonLogger::class,
-                GitHubAnnotationsLogger::class,
+                JsonSummaryProducer::class,
+                GitHubAnnotationsProducer::class,
             ],
         ];
     }

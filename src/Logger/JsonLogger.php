@@ -39,13 +39,14 @@ use Infection\Framework\Str;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Infection\Mutant\MutantExecutionResult;
+use Infection\Report\Framework\DataProducer;
 use function json_encode;
 use const JSON_THROW_ON_ERROR;
 
 /**
  * @internal
  */
-final readonly class JsonLogger implements LineMutationTestingResultsLogger
+final readonly class JsonLogger implements DataProducer
 {
     public function __construct(
         private MetricsCalculator $metricsCalculator,
@@ -57,7 +58,7 @@ final readonly class JsonLogger implements LineMutationTestingResultsLogger
     /**
      * @return array{0: string}
      */
-    public function getLogLines(): array
+    public function produce(): array
     {
         $data = [
             'stats' => [

@@ -33,21 +33,22 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\GitLab;
 
-use function getenv;
 use Infection\Framework\Str;
 use Infection\Metrics\ResultsCollector;
-use function json_encode;
-use const JSON_THROW_ON_ERROR;
-use function Safe\shell_exec;
+use Infection\Report\Framework\DataProducer;
 use Symfony\Component\Filesystem\Path;
+use function getenv;
+use function json_encode;
+use function Safe\shell_exec;
 use function trim;
+use const JSON_THROW_ON_ERROR;
 
 /**
  * @internal
  */
-final class GitLabCodeQualityLogger implements LineMutationTestingResultsLogger
+final class GitLabCodeQualityLogger implements DataProducer
 {
     public function __construct(
         private readonly ResultsCollector $resultsCollector,
@@ -61,7 +62,7 @@ final class GitLabCodeQualityLogger implements LineMutationTestingResultsLogger
         }
     }
 
-    public function getLogLines(): array
+    public function produce(): array
     {
         $lines = [];
 

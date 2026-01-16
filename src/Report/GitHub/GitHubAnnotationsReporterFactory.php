@@ -5,30 +5,18 @@ declare(strict_types=1);
 namespace Infection\Report\GitHub;
 
 use Infection\Configuration\Entry\Logs;
-use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Infection\Report\ComposableReporter;
-use Infection\Report\Factory\ReporterFactory;
+use Infection\Report\Framework\Factory\ReporterFactory;
+use Infection\Report\Framework\Writer\StreamWriter;
 use Infection\Report\NullReporter;
 use Infection\Report\Reporter;
-use Infection\Report\Stryker\StrykerHtmlReportBuilder;
-use Infection\Report\Writer\StreamWriter;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Filesystem\Filesystem;
 
-final readonly class GitHubAnnotationsFactory implements ReporterFactory
+final readonly class GitHubAnnotationsReporterFactory implements ReporterFactory
 {
     public function __construct(
-        private MetricsCalculator $metricsCalculator,
         private ResultsCollector $resultsCollector,
-        private Filesystem $filesystem,
-        private string $logVerbosity,
-        private bool $debugMode,
-        private bool $onlyCoveredCode,
-        private LoggerInterface $logger,
-        private StrykerHtmlReportBuilder $strykerHtmlReportBuilder,
         private ?string $loggerProjectRootDirectory,
-        private float $processTimeout,
         private bool $decoratedOutput,
     ) {
     }
@@ -40,7 +28,7 @@ final readonly class GitHubAnnotationsFactory implements ReporterFactory
         }
 
         return new ComposableReporter(
-            new GitHubAnnotationsLogger(
+            new GitHubAnnotationsProducer(
                 $this->resultsCollector,
                 $this->loggerProjectRootDirectory,
             ),

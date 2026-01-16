@@ -33,25 +33,30 @@
 
 declare(strict_types=1);
 
-namespace Infection\Tests\Logger;
+namespace Infection\Report\Text;
 
-use Infection\Framework\Str;
-use Infection\Report\Framework\DataProducer;
-use PHPUnit\Framework\TestCase;
 use function implode;
+use function sprintf;
+use function str_repeat;
+use function strlen;
+use const PHP_EOL;
 
 /**
- * @phpstan-require-extends TestCase
+ * @internal
  */
-trait LineLoggerAssertions
+final readonly class TextFileLogger extends BaseTextFileLogger
 {
-    private function assertLoggedContentIs(
-        string $expectedContents,
-        DataProducer $logger,
-    ): void {
-        $this->assertSame(
-            $expectedContents,
-            Str::toUnixLineEndings(implode("\n", $logger->produce())),
+    protected function getHeadlineLines(string $headlinePrefix): string
+    {
+        $headline = sprintf('%s mutants:', $headlinePrefix);
+
+        return implode(
+            PHP_EOL,
+            [
+                $headline,
+                str_repeat('=', strlen($headline)),
+                '',
+            ],
         );
     }
 }

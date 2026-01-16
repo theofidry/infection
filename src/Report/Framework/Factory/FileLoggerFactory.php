@@ -33,16 +33,23 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Framework\Factory;
 
 use Infection\Configuration\Entry\Logs;
 use Infection\Console\LogVerbosity;
+use Infection\Logger\FederatedLogger;
+use Infection\Logger\FileLogger;
 use Infection\Logger\Html\HtmlFileLogger;
+use Infection\Logger\JsonLogger;
+use Infection\Logger\PerMutatorLogger;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
-use Infection\Report\GitHub\GitHubAnnotationsLogger;
+use Infection\Report\Framework\DataProducer;
+use Infection\Report\GitLab\GitLabCodeQualityLogger;
 use Infection\Report\Reporter;
 use Infection\Report\Stryker\StrykerHtmlReportBuilder;
+use Infection\Report\Text\GitHubActionsLogTextFileLogger;
+use Infection\Report\Text\TextFileLogger;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -50,19 +57,19 @@ use Symfony\Component\Filesystem\Filesystem;
  * @internal
  * @final
  */
-class FileLoggerFactory
+readonly class FileLoggerFactory
 {
     public function __construct(
-        private readonly MetricsCalculator $metricsCalculator,
-        private readonly ResultsCollector $resultsCollector,
-        private readonly Filesystem $filesystem,
-        private readonly string $logVerbosity,
-        private readonly bool $debugMode,
-        private readonly bool $onlyCoveredCode,
-        private readonly LoggerInterface $logger,
-        private readonly StrykerHtmlReportBuilder $strykerHtmlReportBuilder,
-        private readonly ?string $loggerProjectRootDirectory,
-        private readonly float $processTimeout,
+        private MetricsCalculator $metricsCalculator,
+        private ResultsCollector $resultsCollector,
+        private Filesystem $filesystem,
+        private string $logVerbosity,
+        private bool $debugMode,
+        private bool $onlyCoveredCode,
+        private LoggerInterface $logger,
+        private StrykerHtmlReportBuilder $strykerHtmlReportBuilder,
+        private ?string $loggerProjectRootDirectory,
+        private float $processTimeout,
     ) {
     }
 
@@ -78,7 +85,7 @@ class FileLoggerFactory
     }
 
     /**
-     * @return iterable<string, LineMutationTestingResultsLogger>
+     * @return iterable<string, DataProducer>
      */
     private function createLineLoggers(Logs $logConfig): iterable
     {
@@ -94,10 +101,6 @@ class FileLoggerFactory
             yield $logConfig->getHtmlLogFilePath() => $this->createHtmlLogger();
         }
 
-        if ($logConfig->getSummaryLogFilePath() !== null) {
-            yield $logConfig->getSummaryLogFilePath() => $this->createSummaryLogger();
-        }
-
         if ($logConfig->getJsonLogFilePath() !== null) {
             yield $logConfig->getJsonLogFilePath() => $this->createJsonLogger();
         }
@@ -106,24 +109,12 @@ class FileLoggerFactory
             yield $logConfig->getGitlabLogFilePath() => $this->createGitlabLogger();
         }
 
-        if ($logConfig->getDebugLogFilePath() !== null) {
-            yield $logConfig->getDebugLogFilePath() => $this->createDebugLogger();
-        }
-
         if ($logConfig->getPerMutatorFilePath() !== null) {
             yield $logConfig->getPerMutatorFilePath() => $this->createPerMutatorLogger();
         }
-
-        if ($logConfig->getSummaryJsonLogFilePath() !== null) {
-            yield $logConfig->getSummaryJsonLogFilePath() => $this->createSummaryJsonLogger();
-        }
-
-        if ($logConfig->getUseGitHubAnnotationsLogger()) {
-            yield GitHubAnnotationsLogger::DEFAULT_OUTPUT => $this->createGitHubAnnotationsLogger();
-        }
     }
 
-    private function wrapWithFileLogger(string $filePath, LineMutationTestingResultsLogger $lineLogger): Reporter
+    private function wrapWithFileLogger(string $filePath, DataProducer $lineLogger): Reporter
     {
         return new FileLogger(
             $filePath,
@@ -133,7 +124,7 @@ class FileLoggerFactory
         );
     }
 
-    private function createTextLogger(Logs $logConfig): LineMutationTestingResultsLogger
+    private function createTextLogger(Logs $logConfig): DataProducer
     {
         if (
             $logConfig->getUseGitHubAnnotationsLogger()
@@ -155,19 +146,14 @@ class FileLoggerFactory
         );
     }
 
-    private function createHtmlLogger(): LineMutationTestingResultsLogger
+    private function createHtmlLogger(): DataProducer
     {
         return new HtmlFileLogger(
             $this->strykerHtmlReportBuilder,
         );
     }
 
-    private function createSummaryLogger(): LineMutationTestingResultsLogger
-    {
-        return new SummaryFileLogger($this->metricsCalculator);
-    }
-
-    private function createJsonLogger(): LineMutationTestingResultsLogger
+    private function createJsonLogger(): DataProducer
     {
         return new JsonLogger(
             $this->metricsCalculator,
@@ -176,36 +162,17 @@ class FileLoggerFactory
         );
     }
 
-    private function createGitlabLogger(): LineMutationTestingResultsLogger
+    private function createGitlabLogger(): DataProducer
     {
         return new GitLabCodeQualityLogger($this->resultsCollector, $this->loggerProjectRootDirectory);
     }
 
-    private function createGitHubAnnotationsLogger(): LineMutationTestingResultsLogger
-    {
-        return new GitHubAnnotationsLogger($this->resultsCollector, $this->loggerProjectRootDirectory);
-    }
-
-    private function createDebugLogger(): LineMutationTestingResultsLogger
-    {
-        return new DebugFileLogger(
-            $this->metricsCalculator,
-            $this->resultsCollector,
-            $this->onlyCoveredCode,
-        );
-    }
-
-    private function createPerMutatorLogger(): LineMutationTestingResultsLogger
+    private function createPerMutatorLogger(): DataProducer
     {
         return new PerMutatorLogger(
             $this->metricsCalculator,
             $this->resultsCollector,
             $this->processTimeout,
         );
-    }
-
-    private function createSummaryJsonLogger(): LineMutationTestingResultsLogger
-    {
-        return new SummaryJsonLogger($this->metricsCalculator);
     }
 }
