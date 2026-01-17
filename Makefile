@@ -18,7 +18,7 @@ BOX=./.tools/box
 BOX_URL="https://github.com/humbug/box/releases/download/4.5.1/box.phar"
 
 PHP_CS_FIXER=./.tools/php-cs-fixer
-PHP_CS_FIXER_URL="https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.65.0/php-cs-fixer.phar"
+PHP_CS_FIXER_URL="https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.89.2/php-cs-fixer.phar"
 
 PHPSTAN=./vendor/bin/phpstan
 RECTOR=./vendor/bin/rector
@@ -27,10 +27,14 @@ COLLISION_DETECTOR=./vendor/bin/detect-collisions
 PSALM=./.tools/psalm
 PSALM_URL="https://github.com/vimeo/psalm/releases/download/5.11.0/psalm.phar"
 
-PHPUNIT=vendor/phpunit/phpunit/phpunit
+PHPUNIT_BIN=vendor/phpunit/phpunit/phpunit
+CI ?=
+PHPUNIT=$(PHPUNIT_BIN)$(if $(CI), --no-progress,)
 PARATEST=vendor/bin/paratest
 
-INFECTION=./build/infection.phar
+PHPBENCH_REPORTS=--report=aggregate --report=bar_chart_iteration
+
+INFECTION=./dist/infection.phar
 
 DOCKER_RUN=docker compose run --rm
 DOCKER_RUN_82=$(DOCKER_RUN) php82 $(FLOCK) Makefile
@@ -40,6 +44,7 @@ FLOCK=./devTools/flock
 COMMIT_HASH=$(shell git rev-parse --short HEAD)
 
 BENCHMARK_MUTATION_GENERATOR_SOURCES=tests/benchmark/MutationGenerator/sources
+BENCHMARK_PARSE_GIT_DIFF_SOURCE=tests/benchmark/ParseGitDiff/diff
 BENCHMARK_TRACING_COVERAGE_DIR=tests/benchmark/Tracing/coverage
 BENCHMARK_TRACING_SUBMODULE=tests/benchmark/Tracing/benchmark-source
 BENCHMARK_TRACING_COVERAGE_SOURCE_DIR=$(BENCHMARK_TRACING_SUBMODULE)/dist/coverage
@@ -90,7 +95,7 @@ phpstan-baseline: vendor $(PHPSTAN)
 
 .PHONY: psalm-baseline
 psalm-baseline: vendor
-	$(PSALM) --threads=max --set-baseline=psalm-baseline.xml
+	$(PSALM) --threads=max --set-baseline=devTools/psalm-baseline.xml
 
 .PHONY: detect-collisions
 detect-collisions: vendor $(PHPSTAN)
@@ -98,7 +103,7 @@ detect-collisions: vendor $(PHPSTAN)
 
 .PHONY: psalm
 psalm: vendor $(PSALM)
-	$(PSALM) --threads=max
+	$(PSALM) --threads=max --use-baseline=devTools/psalm-baseline.xml
 
 .PHONY: rector
 rector: vendor $(RECTOR)
@@ -116,26 +121,62 @@ validate:
 profile: 	 	## Runs Blackfire
 profile:
 	$(MAKE) profile_mutation_generator
+	$(MAKE) profile_parse_git_diff
 	$(MAKE) profile_tracing
+
+.PHONY: benchmark
+benchmark: vendor \
+		$(BENCHMARK_MUTATION_GENERATOR_SOURCES) \
+		$(BENCHMARK_PARSE_GIT_DIFF_SOURCE) \
+		$(BENCHMARK_TRACING_SUBMODULE) \
+		$(BENCHMARK_TRACING_COVERAGE_DIR)
+	composer dump --classmap-authoritative --quiet
+	vendor/bin/phpbench run tests/benchmark $(PHPBENCH_REPORTS)
+	composer dump
 
 .PHONY: profile_mutation_generator
 profile_mutation_generator: vendor $(BENCHMARK_MUTATION_GENERATOR_SOURCES)
 	composer dump --classmap-authoritative --quiet
 	blackfire run \
-		--samples=5 \
 		--title="MutationGenerator" \
 		--metadata="commit=$(COMMIT_HASH)" \
 		php tests/benchmark/MutationGenerator/profile.php
+	composer dump
+
+.PHONY: benchmark_mutation_generator
+benchmark_mutation_generator: vendor $(BENCHMARK_MUTATION_GENERATOR_SOURCES)
+	composer dump --classmap-authoritative --quiet
+	vendor/bin/phpbench run tests/benchmark/MutationGenerator $(PHPBENCH_REPORTS)
+	composer dump
+
+.PHONY: profile_parse_git_diff
+profile_parse_git_diff: vendor $(BENCHMARK_PARSE_GIT_DIFF_SOURCE)
+	composer dump --classmap-authoritative --quiet
+	blackfire run \
+		--title="ParseGitDiff" \
+		--metadata="commit=$(COMMIT_HASH)" \
+		php tests/benchmark/ParseGitDiff/profile.php
+	composer dump
+
+.PHONY: benchmark_parse_git_diff
+benchmark_parse_git_diff: vendor $(BENCHMARK_PARSE_GIT_DIFF_SOURCE)
+	composer dump --classmap-authoritative --quiet
+	vendor/bin/phpbench run tests/benchmark/ParseGitDiff $(PHPBENCH_REPORTS)
 	composer dump
 
 .PHONY: profile_tracing
 profile_tracing: vendor $(BENCHMARK_TRACING_SUBMODULE) $(BENCHMARK_TRACING_COVERAGE_DIR)
 	composer dump --classmap-authoritative --quiet
 	blackfire run \
-		--samples=5 \
 		--title="Tracing" \
 		--metadata="commit=$(COMMIT_HASH)" \
 		php tests/benchmark/Tracing/profile.php
+	composer dump
+
+.PHONY: benchmark_tracing
+benchmark_tracing: vendor $(BENCHMARK_TRACING_SUBMODULE) $(BENCHMARK_TRACING_COVERAGE_DIR)
+	composer dump --classmap-authoritative --quiet
+	vendor/bin/phpbench run tests/benchmark/Tracing $(PHPBENCH_REPORTS)
 	composer dump
 
 
@@ -145,19 +186,19 @@ autoreview: cs-check phpstan psalm validate test-autoreview rector-check detect-
 
 .PHONY: test
 test:		 	## Runs all the tests
-test: autoreview test-unit test-e2e test-infection
+test: autoreview test-unit test-benchmark test-e2e test-infection
 
 .PHONY: test-docker
 test-docker:		## Runs all the tests on the different Docker platforms
 test-docker: autoreview test-unit-docker test-e2e-docker test-infection-docker
 
 .PHONY: test-autoreview
-test-autoreview: $(PHPUNIT) vendor
+test-autoreview: $(PHPUNIT_BIN) vendor
 	$(PHPUNIT) --configuration=phpunit_autoreview.xml
 
 .PHONY: test-unit
 test-unit:	 	## Runs the unit tests
-test-unit: $(PHPUNIT) vendor
+test-unit: $(PHPUNIT_BIN) vendor
 	$(PHPUNIT) --group $(PHPUNIT_GROUP) --exclude-group e2e
 
 .PHONY: test-unit-parallel
@@ -169,8 +210,17 @@ test-unit-parallel: $(PARATEST) vendor
 test-unit-docker:	## Runs the unit tests on the different Docker platforms
 test-unit-docker: test-unit-82-docker
 
-test-unit-82-docker: $(DOCKER_FILE_IMAGE) $(PHPUNIT)
+test-unit-82-docker: $(DOCKER_FILE_IMAGE) $(PHPUNIT_BIN)
 	$(DOCKER_RUN_82) $(PHPUNIT) --group $(PHPUNIT_GROUP)
+
+.PHONY: test-benchmark
+test-benchmark:	 	## Runs the benchmark tests
+test-benchmark: $(PHPUNIT_BIN) \
+		vendor \
+		$(BENCHMARK_MUTATION_GENERATOR_SOURCES) \
+		$(BENCHMARK_TRACING_SUBMODULE) \
+		$(BENCHMARK_TRACING_COVERAGE_DIR)
+	$(PHPUNIT) --group=benchmark
 
 .PHONY: test-e2e
 test-e2e: 	 	## Runs the end-to-end tests
@@ -179,8 +229,12 @@ test-e2e: test-e2e-phpunit
 
 .PHONY: test-e2e-phpunit
 test-e2e-phpunit:	## Runs PHPUnit-enabled subset of end-to-end tests
-test-e2e-phpunit: $(PHPUNIT) vendor
-	$(PHPUNIT) --group $(E2E_PHPUNIT_GROUP)
+test-e2e-phpunit: $(PHPUNIT_BIN) vendor
+	@if [ -x $(PARATEST) ]; then \
+		$(PARATEST) --group $(E2E_PHPUNIT_GROUP); \
+	else \
+		$(PHPUNIT) --group $(E2E_PHPUNIT_GROUP); \
+	fi
 
 .PHONY: test-e2e-docker
 test-e2e-docker: 	## Runs the end-to-end tests on the different Docker platforms
@@ -251,7 +305,7 @@ composer.lock: composer.json
 	composer install --prefer-dist
 	touch -c $@
 
-$(PHPUNIT): vendor phpunit.xml.dist
+$(PHPUNIT_BIN): vendor phpunit.xml.dist
 	touch -c $@
 
 phpunit.xml.dist:
@@ -266,6 +320,10 @@ $(DOCKER_FILE_IMAGE): devTools/Dockerfile
 
 $(BENCHMARK_MUTATION_GENERATOR_SOURCES): tests/benchmark/MutationGenerator/sources.tar.gz
 	cd tests/benchmark/MutationGenerator; tar -xzf sources.tar.gz
+	touch -c $@
+
+$(BENCHMARK_PARSE_GIT_DIFF_SOURCE):
+	php tests/benchmark/ParseGitDiff/generate-diff.php
 	touch -c $@
 
 $(BENCHMARK_TRACING_COVERAGE_DIR): $(BENCHMARK_TRACING_COVERAGE_SOURCE_DIR)

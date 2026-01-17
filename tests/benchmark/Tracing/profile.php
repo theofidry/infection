@@ -36,7 +36,6 @@ declare(strict_types=1);
 namespace Infection\Benchmark\Tracing;
 
 use Infection\Benchmark\InstrumentorFactory;
-use function is_int;
 use LogicException;
 use const PHP_INT_MAX;
 use function sprintf;
@@ -51,6 +50,7 @@ use Webmozart\Assert\Assert;
 require_once __DIR__ . '/../../../vendor/autoload.php';
 
 const MAX_TRACE_COUNT_OPT = 'max-trace-count';
+const PERCENTAGE_OPT = 'percentage';
 const DEBUG_OPT = 'debug';
 
 $input = new ArgvInput(
@@ -60,8 +60,15 @@ $input = new ArgvInput(
             MAX_TRACE_COUNT_OPT,
             null,
             InputOption::VALUE_REQUIRED,
-            'Maximum number of traces retrieved. Use -1 for no maximum',
+            'Maximum number of traces retrieved. Use -1 for no maximum.',
             '-1',
+        ),
+        new InputOption(
+            PERCENTAGE_OPT,
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Percentage of sources to process. [0,1], defaults to 1 = 100% of the sources processed.',
+            1.,
         ),
         new InputOption(
             DEBUG_OPT,
@@ -73,8 +80,6 @@ $input = new ArgvInput(
 );
 $output = new ConsoleOutput();
 $io = new SymfonyStyle($input, $output);
-
-$provideTraces = require __DIR__ . '/provide-traces-closure.php';
 
 /** @var positive-int $maxTraceCount */
 $maxTraceCount = (static function (InputInterface $input, string $optionName): int {
@@ -107,16 +112,46 @@ $maxTraceCount = (static function (InputInterface $input, string $optionName): i
     return $intValue;
 })($input, MAX_TRACE_COUNT_OPT);
 
+/** @var float $percentage */
+$percentage = (static function (InputInterface $input, string $optionName): float {
+    $option = $input->getOption($optionName);
+
+    Assert::numeric(
+        $option,
+        sprintf(
+            'Expected value of option "%s" to be numeric. Got "%s".',
+            $optionName,
+            $option,
+        ),
+    );
+
+    $floatValue = (float) $option;
+
+    Assert::range(
+        $floatValue,
+        0.,
+        1.,
+        sprintf(
+            'Expected value of option "%s" to be an element of [0,1]. Got "%s".',
+            $optionName,
+            $floatValue,
+        ),
+    );
+
+    return $floatValue;
+})($input, PERCENTAGE_OPT);
+
 $debug = $input->getOption(DEBUG_OPT);
 
 $instrumentor = InstrumentorFactory::create($debug);
 
 $count = $instrumentor->profile(
-    static fn () => $provideTraces($maxTraceCount),
+    static fn () => (require __DIR__ . '/create-main.php')($maxTraceCount, $percentage),
+    5,
     $io,
 );
 
-if (!is_int($count) || $count === 0) {
+if ($count === 0) {
     throw new LogicException('Something went wrong, no traces were actually generated.');
 }
 

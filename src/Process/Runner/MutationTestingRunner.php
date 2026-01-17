@@ -35,13 +35,14 @@ declare(strict_types=1);
 
 namespace Infection\Process\Runner;
 
+use Infection\TestFramework\TestFramework;
 use function array_key_exists;
 use Infection\Differ\DiffSourceCodeMatcher;
 use Infection\Event\EventDispatcher\EventDispatcher;
 use Infection\Event\MutantProcessWasFinished;
 use Infection\Event\MutationTestingWasFinished;
 use Infection\Event\MutationTestingWasStarted;
-use Infection\IterableCounter;
+use Infection\Framework\Iterable\IterableCounter;
 use Infection\Mutant\Mutant;
 use Infection\Mutant\MutantExecutionResult;
 use Infection\Mutant\MutantFactory;
@@ -71,6 +72,7 @@ class MutationTestingRunner
         private readonly float $timeout,
         private readonly array $ignoreSourceCodeMutatorsMap,
         private readonly ?string $mutantId = null,
+        private TestFramework $testFramework,
     ) {
     }
 
@@ -89,7 +91,17 @@ class MutationTestingRunner
             ->filter($this->ignoredByRegex(...))
             ->filter($this->uncoveredByTest(...))
             ->filter($this->takingTooLong(...))
-            ->cast(fn (Mutant $mutant) => $this->mutantToContainer($mutant, $testFrameworkExtraOptions))
+            ->cast($this->testFramework->test(...))
+            ->filter(function (MutantExecutionResult|MutantProcessContainer $result): bool {
+                if ($result instanceof MutantExecutionResult) {
+                    $this->eventDispatcher->dispatch($result);
+
+                    return false;
+                }
+
+                return true;
+            })
+            //->cast(fn (Mutant $mutant) => $this->mutantToContainer($mutant, $testFrameworkExtraOptions))
         ;
 
         take($this->processRunner->run($processContainers))

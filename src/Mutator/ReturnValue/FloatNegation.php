@@ -56,8 +56,7 @@ final class FloatNegation implements Mutator
         return new Definition(
             <<<'TXT'
                 Replaces a float value with its negated value. For example will replace `-33.4` with `33.4`.
-                TXT
-            ,
+                TXT,
             MutatorCategory::ORTHOGONAL_REPLACEMENT,
             null,
             <<<'DIFF'
@@ -95,11 +94,7 @@ final class FloatNegation implements Mutator
             return false;
         }
 
-        if ($expr->value === 0.0) {
-            return false;
-        }
-
-        return true;
+        return $expr->value !== 0.0;
     }
 
     /**

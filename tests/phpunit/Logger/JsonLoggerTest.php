@@ -35,13 +35,13 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
+use Infection\Framework\Str;
 use Infection\Logger\JsonLogger;
 use Infection\Metrics\Collector;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Infection\Mutant\DetectionStatus;
 use Infection\Mutator\Loop\For_;
-use Infection\Tests\TestingUtility\LineReturnNormalizer;
 use const JSON_THROW_ON_ERROR;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -56,6 +56,9 @@ final class JsonLoggerTest extends TestCase
 {
     use CreateMetricsCalculator;
 
+    /**
+     * @param array<string, array<int|string, array<string, array<string, int|string>|string>|int|float>> $expectedContents
+     */
     #[DataProvider('metricsProvider')]
     public function test_it_logs_correctly_with_mutations(
         bool $onlyCovered,
@@ -130,7 +133,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 9,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'escaped#1';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'escaped#1';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                     [
@@ -141,7 +146,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'escaped#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'escaped#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -154,7 +161,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 9,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'timedOut#1';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'timedOut#1';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                     [
@@ -165,7 +174,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'timedOut#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'timedOut#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -178,7 +189,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 9,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'killed#1';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'killed#1';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                     [
@@ -189,7 +202,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'killed#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'killed#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -202,7 +217,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 9,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'killed by SA#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'killed by SA#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -215,7 +232,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 9,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'error#1';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'error#1';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                     [
@@ -226,7 +245,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'error#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'error#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -239,7 +260,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 9,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'syntaxError#1';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'syntaxError#1';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                     [
@@ -250,7 +273,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'syntaxError#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'syntaxError#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -264,7 +289,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 9,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'ignored#1';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'ignored#1';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                     [
@@ -275,7 +302,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'ignored#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'ignored#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -317,7 +346,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'uncovered#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'uncovered#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -361,7 +392,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'ignored#0';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'ignored#0';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -403,7 +436,9 @@ final class JsonLoggerTest extends TestCase
                             'originalFilePath' => 'foo/bar',
                             'originalStartLine' => 10,
                         ],
-                        'diff' => LineReturnNormalizer::normalize("--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'i?';"),
+                        'diff' => Str::toSystemLineEndings(
+                            "--- Original\n+++ New\n@@ @@\n\n- echo 'original';\n+ echo 'i?';",
+                        ),
                         'processOutput' => 'process output',
                     ],
                 ],
@@ -412,6 +447,9 @@ final class JsonLoggerTest extends TestCase
         ];
     }
 
+    /**
+     * @param array<string, array<int|string, array<string, array<string, int|string>|string>|float|int>> $expectedJson
+     */
     private function assertLoggedContentIs(array $expectedJson, JsonLogger $logger): void
     {
         $this->assertSame($expectedJson, json_decode($logger->getLogLines()[0], true, JSON_THROW_ON_ERROR));

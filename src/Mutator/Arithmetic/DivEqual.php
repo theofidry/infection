@@ -56,8 +56,7 @@ final class DivEqual implements Mutator
         return new Definition(
             <<<'TXT'
                 Replaces a division assignment operator (`/=`) with a multiplication assignment operator (`*=`).
-                TXT
-            ,
+                TXT,
             MutatorCategory::ORTHOGONAL_REPLACEMENT,
             null,
             <<<'DIFF'
@@ -87,11 +86,7 @@ final class DivEqual implements Mutator
             return false;
         }
 
-        if ($node->expr instanceof Node\Expr\UnaryMinus && $this->isNumericOne($node->expr->expr)) {
-            return false;
-        }
-
-        return true;
+        return !($node->expr instanceof Node\Expr\UnaryMinus && $this->isNumericOne($node->expr->expr));
     }
 
     private function isNumericOne(Node $node): bool

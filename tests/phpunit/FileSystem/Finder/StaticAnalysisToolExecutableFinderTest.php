@@ -35,13 +35,12 @@ declare(strict_types=1);
 
 namespace Infection\Tests\FileSystem\Finder;
 
-use const DIRECTORY_SEPARATOR;
 use function explode;
-use Generator;
 use function getenv;
 use Infection\FileSystem\Finder\ComposerExecutableFinder;
 use Infection\FileSystem\Finder\Exception\FinderException;
 use Infection\FileSystem\Finder\StaticAnalysisToolExecutableFinder;
+use Infection\Framework\OperatingSystem;
 use Infection\TestFramework\TestFrameworkTypes;
 use Infection\Tests\EnvVariableManipulation\BacksUpEnvironmentVariables;
 use Infection\Tests\FileSystem\FileSystemTestCase;
@@ -49,6 +48,8 @@ use const PATH_SEPARATOR;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\MockObject\MockObject;
+use function Safe\chdir;
 use function Safe\putenv;
 use function Safe\realpath;
 use function sprintf;
@@ -70,7 +71,7 @@ final class StaticAnalysisToolExecutableFinderTest extends FileSystemTestCase
 
     private Filesystem $fileSystem;
 
-    private ComposerExecutableFinder $composerFinder;
+    private ComposerExecutableFinder&MockObject $composerFinder;
 
     /**
      * Saves the current environment
@@ -85,6 +86,10 @@ final class StaticAnalysisToolExecutableFinderTest extends FileSystemTestCase
         $this->backupEnvironmentVariables();
 
         parent::setUp();
+
+        // This test relies on the current working directory to be the project
+        // root.
+        chdir(__DIR__ . '/../../../../');
 
         $this->fileSystem = new Filesystem();
 
@@ -129,7 +134,7 @@ final class StaticAnalysisToolExecutableFinderTest extends FileSystemTestCase
 
         $frameworkFinder = new StaticAnalysisToolExecutableFinder($this->composerFinder);
 
-        if ('\\' === DIRECTORY_SEPARATOR) {
+        if (OperatingSystem::isWindows()) {
             // The main script must be found from the .bat file
             $expected = realpath('vendor/phpunit/phpunit/phpunit');
         } else {
@@ -168,7 +173,7 @@ final class StaticAnalysisToolExecutableFinderTest extends FileSystemTestCase
 
         $frameworkFinder = new StaticAnalysisToolExecutableFinder($this->composerFinder);
 
-        if ('\\' === DIRECTORY_SEPARATOR) {
+        if (OperatingSystem::isWindows()) {
             // This .bat has no code, so main script will not be found
             $expected = $mock->getVendorBinBat();
         } else {
@@ -201,7 +206,7 @@ final class StaticAnalysisToolExecutableFinderTest extends FileSystemTestCase
         );
     }
 
-    public static function providesMockSetup(): Generator
+    public static function providesMockSetup(): iterable
     {
         yield 'composer-bat' => ['setUpComposerBatchTest'];
 

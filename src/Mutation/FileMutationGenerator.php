@@ -35,17 +35,22 @@ declare(strict_types=1);
 
 namespace Infection\Mutation;
 
-use Infection\Differ\FilesDiffChangedLines;
+use Infection\FileSystem\FileStore;
 use Infection\Mutator\Mutator;
 use Infection\Mutator\NodeMutationGenerator;
 use Infection\PhpParser\FileParser;
 use Infection\PhpParser\NodeTraverserFactory;
 use Infection\PhpParser\UnparsableFile;
-use Infection\PhpParser\Visitor\IgnoreNode\NodeIgnorer;
 use Infection\PhpParser\Visitor\MutationCollectorVisitor;
-use Infection\TestFramework\Coverage\LineRangeCalculator;
-use Infection\TestFramework\Coverage\Trace;
+use Infection\Source\Exception\NoSourceFound;
+use Infection\Source\Matcher\SourceLineMatcher;
+use Infection\TestFramework\Tracing\Throwable\NoTraceFound;
+use Infection\TestFramework\Tracing\Trace\EmptyTrace;
+use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
+use Infection\TestFramework\Tracing\Trace\Trace;
+use Infection\TestFramework\Tracing\Tracer;
 use PhpParser\Node;
+use SplFileInfo;
 use Webmozart\Assert\Assert;
 
 /**
@@ -58,34 +63,33 @@ class FileMutationGenerator
         private readonly FileParser $parser,
         private readonly NodeTraverserFactory $traverserFactory,
         private readonly LineRangeCalculator $lineRangeCalculator,
-        private readonly FilesDiffChangedLines $filesDiffChangedLines,
-        private readonly bool $isForGitDiffLines,
-        private readonly ?string $gitDiffBase,
+        private readonly SourceLineMatcher $sourceLineMatcher,
+        private readonly Tracer $tracer,
+        private readonly FileStore $fileStore,
     ) {
     }
 
     /**
      * @param Mutator<Node>[] $mutators
-     * @param NodeIgnorer[] $nodeIgnorers
      *
+     * @throws NoSourceFound
      * @throws UnparsableFile
      *
      * @return iterable<Mutation>
      */
     public function generate(
-        Trace $trace,
+        SplFileInfo $sourceFile,
         bool $onlyCovered,
         array $mutators,
-        array $nodeIgnorers,
     ): iterable {
         Assert::allIsInstanceOf($mutators, Mutator::class);
-        Assert::allIsInstanceOf($nodeIgnorers, NodeIgnorer::class);
+
+        $trace = $this->trace($sourceFile);
 
         if ($onlyCovered && !$trace->hasTests()) {
             return;
         }
 
-        $sourceFile = $trace->getSourceFileInfo();
         [$initialStatements, $originalFileTokens] = $this->parser->parse($sourceFile);
 
         // Pre-traverse the nodes to connect them
@@ -94,23 +98,30 @@ class FileMutationGenerator
 
         $mutationCollectorVisitor = new MutationCollectorVisitor(
             new NodeMutationGenerator(
-                $mutators,
-                $trace->getRealPath(),
-                $initialStatements,
-                $trace,
-                $onlyCovered,
-                $this->isForGitDiffLines,
-                $this->gitDiffBase,
-                $this->lineRangeCalculator,
-                $this->filesDiffChangedLines,
-                $originalFileTokens,
-                $sourceFile->getContents(),
+                mutators: $mutators,
+                filePath: $sourceFile->getRealPath(),
+                fileNodes: $initialStatements,
+                trace: $trace,
+                onlyCovered: $onlyCovered,
+                lineRangeCalculator: $this->lineRangeCalculator,
+                sourceLineMatcher: $this->sourceLineMatcher,
+                originalFileTokens: $originalFileTokens,
+                originalFileContent: $this->fileStore->getContents($sourceFile),
             ),
         );
 
-        $traverser = $this->traverserFactory->create($mutationCollectorVisitor, $nodeIgnorers);
+        $traverser = $this->traverserFactory->create($mutationCollectorVisitor);
         $traverser->traverse($initialStatements);
 
         yield from $mutationCollectorVisitor->getMutations();
+    }
+
+    private function trace(SplFileInfo $sourceFile): Trace
+    {
+        try {
+            return $this->tracer->trace($sourceFile);
+        } catch (NoTraceFound) {
+            return new EmptyTrace($sourceFile);
+        }
     }
 }

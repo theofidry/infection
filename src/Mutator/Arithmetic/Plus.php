@@ -56,8 +56,7 @@ final class Plus implements Mutator
         return new Definition(
             <<<'TXT'
                 Replaces an addition operator (`+`) with a subtraction operator (`-`).
-                TXT
-            ,
+                TXT,
             MutatorCategory::ORTHOGONAL_REPLACEMENT,
             null,
             <<<'DIFF'
@@ -87,10 +86,6 @@ final class Plus implements Mutator
             return false;
         }
 
-        if ($node->left instanceof Node\Expr\Array_ || $node->right instanceof Node\Expr\Array_) {
-            return false;
-        }
-
-        return true;
+        return !($node->left instanceof Node\Expr\Array_ || $node->right instanceof Node\Expr\Array_);
     }
 }

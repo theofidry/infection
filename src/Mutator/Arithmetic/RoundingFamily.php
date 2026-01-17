@@ -64,8 +64,7 @@ final class RoundingFamily implements Mutator
         return new Definition(
             <<<'TXT'
                 Replaces rounding operations. For example `floor()` will be replaced with `ceil()` and `round()`.
-                TXT
-            ,
+                TXT,
             MutatorCategory::ORTHOGONAL_REPLACEMENT,
             null,
             <<<'DIFF'
@@ -107,12 +106,7 @@ final class RoundingFamily implements Mutator
             return false;
         }
 
-        if (!$node->name instanceof Node\Name
-            || !in_array($node->name->toLowerString(), self::MUTATORS_MAP, true)
-        ) {
-            return false;
-        }
-
-        return true;
+        return $node->name instanceof Node\Name
+            && in_array($node->name->toLowerString(), self::MUTATORS_MAP, true);
     }
 }

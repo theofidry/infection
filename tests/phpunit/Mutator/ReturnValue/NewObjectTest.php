@@ -47,10 +47,10 @@ use PHPUnit\Framework\Attributes\Group;
 final class NewObjectTest extends BaseMutatorTestCase
 {
     /**
-     * @param string|string[] $expected
+     * @param string|string[]|null $expected
      */
     #[DataProvider('mutationsProvider')]
-    public function test_it_can_mutate(string $input, $expected = [], bool $allowed = true, string $message = ''): void
+    public function test_it_can_mutate(string $input, string|array|null $expected = [], bool $allowed = true, string $message = ''): void
     {
         if (!$allowed) {
             $this->markTestSkipped($message);
@@ -61,15 +61,15 @@ final class NewObjectTest extends BaseMutatorTestCase
     public static function mutationsProvider(): iterable
     {
         yield 'It does not mutate if no class name found' => [
-            <<<'PHP'
-                <?php
-
-                function test()
-                {
-                    $className = 'SimpleClass';
-                    $instance = new $className();
-                }
-                PHP,
+            self::wrapCodeInMethod(
+                <<<'PHP'
+                    function test()
+                    {
+                        $className = 'SimpleClass';
+                        $instance = new $className();
+                    }
+                    PHP,
+            ),
         ];
 
         yield 'It does not mutate with not nullable return typehint' => [
@@ -125,8 +125,7 @@ final class NewObjectTest extends BaseMutatorTestCase
                         return null;
                     }
                 }
-                CODE
-            ,
+                CODE,
         ];
 
         yield 'It does not mutate when function contains another function but return null is not allowed' => [
@@ -151,8 +150,7 @@ final class NewObjectTest extends BaseMutatorTestCase
                         return null;
                     }
                 }
-                CODE
-            ,
+                CODE,
         ];
 
         yield 'It mutates when scalar return typehint allows null' => [
@@ -172,8 +170,7 @@ final class NewObjectTest extends BaseMutatorTestCase
                         return null;
                     }
                 }
-                CODE
-            ,
+                CODE,
         ];
 
         yield 'It does not mutate the return of an anonymous class' => [
