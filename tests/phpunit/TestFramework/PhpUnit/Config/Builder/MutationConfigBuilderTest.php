@@ -65,21 +65,15 @@ final class MutationConfigBuilderTest extends FileSystemTestCase
 {
     public const HASH = 'a1b2c3';
 
-    private const FIXTURES = __DIR__ . '/../../../../Fixtures/Files/phpunit';
+    private const FIXTURES = __DIR__ . '/Fixtures';
 
     private const ORIGINAL_FILE_PATH = '/original/file/path';
 
     private const MUTATED_FILE_PATH = '/mutated/file/path';
 
-    /**
-     * @var string
-     */
-    private $projectPath;
+    private string $projectPath;
 
-    /**
-     * @var MutationConfigBuilder
-     */
-    private $builder;
+    private MutationConfigBuilder $builder;
 
     protected function setUp(): void
     {
@@ -154,8 +148,7 @@ final class MutationConfigBuilderTest extends FileSystemTestCase
                   </filter>
                 </phpunit>
 
-                XML
-            ,
+                XML,
             file_get_contents($configurationPath),
         );
     }
@@ -192,8 +185,7 @@ final class MutationConfigBuilderTest extends FileSystemTestCase
                   </filter>
                 </phpunit>
 
-                XML
-            ,
+                XML,
             file_get_contents(
                 $this->builder->build(
                     [
@@ -229,8 +221,7 @@ final class MutationConfigBuilderTest extends FileSystemTestCase
                 IncludeInterceptor::enable();
                 require_once '$projectPath/app/autoload2.php';
 
-                PHP
-            ,
+                PHP,
             $phpCode,
         );
 
@@ -262,8 +253,7 @@ final class MutationConfigBuilderTest extends FileSystemTestCase
                   </filter>
                 </phpunit>
 
-                XML
-            ,
+                XML,
             file_get_contents(
                 $this->builder->build(
                     [
@@ -299,8 +289,7 @@ final class MutationConfigBuilderTest extends FileSystemTestCase
                 IncludeInterceptor::enable();
                 require_once '$projectPath/app/autoload2.php';
 
-                PHP
-            ,
+                PHP,
             $phpCode,
         );
 
@@ -779,7 +768,8 @@ final class MutationConfigBuilderTest extends FileSystemTestCase
         ];
     }
 
-    private function queryXpath(string $xml, string $query)
+    // TODO: at this point it is better to use the SafeDOMXPath...
+    private function queryXpath(string $xml, string $query): DOMNodeList
     {
         $dom = new DOMDocument();
         $dom->loadXML($xml);

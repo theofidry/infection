@@ -37,7 +37,7 @@ namespace Infection\Command;
 
 use function getenv;
 use function in_array;
-use Infection\Container;
+use Infection\Container\Container;
 use Infection\Resource\Processor\CpuCoresCountProvider;
 use Infection\TestFramework\MapSourceClassToTestStrategy;
 use InvalidArgumentException;
@@ -45,16 +45,31 @@ use function is_numeric;
 use function max;
 use function sprintf;
 use Symfony\Component\Console\Input\InputInterface;
+use function trim;
 use Webmozart\Assert\Assert;
 
 /**
  * @internal
  */
-final class RunCommandHelper
+final readonly class RunCommandHelper
 {
     public function __construct(
-        private readonly InputInterface $input,
+        private InputInterface $input,
     ) {
+    }
+
+    /**
+     * @template T of string|null
+     * @param T $default
+     * @return (T is null ? string|null : string)
+     */
+    public function getStringOption(string $name, ?string $default = null): ?string
+    {
+        $optionValue = trim((string) $this->input->getOption($name));
+
+        return $optionValue === ''
+            ? $default
+            : $optionValue;
     }
 
     public function getUseGitHubLogger(): ?bool
@@ -158,5 +173,30 @@ final class RunCommandHelper
         Assert::same($shownMutations, 'max', sprintf('The value of option `--show-mutations` must be of type integer or string "max". String "%s" provided.', $shownMutations));
 
         return null; // unlimited mutations
+    }
+
+    public function getIgnoreMsiWithNoMutations(): ?bool
+    {
+        $ignoreMsiWithNoMutations = $this->input->getOption(RunCommand::OPTION_IGNORE_MSI_WITH_NO_MUTATIONS);
+
+        // OPTION_VALUE_NOT_PROVIDED means the option was not provided at all -> return null to preserve config value
+        // `null` or any other value means the option was provided -> return true to enable it
+        return match ($ignoreMsiWithNoMutations) {
+            RunCommand::OPTION_VALUE_NOT_PROVIDED => null,
+            default => true,
+        };
+    }
+
+    public function getTimeoutsAsEscaped(): bool
+    {
+        return (bool) $this->input->getOption(RunCommand::OPTION_WITH_TIMEOUTS);
+    }
+
+    public function getMaxTimeouts(): ?int
+    {
+        /** @var string|null $maxTimeoutsInput */
+        $maxTimeoutsInput = $this->input->getOption(RunCommand::OPTION_MAX_TIMEOUTS);
+
+        return $maxTimeoutsInput !== null ? (int) $maxTimeoutsInput : null;
     }
 }

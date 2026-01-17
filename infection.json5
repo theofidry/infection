@@ -19,6 +19,31 @@
             "report": "master"
         }
     },
+//    "testFramework": {
+//        "phpstan": {    // We support only some specific keys (it is already the case)
+//            "configDir": "devTools"
+//        },
+//        "psalm": {
+//            "configDir": "devTools",
+//            "enabled": false, // We could have a Psalm adapter, which is automatically installed, yet not want it to be enabled...
+//        },
+//        "phpunit": {
+//            // Each config could also be specific if there is a need to be...
+//            "configDir": "app",
+//            "customPath": "devTools/phpunit-12.phar",
+//            "initialTestsPhpOptions": "-d zend_extension=xdebug.so",    // can now be specific per adapter!
+//            "initialTestsCommandOptions": "--strict-coverage", // replaces "testFrameworkOptions"
+//            "mutationExecutionCommandOptions": "--random-order-seed=12356",
+//        },
+//        "phpspec": {
+//            "configDir": "app",
+//            "customPath": "devTools/phpunit-12.phar"
+//        },
+//        "behat": {
+//            "configDir": "app",
+//            "customPath": "behat.phar"
+//        }
+//    },
     "phpStan": {
         "configDir": "devTools"
     },
@@ -27,5 +52,26 @@
             "Assert::.*"
         ],
         "@default": true,
+
+        "ArrayItemRemoval": {
+            "ignore": [
+                "Infection\\Logger\\GitHub\\GitDiffFileProvider::provideDefaultBase"
+            ]
+        },
+        "MethodCallRemoval": {
+            "ignoreSourceCodeByRegex": [
+                // This is for the Symfony Console commands: the description is purely for documentation purposes.
+                ".*\\$this\\->setDescription\\(.*"
+            ]
+        },
+        "ProtectedVisibility": {
+            "ignore": [
+                // The mutations are not covered because this would require more tweaks in the
+                // BaseReportLocatorTest and its DemoReportLocator implementation.
+                // However, it is a tested extension point already hence making those tests more
+                // complicated for this is not worth.
+                "Infection\\TestFramework\\Coverage\\Locator\\BaseReportLocator",
+            ]
+        }
     }
 }

@@ -35,22 +35,22 @@ declare(strict_types=1);
 
 namespace Infection\Tests;
 
+use function file_exists;
 use Infection\Framework\OperatingSystem;
+use Infection\Framework\Str;
 use Infection\Tests\TestingUtility\Process\TestPhpExecutableFinder;
-use function is_dir;
 use const PHP_SAPI;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Path;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 /**
  * Smoke test to ensure the benchmark profile scripts somewhat work.
  */
-#[Group('integration')]
+#[Group('benchmark')]
 #[CoversNothing]
 final class BenchmarkSmokeTest extends TestCase
 {
@@ -60,8 +60,11 @@ final class BenchmarkSmokeTest extends TestCase
      * @param non-empty-list<string> $command
      */
     #[DataProvider('provideBenchmarks')]
-    public function test_all_the_benchmarks_can_be_executed(array $command, string $sourcesLocation): void
-    {
+    public function test_all_the_benchmarks_can_be_executed(
+        array $command,
+        string $sourcesLocation,
+        string $expectedOutput,
+    ): void {
         if (OperatingSystem::isWindows()) {
             $this->markTestSkipped('Not interested in profiling on Windows.');
         }
@@ -70,7 +73,7 @@ final class BenchmarkSmokeTest extends TestCase
             $this->markTestSkipped('This test requires running without PHPDBG.');
         }
 
-        if (!is_dir($sourcesLocation)) {
+        if (!file_exists($sourcesLocation)) {
             $this->markTestIncomplete('Benchmark requires sources to be prepared.');
         }
 
@@ -82,12 +85,11 @@ final class BenchmarkSmokeTest extends TestCase
             TestPhpExecutableFinder::find(),
             ...$command,
         ]);
+        $benchmarkProcess->mustRun();
 
-        $benchmarkProcess->run();
+        $actualOutput = Str::rTrimLines($benchmarkProcess->getOutput());
 
-        if (!$benchmarkProcess->isSuccessful()) {
-            throw new ProcessFailedException($benchmarkProcess);
-        }
+        $this->assertStringContainsString($expectedOutput, $actualOutput);
     }
 
     public static function provideBenchmarks(): iterable
@@ -99,6 +101,22 @@ final class BenchmarkSmokeTest extends TestCase
                 '--debug',
             ],
             self::BENCHMARK_DIR . '/MutationGenerator/sources',
+            <<<'STDOUT'
+                1 mutation(s) generated.
+
+                STDOUT,
+        ];
+
+        yield 'ParseGitDiff' => [
+            [
+                Path::canonicalize(self::BENCHMARK_DIR . '/ParseGitDiff/profile.php'),
+                '--debug',
+            ],
+            self::BENCHMARK_DIR . '/ParseGitDiff/diff',
+            <<<'STDOUT'
+                10000 changed line range(s) generated.
+
+                STDOUT,
         ];
 
         yield 'Tracing' => [
@@ -108,6 +126,10 @@ final class BenchmarkSmokeTest extends TestCase
                 '--debug',
             ],
             self::BENCHMARK_DIR . '/Tracing/coverage',
+            <<<'STDOUT'
+                1 trace(s) generated.
+
+                STDOUT,
         ];
     }
 }

@@ -60,7 +60,7 @@ final class PhpUnitAdapterFactory implements TestFrameworkAdapterFactory
 {
     /**
      * @param string[] $sourceDirectories
-     * @param list<SplFileInfo> $filteredSourceFilesToMutate
+     * @param SplFileInfo[] $filteredSourceFilesToMutate
      */
     public static function create(
         string $testFrameworkExecutable,
@@ -122,7 +122,7 @@ final class PhpUnitAdapterFactory implements TestFrameworkAdapterFactory
 
     public static function getAdapterName(): string
     {
-        return 'phpunit';
+        return 'PHPUnit';
     }
 
     public static function getExecutableName(): string

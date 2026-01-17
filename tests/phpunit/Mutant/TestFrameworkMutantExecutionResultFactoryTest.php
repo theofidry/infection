@@ -56,15 +56,9 @@ final class TestFrameworkMutantExecutionResultFactoryTest extends TestCase
 {
     use MutantExecutionResultAssertions;
 
-    /**
-     * @var TestFrameworkAdapter|MockObject
-     */
-    private $testFrameworkAdapterMock;
+    private MockObject&TestFrameworkAdapter $testFrameworkAdapterMock;
 
-    /**
-     * @var TestFrameworkMutantExecutionResultFactory
-     */
-    private $resultFactory;
+    private TestFrameworkMutantExecutionResultFactory $resultFactory;
 
     protected function setUp(): void
     {
@@ -98,7 +92,7 @@ final class TestFrameworkMutantExecutionResultFactoryTest extends TestCase
 
         $mutantProcess = new MutantProcess(
             $processMock,
-            MutantBuilder::build(
+            MutantBuilder::materialize(
                 '/path/to/mutant',
                 new Mutation(
                     $originalFilePath = 'path/to/Foo.php',
@@ -172,7 +166,7 @@ final class TestFrameworkMutantExecutionResultFactoryTest extends TestCase
 
         $mutantProcess = new MutantProcess(
             $processMock,
-            MutantBuilder::build(
+            MutantBuilder::materialize(
                 '/path/to/mutant',
                 new Mutation(
                     $originalFilePath = 'path/to/Foo.php',
@@ -258,7 +252,7 @@ final class TestFrameworkMutantExecutionResultFactoryTest extends TestCase
 
         $mutantProcess = new MutantProcess(
             $processMock,
-            MutantBuilder::build(
+            MutantBuilder::materialize(
                 '/path/to/mutant',
                 new Mutation(
                     $originalFilePath = 'path/to/Foo.php',
@@ -345,7 +339,7 @@ final class TestFrameworkMutantExecutionResultFactoryTest extends TestCase
 
         $mutantProcess = new MutantProcess(
             $processMock,
-            MutantBuilder::build(
+            MutantBuilder::materialize(
                 '/path/to/mutant',
                 new Mutation(
                     $originalFilePath = 'path/to/Foo.php',
@@ -432,7 +426,7 @@ final class TestFrameworkMutantExecutionResultFactoryTest extends TestCase
 
         $mutantProcess = new MutantProcess(
             $processMock,
-            MutantBuilder::build(
+            MutantBuilder::materialize(
                 '/path/to/mutant',
                 new Mutation(
                     $originalFilePath = 'path/to/Foo.php',
@@ -528,7 +522,7 @@ final class TestFrameworkMutantExecutionResultFactoryTest extends TestCase
 
         $mutantProcess = new MutantProcess(
             $processMock,
-            MutantBuilder::build(
+            MutantBuilder::materialize(
                 '/path/to/mutant',
                 new Mutation(
                     $originalFilePath = 'path/to/Foo.php',

@@ -58,8 +58,7 @@ final class Decrement implements Mutator
             <<<'TXT'
                 Replaces a pre- or post-decrement operator (`--`) with the analogue pre- or post-increment operator
                 (`++`).
-                TXT
-            ,
+                TXT,
             MutatorCategory::ORTHOGONAL_REPLACEMENT,
             null,
             <<<'DIFF'
@@ -93,10 +92,6 @@ final class Decrement implements Mutator
 
         $parentNode = ParentConnector::findParent($node);
 
-        if ($parentNode instanceof Node\Stmt\For_) {
-            return false;
-        }
-
-        return true;
+        return !$parentNode instanceof Node\Stmt\For_;
     }
 }

@@ -38,12 +38,16 @@ namespace Infection\Benchmark;
 use Closure;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/**
+ * The instrumentor is the service that will execute the code to provide. It is
+ * a tiny abstraction on top of the Blackfire instrumentor that was introduced
+ * to make it easier to switch to a dummy instrumentor for testing purposes.
+ */
 interface Instrumentor
 {
     /**
-     * @template T
-     *
-     * @param Closure(): T $main
+     * @param Closure(): (Closure(): (positive-int|0)) $createMain
+     * @param positive-int $sampleSize
      */
-    public function profile(Closure $main, SymfonyStyle $io): mixed;
+    public function profile(Closure $createMain, int $sampleSize, SymfonyStyle $io): int;
 }

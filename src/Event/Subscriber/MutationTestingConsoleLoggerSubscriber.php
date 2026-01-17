@@ -49,7 +49,6 @@ use Infection\Logger\MutationTestingResultsLogger;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Infection\Mutant\MutantExecutionResult;
-use function iterator_to_array;
 use LogicException;
 use function sprintf;
 use function str_pad;
@@ -83,6 +82,7 @@ final class MutationTestingConsoleLoggerSubscriber implements EventSubscriber
         private readonly FederatedLogger $mutationTestingResultsLogger,
         private readonly ?int $numberOfShownMutations,
         private readonly bool $withUncovered,
+        private readonly bool $withTimeouts,
     ) {
         $this->numberOfMutationsBudget = $this->numberOfShownMutations;
     }
@@ -110,6 +110,10 @@ final class MutationTestingConsoleLoggerSubscriber implements EventSubscriber
 
             if ($this->withUncovered) {
                 $this->showMutations($this->resultsCollector->getNotCoveredExecutionResults(), 'Not covered');
+            }
+
+            if ($this->withTimeouts) {
+                $this->showMutations($this->resultsCollector->getTimedOutExecutionResults(), 'Timed out');
             }
         }
 
@@ -246,18 +250,20 @@ final class MutationTestingConsoleLoggerSubscriber implements EventSubscriber
 
     private function showGeneratedLogFiles(): void
     {
-        /** @var FileLogger[] $fileLoggers */
-        $fileLoggers = iterator_to_array($this->getFileLoggers($this->mutationTestingResultsLogger->getLoggers()));
+        $hasLoggers = false;
 
-        if ($fileLoggers !== []) {
-            $this->output->writeln(['', 'Generated Reports:']);
-
-            foreach ($fileLoggers as $fileLogger) {
-                $this->output->writeln(
-                    $this->addIndentation(sprintf('- %s', $fileLogger->getFilePath())),
-                );
+        /** @var FileLogger $fileLogger */
+        foreach ($this->getFileLoggers($this->mutationTestingResultsLogger->loggers) as $fileLogger) {
+            if (!$hasLoggers) {
+                $this->output->writeln(['', 'Generated Reports:']);
             }
+            $this->output->writeln(
+                $this->addIndentation(sprintf('- %s', $fileLogger->getFilePath())),
+            );
+            $hasLoggers = true;
+        }
 
+        if ($hasLoggers) {
             return;
         }
 
@@ -276,7 +282,7 @@ final class MutationTestingConsoleLoggerSubscriber implements EventSubscriber
     {
         foreach ($allLoggers as $logger) {
             if ($logger instanceof FederatedLogger) {
-                yield from $this->getFileLoggers($logger->getLoggers());
+                yield from $this->getFileLoggers($logger->loggers);
             } elseif ($logger instanceof FileLogger && !str_starts_with($logger->getFilePath(), 'php://')) {
                 yield $logger;
             }

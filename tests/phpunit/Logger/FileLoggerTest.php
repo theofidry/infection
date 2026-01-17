@@ -35,10 +35,10 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
+use Infection\Framework\Str;
 use Infection\Logger\FileLogger;
 use Infection\Tests\FileSystem\FileSystemTestCase;
 use Infection\Tests\Fixtures\Logger\DummyLineMutationTestingResultsLogger;
-use Infection\Tests\TestingUtility\LineReturnNormalizer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -52,15 +52,9 @@ final class FileLoggerTest extends FileSystemTestCase
 {
     private const LOG_FILE_PATH = '/path/to/text.log';
 
-    /**
-     * @var Filesystem|MockObject
-     */
-    private $fileSystemMock;
+    private MockObject&Filesystem $fileSystemMock;
 
-    /**
-     * @var DummyLogger
-     */
-    private $logger;
+    private DummyLogger $logger;
 
     protected function setUp(): void
     {
@@ -77,7 +71,7 @@ final class FileLoggerTest extends FileSystemTestCase
             bar
             TXT;
 
-        $expectedContent = LineReturnNormalizer::normalize($expectedContent);
+        $expectedContent = Str::toSystemLineEndings($expectedContent);
 
         $this->fileSystemMock
             ->expects($this->once())

@@ -63,6 +63,7 @@ $finder = Finder::create()
         'tests/benchmark/Tracing/benchmark-source',
         'tests/e2e',
         'tests/phpunit/Fixtures',
+        'var',
     ])
     ->ignoreDotFiles(false)
     ->name('*php')
@@ -77,10 +78,10 @@ return (new Config())
     ->setParallelConfig(ParallelConfigFactory::detect())
     ->setRiskyAllowed(true)
     ->setRules([
-        '@PHP71Migration' => true,
-        '@PHP71Migration:risky' => true,
-        '@PHPUnit60Migration:risky' => true,
-        '@PHPUnit75Migration:risky' => true,
+        '@PHP7x1Migration' => true,
+        '@PHP7x1Migration:risky' => true,
+        '@PHPUnit6x0Migration:risky' => true,
+        '@PHPUnit7x5Migration:risky' => true,
         '@Symfony' => true,
         '@Symfony:risky' => true,
         'array_indentation' => true,
@@ -151,6 +152,8 @@ return (new Config())
         'phpdoc_align' => [
             'align' => 'left',
         ],
+        // This rule is buggy and does not only apply to phpdoc annotation...
+        'phpdoc_annotation_without_dot' => false,
         // Allow inline Psalm suppress statements
         'phpdoc_to_comment' => false,
         'php_unit_dedicate_assert' => true,
@@ -190,5 +193,5 @@ return (new Config())
         'blank_line_after_opening_tag' => false,
     ])
     ->setFinder($finder)
-    ->setCacheFile(__DIR__ . '/build/.php_cs.cache')
+    ->setCacheFile(__DIR__ . '/var/cache/php-cs-fixer')
 ;
