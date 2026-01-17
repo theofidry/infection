@@ -122,7 +122,7 @@ final class PhpUnitAdapterFactory implements TestFrameworkAdapterFactory
 
     public static function getAdapterName(): string
     {
-        return 'phpunit';
+        return 'PHPUnit';
     }
 
     public static function getExecutableName(): string

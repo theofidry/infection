@@ -598,6 +598,7 @@ final class RunCommand extends BaseCommand
         $config = $container->getConfiguration();
 
         if ($config->isStaticAnalysisEnabled()) {
+            // TODO: assertMinimumVersionSatisfied() should be part of the TestFramework
             $container->getStaticAnalysisToolAdapter()->assertMinimumVersionSatisfied();
         }
 

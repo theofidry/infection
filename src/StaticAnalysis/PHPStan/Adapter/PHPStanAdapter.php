@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\StaticAnalysis\PHPStan\Adapter;
 
+use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use function array_merge;
 use function explode;
 use Infection\Process\Factory\LazyMutantProcessFactory;
@@ -53,7 +54,7 @@ use function version_compare;
 /**
  * @internal
  */
-final class PHPStanAdapter implements StaticAnalysisToolAdapter
+final class PHPStanAdapter implements TestFrameworkAdapter
 {
     private const VERSION_1 = 1;
 
@@ -81,10 +82,11 @@ final class PHPStanAdapter implements StaticAnalysisToolAdapter
         return 'PHPStan';
     }
 
-    /**
-     * @return string[]
-     */
-    public function getInitialRunCommandLine(): array
+    public function getInitialTestRunCommandLine(
+        string $extraOptions,
+        array $phpExtraArgs,
+        bool $skipCoverage,
+    ): array
     {
         // we can't rely on stderr because it's used for other output (non-error)
         // see https://github.com/phpstan/phpstan/issues/11352#issuecomment-2233403781
@@ -174,5 +176,25 @@ final class PHPStanAdapter implements StaticAnalysisToolAdapter
         $process->mustRun();
 
         return $this->versionParser->parse($process->getOutput());
+    }
+
+    public function testsPass(string $output): bool
+    {
+        // TODO: Implement testsPass() method.
+    }
+
+    public function hasJUnitReport(): bool
+    {
+        return false;
+    }
+
+    public function getMutantCommandLine(array $coverageTests, string $mutatedFilePath, string $mutationHash, string $mutationOriginalFilePath, string $extraOptions): array
+    {
+        // TODO: Implement getMutantCommandLine() method.
+    }
+
+    public function getInitialTestsFailRecommendations(string $commandLine): string
+    {
+        // TODO: Implement getInitialTestsFailRecommendations() method.
     }
 }
