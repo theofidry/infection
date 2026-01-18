@@ -33,51 +33,15 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
-
-use Infection\Configuration\Entry\Logs;
-use Infection\Environment\BuildContextResolver;
-use Infection\Environment\StrykerApiKeyResolver;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
-use Infection\Logger\Http\StrykerCurlClient;
-use Infection\Logger\Http\StrykerDashboardClient;
-use Infection\Metrics\MetricsCalculator;
-use OndraM\CiDetector\CiDetector;
-use Psr\Log\LoggerInterface;
+namespace Infection\Report;
 
 /**
+ * Service for publishing mutation testing results to a destination (file, HTTP,
+ * stdout, etc.)
+ *
  * @internal
- * @final
  */
-class StrykerLoggerFactory
+interface Reporter
 {
-    public function __construct(
-        private readonly MetricsCalculator $metricsCalculator,
-        private readonly StrykerHtmlReportBuilder $strykerHtmlReportBuilder,
-        private readonly CiDetector $ciDetector,
-        private readonly LoggerInterface $logger,
-    ) {
-    }
-
-    public function createFromLogEntries(Logs $logConfig): ?MutationTestingResultsLogger
-    {
-        $strykerConfig = $logConfig->getStrykerConfig();
-
-        if ($strykerConfig === null) {
-            return null;
-        }
-
-        return new StrykerLogger(
-            new BuildContextResolver($this->ciDetector),
-            new StrykerApiKeyResolver(),
-            new StrykerDashboardClient(
-                new StrykerCurlClient(),
-                $this->logger,
-            ),
-            $this->metricsCalculator,
-            $this->strykerHtmlReportBuilder,
-            $strykerConfig,
-            $this->logger,
-        );
-    }
+    public function report(): void;
 }

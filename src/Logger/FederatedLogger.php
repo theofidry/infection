@@ -35,25 +35,27 @@ declare(strict_types=1);
 
 namespace Infection\Logger;
 
+use Infection\Report\Reporter;
+
 /**
  * @internal
  */
-final readonly class FederatedLogger implements MutationTestingResultsLogger
+final readonly class FederatedLogger implements Reporter
 {
     /**
-     * @var MutationTestingResultsLogger[]
+     * @var Reporter[]
      */
     public array $loggers;
 
-    public function __construct(MutationTestingResultsLogger ...$loggers)
+    public function __construct(Reporter ...$loggers)
     {
         $this->loggers = $loggers;
     }
 
-    public function log(): void
+    public function report(): void
     {
         foreach ($this->loggers as $logger) {
-            $logger->log();
+            $logger->report();
         }
     }
 }

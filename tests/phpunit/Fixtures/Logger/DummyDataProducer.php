@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Fixtures\Logger;
 
-use Infection\Logger\LineMutationTestingResultsLogger;
+use Infection\Report\Framework\DataProducer;
 
-final readonly class DummyLineMutationTestingResultsLogger implements LineMutationTestingResultsLogger
+final readonly class DummyDataProducer implements DataProducer
 {
     /**
      * @param string[] $lines
@@ -15,7 +15,7 @@ final readonly class DummyLineMutationTestingResultsLogger implements LineMutati
     {
     }
 
-    public function getLogLines(): array
+    public function produce(): array
     {
         return $this->lines;
     }

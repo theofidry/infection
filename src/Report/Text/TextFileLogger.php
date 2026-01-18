@@ -33,15 +33,30 @@
 
 declare(strict_types=1);
 
-namespace Infection\Tests\Logger;
+namespace Infection\Report\Text;
 
-use Infection\Logger\MutationTestingResultsLogger;
-use Infection\Tests\UnsupportedMethod;
+use function implode;
+use function sprintf;
+use function str_repeat;
+use function strlen;
+use const PHP_EOL;
 
-final class FakeMutationTestingResultsLogger implements MutationTestingResultsLogger
+/**
+ * @internal
+ */
+final readonly class TextFileLogger extends BaseTextFileLogger
 {
-    public function log(): void
+    protected function getHeadlineLines(string $headlinePrefix): string
     {
-        throw UnsupportedMethod::method(self::class, __FUNCTION__);
+        $headline = sprintf('%s mutants:', $headlinePrefix);
+
+        return implode(
+            PHP_EOL,
+            [
+                $headline,
+                str_repeat('=', strlen($headline)),
+                '',
+            ],
+        );
     }
 }

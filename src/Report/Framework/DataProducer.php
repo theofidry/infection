@@ -33,49 +33,18 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger\Http;
-
-use function in_array;
-use Psr\Log\LoggerInterface;
-use function sprintf;
+namespace Infection\Report\Framework;
 
 /**
+ * Service for producing mutation testing results report content. It does not
+ * care about the encoding or destination.
+ *
  * @internal
  */
-class StrykerDashboardClient
+interface DataProducer
 {
-    public function __construct(
-        private readonly StrykerCurlClient $client,
-        private readonly LoggerInterface $logger,
-    ) {
-    }
-
-    public function sendReport(
-        string $repositorySlug,
-        string $branch,
-        string $apiKey,
-        string $reportJson,
-    ): void {
-        $response = $this->client->request(
-            $repositorySlug,
-            $branch,
-            $apiKey,
-            $reportJson,
-        );
-
-        $statusCode = $response->statusCode;
-
-        if (!in_array($statusCode, [Response::HTTP_OK, Response::HTTP_CREATED], true)) {
-            $this->logger->warning(sprintf(
-                'Stryker dashboard returned an unexpected response code: %s',
-                $statusCode),
-            );
-        }
-
-        $this->logger->notice(sprintf(
-            'Dashboard response:%s%s',
-            "\r\n",
-            $response->body,
-        ));
-    }
+    /**
+     * @return iterable<string>|string
+     */
+    public function produce(): iterable|string;
 }

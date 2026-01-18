@@ -33,24 +33,25 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Debug;
 
-use function implode;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Infection\Mutant\MutantExecutionResult;
-use const PHP_EOL;
+use Infection\Report\Framework\DataProducer;
+use function implode;
 use function sprintf;
 use function str_repeat;
 use function strlen;
+use const PHP_EOL;
 
 /**
  * Simple loggers recording the mutation names and original first line. This is mostly intended for
- * internal purposes e.g. some end-to-end tests.
+ * internal purposes, e.g. some end-to-end tests.
  *
  * @internal
  */
-final readonly class DebugFileLogger implements LineMutationTestingResultsLogger
+final readonly class DebugProducer implements DataProducer
 {
     public function __construct(
         private MetricsCalculator $metricsCalculator,
@@ -59,57 +60,55 @@ final readonly class DebugFileLogger implements LineMutationTestingResultsLogger
     ) {
     }
 
-    public function getLogLines(): array
+    public function produce(): iterable|string
     {
         $separateSections = false;
 
-        $logs = [];
-
-        $logs[] = 'Total: ' . $this->metricsCalculator->getTotalMutantsCount();
-        $logs[] = '';
-        $logs[] = $this->getResultsLine(
+        yield 'Total: ' . $this->metricsCalculator->getTotalMutantsCount();
+        yield '';
+        yield $this->getResultsLine(
             $this->resultsCollector->getKilledExecutionResults(),
             'Killed',
             $separateSections,
         );
-        $logs[] = $this->getResultsLine(
+        yield $this->getResultsLine(
             $this->resultsCollector->getKilledByStaticAnalysisExecutionResults(),
             'Killed by Static Analysis',
             $separateSections,
         );
-        $logs[] = $this->getResultsLine(
+        yield $this->getResultsLine(
             $this->resultsCollector->getErrorExecutionResults(),
             'Errors',
             $separateSections,
         );
-        $logs[] = $this->getResultsLine(
+        yield $this->getResultsLine(
             $this->resultsCollector->getSyntaxErrorExecutionResults(),
             'Syntax Errors',
             $separateSections,
         );
-        $logs[] = $this->getResultsLine(
+        yield $this->getResultsLine(
             $this->resultsCollector->getEscapedExecutionResults(),
             'Escaped',
             $separateSections,
         );
-        $logs[] = $this->getResultsLine(
+        yield $this->getResultsLine(
             $this->resultsCollector->getTimedOutExecutionResults(),
             'Timed Out',
             $separateSections,
         );
-        $logs[] = $this->getResultsLine(
+        yield $this->getResultsLine(
             $this->resultsCollector->getSkippedExecutionResults(),
             'Skipped',
             $separateSections,
         );
-        $logs[] = $this->getResultsLine(
+        yield $this->getResultsLine(
             $this->resultsCollector->getIgnoredExecutionResults(),
             'Ignored',
             $separateSections,
         );
 
         if (!$this->onlyCoveredMode) {
-            $logs[] = $this->getResultsLine(
+            yield $this->getResultsLine(
                 $this->resultsCollector->getNotCoveredExecutionResults(),
                 'Not Covered',
                 $separateSections,
@@ -117,10 +116,8 @@ final readonly class DebugFileLogger implements LineMutationTestingResultsLogger
         }
 
         if ($separateSections) {
-            $logs[] = '';
+            yield '';
         }
-
-        return $logs;
     }
 
     /**

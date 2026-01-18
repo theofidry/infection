@@ -35,34 +35,36 @@ declare(strict_types=1);
 
 namespace Infection\Logger;
 
+use Infection\Report\Framework\DataProducer;
+use Infection\Report\Reporter;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 use function implode;
 use function in_array;
-use const PHP_EOL;
-use Psr\Log\LoggerInterface;
 use function Safe\file_put_contents;
 use function sprintf;
 use function str_starts_with;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
+use const PHP_EOL;
 
 /**
  * @internal
  */
-final readonly class FileLogger implements MutationTestingResultsLogger
+final readonly class FileLogger implements Reporter
 {
     public const ALLOWED_PHP_STREAMS = ['php://stdout', 'php://stderr'];
 
     public function __construct(
         private string $filePath,
         private Filesystem $fileSystem,
-        private LineMutationTestingResultsLogger $lineLogger,
+        private DataProducer $lineLogger,
         private LoggerInterface $logger,
     ) {
     }
 
-    public function log(): void
+    public function report(): void
     {
-        $content = implode(PHP_EOL, $this->lineLogger->getLogLines());
+        $content = implode(PHP_EOL, $this->lineLogger->produce());
 
         // If the output should be written to a stream then just write it directly
         if (str_starts_with($this->filePath, 'php://')) {

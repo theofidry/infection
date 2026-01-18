@@ -36,7 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\Logger;
 
 use Infection\Logger\FederatedLogger;
-use Infection\Logger\MutationTestingResultsLogger;
+use Infection\Report\Reporter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -45,18 +45,18 @@ final class FederatedLoggerTest extends TestCase
 {
     public function test_it_logs_with_all_the_registered_loggers(): void
     {
-        $logger1 = $this->createMock(MutationTestingResultsLogger::class);
+        $logger1 = $this->createMock(Reporter::class);
         $logger1
             ->expects($this->once())
-            ->method('log')
+            ->method('report')
         ;
 
-        $logger2 = $this->createMock(MutationTestingResultsLogger::class);
+        $logger2 = $this->createMock(Reporter::class);
         $logger2
             ->expects($this->once())
-            ->method('log')
+            ->method('report')
         ;
 
-        (new FederatedLogger($logger1, $logger2))->log();
+        (new FederatedLogger($logger1, $logger2))->report();
     }
 }

@@ -33,59 +33,70 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\GitHub;
 
-use function getenv;
-use Infection\Framework\Str;
 use Infection\Metrics\ResultsCollector;
-use function json_encode;
-use const JSON_THROW_ON_ERROR;
-use function Safe\shell_exec;
+use Infection\Report\Framework\DataProducer;
 use Symfony\Component\Filesystem\Path;
+use function getenv;
+use function Safe\shell_exec;
+use function str_replace;
 use function trim;
 
 /**
+ * This producer
+ *Supposed to be used only with GitHub Actions. This logger prints GitHub Annotation warnings for escaped Mutants right in the Pull Request.
+ *
+ *
+ * @link https://infection.github.io/guide/command-line-options.html#logger-github
+ *
  * @internal
  */
-final class GitLabCodeQualityLogger implements LineMutationTestingResultsLogger
+final class GitHubAnnotationsProducer implements DataProducer
 {
+    public const DEFAULT_OUTPUT = 'php://stdout';
+
     public function __construct(
         private readonly ResultsCollector $resultsCollector,
         private ?string $loggerProjectRootDirectory,
     ) {
         if ($loggerProjectRootDirectory === null) {
-            if (($projectRootDirectory = getenv('CI_PROJECT_DIR')) === false) {
+            if (($projectRootDirectory = getenv('GITHUB_WORKSPACE')) === false) {
                 $projectRootDirectory = trim((string) shell_exec('git rev-parse --show-toplevel'));
             }
             $this->loggerProjectRootDirectory = $projectRootDirectory;
         }
     }
 
-    public function getLogLines(): array
+    public function produce(): iterable|string
     {
-        $lines = [];
-
         foreach ($this->resultsCollector->getEscapedExecutionResults() as $escapedExecutionResult) {
-            $lines[] = [
-                'type' => 'issue',
-                'fingerprint' => $escapedExecutionResult->getMutantHash(),
-                'check_name' => $escapedExecutionResult->getMutatorName(),
-                'description' => 'Escaped Mutant for Mutator ' . $escapedExecutionResult->getMutatorName(),
-                'content' => Str::convertToUtf8(
-                    Str::cleanForDisplay($escapedExecutionResult->getMutantDiff()),
-                ),
-                'categories' => ['Escaped Mutant'],
-                'location' => [
-                    /* @phpstan-ignore-next-line expects string, string|null given */
-                    'path' => Path::makeRelative($escapedExecutionResult->getOriginalFilePath(), $this->loggerProjectRootDirectory),
-                    'lines' => [
-                        'begin' => $escapedExecutionResult->getOriginalStartingLine(),
-                    ],
-                ],
-                'severity' => 'major',
-            ];
-        }
+            $error = [
+                'line' => $escapedExecutionResult->getOriginalStartingLine(),
+                'message' => <<<"TEXT"
+                    Escaped Mutant for Mutator "{$escapedExecutionResult->getMutatorName()}":
 
-        return [json_encode($lines, JSON_THROW_ON_ERROR)];
+                    {$escapedExecutionResult->getMutantDiff()}
+                    TEXT,
+            ];
+
+            yield $this->buildAnnotation(
+                /* @phpstan-ignore-next-line expects string, string|null given */
+                Path::makeRelative($escapedExecutionResult->getOriginalFilePath(), $this->loggerProjectRootDirectory),
+                $error,
+            );
+        }
+    }
+
+    /**
+     * @param array{line: int, message: string} $error
+     */
+    private function buildAnnotation(string $filePath, array $error): string
+    {
+        // new lines need to be encoded
+        // see https://github.com/actions/starter-workflows/issues/68#issuecomment-581479448
+        $message = str_replace("\n", '%0A', $error['message']);
+
+        return "::warning file={$filePath},line={$error['line']}::{$message}\n";
     }
 }

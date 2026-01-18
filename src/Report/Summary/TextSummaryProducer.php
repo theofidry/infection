@@ -33,44 +33,38 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Summary;
 
-use Infection\Metrics\MetricsCalculator;
-use function json_encode;
-use const JSON_THROW_ON_ERROR;
+use Infection\Report\Framework\DataProducer;
 
 /**
+ * Simple loggers recording the mutation result counts. This is mostly intended for internal
+ * purposes e.g. some end-to-end tests.
+ *
  * @internal
  */
-final readonly class SummaryJsonLogger implements LineMutationTestingResultsLogger
+final readonly class TextSummaryProducer implements DataProducer
 {
     public function __construct(
-        private MetricsCalculator $metricsCalculator,
+        private Summarizer $summarizer,
     ) {
     }
 
-    /**
-     * @return array{0: string}
-     */
-    public function getLogLines(): array
+    public function produce(): iterable|string
     {
-        $data = [
-            'stats' => [
-                'totalMutantsCount' => $this->metricsCalculator->getTotalMutantsCount(),
-                'killedCount' => $this->metricsCalculator->getKilledByTestsCount(),
-                'notCoveredCount' => $this->metricsCalculator->getNotTestedCount(),
-                'escapedCount' => $this->metricsCalculator->getEscapedCount(),
-                'errorCount' => $this->metricsCalculator->getErrorCount(),
-                'syntaxErrorCount' => $this->metricsCalculator->getSyntaxErrorCount(),
-                'skippedCount' => $this->metricsCalculator->getSkippedCount(),
-                'ignoredCount' => $this->metricsCalculator->getIgnoredCount(),
-                'timeOutCount' => $this->metricsCalculator->getTimedOutCount(),
-                'msi' => $this->metricsCalculator->getMutationScoreIndicator(),
-                'mutationCodeCoverage' => $this->metricsCalculator->getCoverageRate(),
-                'coveredCodeMsi' => $this->metricsCalculator->getCoveredCodeMutationScoreIndicator(),
-            ],
-        ];
+        $summary = $this->summarizer->summarize();
 
-        return [json_encode($data, JSON_THROW_ON_ERROR)];
+        yield 'Total: ' . $summary->totalMutantsCount;
+        yield '';
+        yield 'Killed by Test Framework: ' . $summary->killedCount;
+        yield 'Killed by Static Analysis: ' . $summary->notCoveredCount;
+        yield 'Errored: ' . $summary->escapedCount;
+        yield 'Syntax Errors: ' . $summary->errorCount;
+        yield 'Escaped: ' . $summary->syntaxErrorCount;
+        yield 'Timed Out: ' . $summary->skippedCount;
+        yield 'Skipped: ' . $summary->ignoredCount;
+        yield 'Ignored: ' . $summary->timeOutCount;
+        yield 'Not Covered: ' . $summary->msi;
+        yield '';
     }
 }

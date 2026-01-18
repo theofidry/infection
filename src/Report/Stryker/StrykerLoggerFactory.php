@@ -33,38 +33,50 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Stryker;
 
+use Infection\Configuration\Entry\Logs;
+use Infection\Environment\BuildContextResolver;
 use Infection\Metrics\MetricsCalculator;
+use Infection\Report\Reporter;
+use Infection\Report\Stryker\Http\StrykerCurlClient;
+use Infection\Report\Stryker\Http\StrykerDashboardClient;
+use OndraM\CiDetector\CiDetector;
+use Psr\Log\LoggerInterface;
 
 /**
- * Simple loggers recording the mutation result counts. This is mostly intended for internal
- * purposes e.g. some end-to-end tests.
- *
  * @internal
+ * @final
  */
-final readonly class SummaryFileLogger implements LineMutationTestingResultsLogger
+class StrykerLoggerFactory
 {
     public function __construct(
-        private MetricsCalculator $metricsCalculator,
+        private readonly MetricsCalculator $metricsCalculator,
+        private readonly StrykerHtmlReportBuilder $strykerHtmlReportBuilder,
+        private readonly CiDetector $ciDetector,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
-    public function getLogLines(): array
+    public function createFromLogEntries(Logs $logConfig): ?Reporter
     {
-        return [
-            'Total: ' . $this->metricsCalculator->getTotalMutantsCount(),
-            '',
-            'Killed by Test Framework: ' . $this->metricsCalculator->getKilledByTestsCount(),
-            'Killed by Static Analysis: ' . $this->metricsCalculator->getKilledByStaticAnalysisCount(),
-            'Errored: ' . $this->metricsCalculator->getErrorCount(),
-            'Syntax Errors: ' . $this->metricsCalculator->getSyntaxErrorCount(),
-            'Escaped: ' . $this->metricsCalculator->getEscapedCount(),
-            'Timed Out: ' . $this->metricsCalculator->getTimedOutCount(),
-            'Skipped: ' . $this->metricsCalculator->getSkippedCount(),
-            'Ignored: ' . $this->metricsCalculator->getIgnoredCount(),
-            'Not Covered: ' . $this->metricsCalculator->getNotTestedCount(),
-            '',
-        ];
+        $strykerConfig = $logConfig->getStrykerConfig();
+
+        if ($strykerConfig === null) {
+            return null;
+        }
+
+        return new StrykerLogger(
+            new BuildContextResolver($this->ciDetector),
+            new StrykerApiKeyResolver(),
+            new StrykerDashboardClient(
+                new StrykerCurlClient(),
+                $this->logger,
+            ),
+            $this->metricsCalculator,
+            $this->strykerHtmlReportBuilder,
+            $strykerConfig,
+            $this->logger,
+        );
     }
 }

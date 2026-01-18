@@ -33,25 +33,24 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Stryker;
 
-use function getenv;
 use Infection\Configuration\Entry\StrykerConfig;
 use Infection\Environment\BuildContextResolver;
 use Infection\Environment\CouldNotResolveBuildContext;
 use Infection\Environment\CouldNotResolveStrykerApiKey;
-use Infection\Environment\StrykerApiKeyResolver;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
-use Infection\Logger\Http\StrykerDashboardClient;
 use Infection\Metrics\MetricsCalculator;
+use Infection\Report\Reporter;
+use Infection\Report\Stryker\Http\StrykerDashboardClient;
 use Psr\Log\LoggerInterface;
+use function getenv;
 use function Safe\json_encode;
 use function sprintf;
 
 /**
  * @internal
  */
-final readonly class StrykerLogger implements MutationTestingResultsLogger
+final readonly class StrykerLogger implements Reporter
 {
     public function __construct(
         private BuildContextResolver $buildContextResolver,
@@ -64,7 +63,7 @@ final readonly class StrykerLogger implements MutationTestingResultsLogger
     ) {
     }
 
-    public function log(): void
+    public function report(): void
     {
         try {
             $buildContext = $this->buildContextResolver->resolve();

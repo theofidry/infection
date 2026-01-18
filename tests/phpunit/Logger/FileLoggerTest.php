@@ -38,7 +38,7 @@ namespace Infection\Tests\Logger;
 use Infection\Framework\Str;
 use Infection\Logger\FileLogger;
 use Infection\Tests\FileSystem\FileSystemTestCase;
-use Infection\Tests\Fixtures\Logger\DummyLineMutationTestingResultsLogger;
+use Infection\Tests\Fixtures\Logger\DummyDataProducer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -82,11 +82,11 @@ final class FileLoggerTest extends FileSystemTestCase
         $debugFileLogger = new FileLogger(
             self::LOG_FILE_PATH,
             $this->fileSystemMock,
-            new DummyLineMutationTestingResultsLogger(['foo', 'bar']),
+            new DummyDataProducer(['foo', 'bar']),
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame([], $this->logger->getLogs());
     }
@@ -96,11 +96,11 @@ final class FileLoggerTest extends FileSystemTestCase
         $debugFileLogger = new FileLogger(
             'php://stdout',
             $this->fileSystemMock,
-            new DummyLineMutationTestingResultsLogger([]),
+            new DummyDataProducer([]),
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame([], $this->logger->getLogs());
     }
@@ -110,11 +110,11 @@ final class FileLoggerTest extends FileSystemTestCase
         $debugFileLogger = new FileLogger(
             'php://memory',
             $this->fileSystemMock,
-            new DummyLineMutationTestingResultsLogger(['foo', 'bar']),
+            new DummyDataProducer(['foo', 'bar']),
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame(
             [
@@ -139,11 +139,11 @@ final class FileLoggerTest extends FileSystemTestCase
         $debugFileLogger = new FileLogger(
             self::LOG_FILE_PATH,
             $this->fileSystemMock,
-            new DummyLineMutationTestingResultsLogger([]),
+            new DummyDataProducer([]),
             $this->logger,
         );
 
-        $debugFileLogger->log();
+        $debugFileLogger->report();
 
         $this->assertSame(
             [

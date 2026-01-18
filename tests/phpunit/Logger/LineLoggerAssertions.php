@@ -35,10 +35,10 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
-use function implode;
 use Infection\Framework\Str;
-use Infection\Logger\LineMutationTestingResultsLogger;
+use Infection\Report\Framework\DataProducer;
 use PHPUnit\Framework\TestCase;
+use function implode;
 
 /**
  * @phpstan-require-extends TestCase
@@ -47,11 +47,11 @@ trait LineLoggerAssertions
 {
     private function assertLoggedContentIs(
         string $expectedContents,
-        LineMutationTestingResultsLogger $logger,
+        DataProducer $logger,
     ): void {
         $this->assertSame(
             $expectedContents,
-            Str::toUnixLineEndings(implode("\n", $logger->getLogLines())),
+            Str::toUnixLineEndings(implode("\n", $logger->produce())),
         );
     }
 }

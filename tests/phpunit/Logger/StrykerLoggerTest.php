@@ -37,12 +37,12 @@ namespace Infection\Tests\Logger;
 
 use Infection\Configuration\Entry\StrykerConfig;
 use Infection\Environment\BuildContextResolver;
-use Infection\Environment\StrykerApiKeyResolver;
-use Infection\Logger\Html\StrykerHtmlReportBuilder;
-use Infection\Logger\Http\StrykerDashboardClient;
-use Infection\Logger\StrykerLogger;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\Stryker\Http\StrykerDashboardClient;
+use Infection\Report\Stryker\StrykerApiKeyResolver;
+use Infection\Report\Stryker\StrykerHtmlReportBuilder;
+use Infection\Report\Stryker\StrykerLogger;
 use Infection\Tests\CI\ConfigurableEnv;
 use Infection\Tests\EnvVariableManipulation\BacksUpEnvironmentVariables;
 use OndraM\CiDetector\CiDetector;
@@ -103,7 +103,7 @@ final class StrykerLoggerTest extends TestCase
             ->method('sendReport')
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -129,7 +129,7 @@ final class StrykerLoggerTest extends TestCase
             ->method('sendReport')
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -156,7 +156,7 @@ final class StrykerLoggerTest extends TestCase
             ->expects($this->never())
             ->method('sendReport');
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -184,7 +184,7 @@ final class StrykerLoggerTest extends TestCase
             ->method('sendReport')
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -212,7 +212,7 @@ final class StrykerLoggerTest extends TestCase
             ->method('sendReport')
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -250,7 +250,7 @@ final class StrykerLoggerTest extends TestCase
             $this->logger,
         );
 
-        $strykerLogger->log();
+        $strykerLogger->report();
 
         $this->assertSame(
             [
@@ -281,7 +281,7 @@ final class StrykerLoggerTest extends TestCase
             ->method('sendReport')
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -317,7 +317,7 @@ final class StrykerLoggerTest extends TestCase
             ->willReturn(33.3)
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -363,7 +363,7 @@ final class StrykerLoggerTest extends TestCase
             $this->logger,
         );
 
-        $strykerLogger->log();
+        $strykerLogger->report();
 
         $this->assertSame(
             [
@@ -399,7 +399,7 @@ final class StrykerLoggerTest extends TestCase
             ->willReturn(33.3)
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [
@@ -445,7 +445,7 @@ final class StrykerLoggerTest extends TestCase
             ->willReturn(33.3)
         ;
 
-        $this->strykerLogger->log();
+        $this->strykerLogger->report();
 
         $this->assertSame(
             [

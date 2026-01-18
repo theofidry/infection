@@ -35,27 +35,28 @@ declare(strict_types=1);
 
 namespace Infection\Logger;
 
+use Infection\Metrics\MetricsCalculator;
+use Infection\Metrics\ResultsCollector;
+use Infection\Report\Framework\DataProducer;
 use function array_fill;
 use function array_unshift;
 use function count;
 use function implode;
-use Infection\Metrics\MetricsCalculator;
-use Infection\Metrics\ResultsCollector;
 use function ksort;
 use function max;
-use const PHP_ROUND_HALF_UP;
 use function round;
 use function sprintf;
 use function str_pad;
-use const STR_PAD_LEFT;
-use const STR_PAD_RIGHT;
 use function str_repeat;
 use function strlen;
+use const PHP_ROUND_HALF_UP;
+use const STR_PAD_LEFT;
+use const STR_PAD_RIGHT;
 
 /**
  * @internal
  */
-final readonly class PerMutatorLogger implements LineMutationTestingResultsLogger
+final readonly class PerMutatorLogger implements DataProducer
 {
     private const ROUND_PRECISION = 2;
 
@@ -66,7 +67,7 @@ final readonly class PerMutatorLogger implements LineMutationTestingResultsLogge
     ) {
     }
 
-    public function getLogLines(): array
+    public function produce(): array
     {
         $calculatorPerMutator = $this->createMetricsPerMutators();
 

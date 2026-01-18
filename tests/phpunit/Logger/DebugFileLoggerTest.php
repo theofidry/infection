@@ -35,14 +35,14 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger;
 
-use Infection\Logger\DebugFileLogger;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
+use Infection\Report\Debug\DebugProducer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(DebugFileLogger::class)]
+#[CoversClass(DebugProducer::class)]
 final class DebugFileLoggerTest extends TestCase
 {
     use CreateMetricsCalculator;
@@ -55,7 +55,7 @@ final class DebugFileLoggerTest extends TestCase
         bool $onlyCoveredMode,
         string $expectedContents,
     ): void {
-        $logger = new DebugFileLogger($metricsCalculator, $resultsCollector, $onlyCoveredMode);
+        $logger = new DebugProducer($metricsCalculator, $resultsCollector, $onlyCoveredMode);
 
         $this->assertLoggedContentIs($expectedContents, $logger);
     }

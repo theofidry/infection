@@ -33,30 +33,35 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Summary;
 
-use function implode;
-use const PHP_EOL;
-use function sprintf;
-use function str_repeat;
-use function strlen;
+use Infection\Metrics\MetricsCalculator;
 
 /**
  * @internal
  */
-final readonly class TextFileLogger extends BaseTextFileLogger
+final readonly class Summarizer
 {
-    protected function getHeadlineLines(string $headlinePrefix): string
-    {
-        $headline = sprintf('%s mutants:', $headlinePrefix);
+    public function __construct(
+        private MetricsCalculator $metricsCalculator,
+    ) {
+    }
 
-        return implode(
-            PHP_EOL,
-            [
-                $headline,
-                str_repeat('=', strlen($headline)),
-                '',
-            ],
+    public function summarize(): Summary
+    {
+        return new Summary(
+            totalMutantsCount: $this->metricsCalculator->getTotalMutantsCount(),
+            killedCount: $this->metricsCalculator->getKilledByTestsCount(),
+            notCoveredCount: $this->metricsCalculator->getNotTestedCount(),
+            escapedCount: $this->metricsCalculator->getEscapedCount(),
+            errorCount: $this->metricsCalculator->getErrorCount(),
+            syntaxErrorCount: $this->metricsCalculator->getSyntaxErrorCount(),
+            skippedCount: $this->metricsCalculator->getSkippedCount(),
+            ignoredCount: $this->metricsCalculator->getIgnoredCount(),
+            timeOutCount: $this->metricsCalculator->getTimedOutCount(),
+            msi: $this->metricsCalculator->getMutationScoreIndicator(),
+            mutationCodeCoverage: $this->metricsCalculator->getCoverageRate(),
+            coveredCodeMsi: $this->metricsCalculator->getCoveredCodeMutationScoreIndicator(),
         );
     }
 }

@@ -35,7 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger\Http;
 
-use Infection\Logger\Http\Response;
+use Infection\Report\Stryker\Http\Response;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;

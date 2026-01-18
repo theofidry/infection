@@ -33,40 +33,30 @@
 
 declare(strict_types=1);
 
-namespace Infection\Environment;
+namespace Infection\Report\Stryker\Http;
 
-use function array_key_exists;
-use function array_slice;
-use function is_string;
+use Webmozart\Assert\Assert;
 
 /**
  * @internal
- *
- * @see https://github.com/stryker-mutator/stryker-handbook/blob/master/dashboard.md#send-a-report-direcly-from-stryker
  */
-final class StrykerApiKeyResolver
+final readonly class Response
 {
-    /**
-     * @param array<string, string> $environment
-     *
-     * @throws CouldNotResolveStrykerApiKey
-     */
-    public function resolve(array $environment): string
-    {
-        $names = [
-            'INFECTION_BADGE_API_KEY', // deprecated
-            'INFECTION_DASHBOARD_API_KEY',
-            'STRYKER_DASHBOARD_API_KEY',
-        ];
+    public const HTTP_OK = 200;
 
-        foreach ($names as $name) {
-            if (!array_key_exists($name, $environment) || !is_string($environment[$name])) {
-                continue;
-            }
+    public const HTTP_CREATED = 201;
 
-            return $environment[$name];
-        }
+    public const HTTP_MAX_ERROR_CODE = 599;
 
-        throw CouldNotResolveStrykerApiKey::from(...array_slice($names, 1));
+    public function __construct(
+        public int $statusCode,
+        public string $body,
+    ) {
+        Assert::range(
+            $statusCode,
+            self::HTTP_OK,
+            self::HTTP_MAX_ERROR_CODE,
+            'Expected an HTTP status code. Got "%s"',
+        );
     }
 }

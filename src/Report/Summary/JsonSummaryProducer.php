@@ -33,15 +33,47 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger;
+namespace Infection\Report\Summary;
+
+use Infection\Report\Framework\DataProducer;
+use function json_encode;
+use const JSON_THROW_ON_ERROR;
 
 /**
  * @internal
  */
-interface LineMutationTestingResultsLogger
+final readonly class JsonSummaryProducer implements DataProducer
 {
+    public function __construct(
+        private Summarizer $summarizer,
+    ) {
+    }
+
     /**
-     * @return string[]
+     * @return array{0: string}
      */
-    public function getLogLines(): array;
+    public function produce(): array
+    {
+        $summary = $this->summarizer->summarize();
+
+        return json_encode(
+            [
+                'stats' => [
+                    $summary->totalMutantsCount,
+                    $summary->killedCount,
+                    $summary->notCoveredCount,
+                    $summary->escapedCount,
+                    $summary->errorCount,
+                    $summary->syntaxErrorCount,
+                    $summary->skippedCount,
+                    $summary->ignoredCount,
+                    $summary->timeOutCount,
+                    $summary->msi,
+                    $summary->mutationCodeCoverage,
+                    $summary->coveredCodeMsi,
+                ],
+            ],
+            JSON_THROW_ON_ERROR,
+        );
+    }
 }

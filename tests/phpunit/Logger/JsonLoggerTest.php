@@ -452,7 +452,7 @@ final class JsonLoggerTest extends TestCase
      */
     private function assertLoggedContentIs(array $expectedJson, JsonLogger $logger): void
     {
-        $this->assertSame($expectedJson, json_decode($logger->getLogLines()[0], true, JSON_THROW_ON_ERROR));
+        $this->assertSame($expectedJson, json_decode($logger->produce()[0], true, JSON_THROW_ON_ERROR));
     }
 
     private static function createUncoveredMetricsCalculator(): MetricsCalculator
