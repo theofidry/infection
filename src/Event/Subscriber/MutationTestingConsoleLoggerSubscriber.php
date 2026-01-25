@@ -37,9 +37,9 @@ namespace Infection\Event\Subscriber;
 
 use Generator;
 use Infection\Differ\DiffColorizer;
-use Infection\Event\MutantProcessWasFinished;
-use Infection\Event\MutationTestingWasFinished;
-use Infection\Event\MutationTestingWasStarted;
+use Infection\Event\Events\MutationAnalysis\MutationEvaluation\MutantProcessWasFinished;
+use Infection\Event\Events\MutationAnalysis\MutationTestingWasFinished;
+use Infection\Event\Events\MutationAnalysis\MutationTestingWasStarted;
 use Infection\Framework\Iterable\IterableCounter;
 use Infection\Logger\FederatedLogger;
 use Infection\Logger\FileLogger;
