@@ -40,28 +40,23 @@ use function array_map;
 use function implode;
 use Infection\Mutant\DetectionStatus;
 use Infection\Mutant\MutantExecutionResult;
-use Infection\Mutation\Mutation;
 use function is_int;
-use function preg_replace;
-use function round;
+use function is_string;
+use function Safe\preg_replace;
 use function sprintf;
 use function str_contains;
 use function str_replace;
 
 /**
- * This service provides the primitives to write a TeamCity log record. It is
- * adapted to Infection in the context of mutation testing, but it does not
- * make any assumption about the order of the calls made or the support the logs
- * are written to.
+ * This is the basic TeamCity service. Its role is to write the TeamCity messages
+ * without making any assumption about the support they will be written to.
  *
- * @see https://www.jetbrains.com/help/teamcity/2025.07/service-messages.html
+ * @phpstan-type MessageAttributes = array<non-empty-string|int, string|int|float>
  *
  * @internal
  */
 final readonly class TeamCity
 {
-    private const MILLISECONDS_PER_SECOND = 1000;
-
     // `|` must be escaped FIRST to avoid double-escaping.
     private const CHARACTERS_TO_ESCAPE = ['|', "'", "\n", "\r", '[', ']'];
 
@@ -81,92 +76,54 @@ final readonly class TeamCity
     {
         return $this->write(
             MessageName::TEST_COUNT,
-            ['count' => (string) $count],
+            ['count' => $count],
         );
     }
 
-    public function testSuiteStarted(
-        string $location,
-        string $name,
-        string $flowId,
-    ): string {
+    public function testSuiteStarted(TestSuite $suite): string
+    {
         return $this->write(
             MessageName::TEST_SUITE_STARTED,
-            [
-                'name' => $name,
-                'nodeId' => $flowId,
+            $suite->toAttributes() + [
                 'parentNodeId' => '0',
                 'locationHint' => sprintf(
                     'file://%s',
-                    $location,
+                    $suite->sourceFilePath,
                 ),
             ],
         );
     }
 
-    public function testSuiteFinished(string $name, string $flowId): string
+    public function testSuiteFinished(TestSuite $suite): string
     {
         return $this->write(
             MessageName::TEST_SUITE_FINISHED,
-            [
-                'name' => $name,
-                'nodeId' => $flowId,
-            ],
+            $suite->toAttributes(),
         );
     }
 
-    /**
-     * @param string $flowId Flow ID of the test suite the test belongs to.
-     */
-    public function testStarted(
-        Mutation $mutation,
-        string $flowId,
-        string $parentFlowId,
-    ): string {
-        // TODO: feels stupid that we are computing the name multiple times
+    public function testStarted(Test $test): string
+    {
         return $this->write(
             MessageName::TEST_STARTED,
-            [
-                'name' => self::createTestName($mutation),
-                'nodeId' => $flowId,
-                'parentNodeId' => $parentFlowId,
-                'mutationId' => $mutation->getHash(),
-            ],
+            $test->toAttributes() + ['parentNodeId' => $test->parentNodeId],
         );
     }
 
     public function testFinished(
+        Test $test,
         MutantExecutionResult $executionResult,
-        string $flowId,
-        string $parentFlowId,
     ): string {
         return $this->write(
             $this->mapExecutionResultToTestStatus($executionResult),
-            [
-                'name' => self::createTestName($executionResult),
-                'nodeId' => $flowId,
-                'parentNodeId' => $parentFlowId,
-                // TODO: looks like this information is not used when the test is marked as successful or ignored :/
-                'message' => sprintf(
-                    <<<'MESSAGE'
-                        Mutator: %s
-                        Mutation ID: %s
-                        Mutation result: %s
-                        MESSAGE,
-                    $executionResult->getMutatorName(),
-                    $executionResult->getMutantHash(),
-                    $executionResult->getDetectionStatus()->value,
-                ),
-                'details' => $executionResult->getMutantDiff(),
-                'duration' => self::getExecutionDurationInMs($executionResult),
-            ],
+            $test->toFinishedAttributes($executionResult),
         );
     }
 
     /**
      * @see https://www.jetbrains.com/help/teamcity/2025.07/service-messages.html#Service+Messages+Formats
      *
-     * @param string|array<non-empty-string|int, string|int|float> $valueOrAttributes
+     * @param string|MessageAttributes $valueOrAttributes
      */
     public function write(
         MessageName $messageName,
@@ -184,9 +141,6 @@ final readonly class TeamCity
         );
     }
 
-    /**
-     * @return array{MessageName, array<non-empty-string|int, string|int|float>}
-     */
     private function mapExecutionResultToTestStatus(MutantExecutionResult $executionResult): MessageName
     {
         $detectionStatus = $executionResult->getDetectionStatus();
@@ -207,18 +161,6 @@ final readonly class TeamCity
                 ? MessageName::TEST_FAILED
                 : MessageName::TEST_FINISHED,
         };
-    }
-
-    private function createTestName(Mutation|MutantExecutionResult $subject): string
-    {
-        // TODO: add a test to make it obvious: a test name must be unique
-        return sprintf(
-            '%s (%s)',
-            $subject->getMutatorClass(),
-            $subject instanceof Mutation
-                ? $subject->getHash()
-                : $subject->getMutantHash(),
-        );
     }
 
     /**
@@ -245,6 +187,8 @@ final readonly class TeamCity
     }
 
     /**
+     * @psalm-suppress InvalidReturnType
+     *
      * @return non-empty-string
      */
     private static function escapeValue(string|int|float $value): string
@@ -258,7 +202,7 @@ final readonly class TeamCity
             ),
         );
 
-        if (str_contains($value, '\u')) {
+        if (is_string($value) && str_contains($value, '\u')) {
             $escapedValue = preg_replace(
                 self::UNICODE_CHARACTER_REGEX,
                 '|0x$1',
@@ -266,16 +210,7 @@ final readonly class TeamCity
             );
         }
 
+        /** @psalm-suppress InvalidReturnStatement */
         return $escapedValue;
-    }
-
-    private static function getExecutionDurationInMs(MutantExecutionResult $executionResult): string
-    {
-        // TODO: this is actually incorrect! Or is it?
-        //  this could be either the (singular) process, but what about:
-        //  - the other processes executed prior?
-        //  - the time taken by the heuristics?
-        //  - the waiting time in-between being generated and processes?
-        return (string) round($executionResult->getProcessRuntime() * self::MILLISECONDS_PER_SECOND);
     }
 }

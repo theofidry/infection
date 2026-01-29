@@ -33,22 +33,39 @@
 
 declare(strict_types=1);
 
-namespace Infection\Logger\MutationAnalysis\TeamCity;
+namespace Infection\Tests\Logger\Console;
 
-/**
- * Only contains a subset of the allowed messages.
- *
- * @see https://www.jetbrains.com/help/teamcity/service-messages.html
- *
- * @internal
- */
-enum MessageName: string
+use Infection\Tests\UnsupportedMethod;
+use Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\ConsoleSectionOutput;
+use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\OutputInterface;
+
+final class BufferedOutputWithStdErrOutput extends BufferedOutput implements ConsoleOutputInterface
 {
-    case TEST_COUNT = 'testCount';
-    case TEST_SUITE_STARTED = 'testSuiteStarted';
-    case TEST_SUITE_FINISHED = 'testSuiteFinished';
-    case TEST_STARTED = 'testStarted';
-    case TEST_FINISHED = 'testFinished';
-    case TEST_FAILED = 'testFailed';
-    case TEST_IGNORED = 'testIgnored';
+    public function __construct(
+        ?int $verbosity = self::VERBOSITY_NORMAL,
+        bool $decorated = false,
+        ?OutputFormatterInterface $formatter = null,
+        private readonly OutputInterface $stderr = new NullOutput(),
+    ) {
+        parent::__construct($verbosity, $decorated, $formatter);
+    }
+
+    public function getErrorOutput(): OutputInterface
+    {
+        return $this->stderr;
+    }
+
+    public function setErrorOutput(OutputInterface $error): void
+    {
+        throw UnsupportedMethod::method(self::class, __FUNCTION__);
+    }
+
+    public function section(): ConsoleSectionOutput
+    {
+        throw UnsupportedMethod::method(self::class, __FUNCTION__);
+    }
 }

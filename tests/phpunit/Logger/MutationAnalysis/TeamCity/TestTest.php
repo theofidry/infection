@@ -35,60 +35,55 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger\MutationAnalysis\TeamCity;
 
-use function count;
-use function explode;
-use function implode;
-use Infection\CannotBeInstantiated;
-use function trim;
-use Webmozart\Assert\Assert;
+use Infection\Logger\MutationAnalysis\TeamCity\Test;
+use Infection\Mutation\Mutation;
+use Infection\Mutator\Boolean\LogicalOr as LogicalOrMutator;
+use Infection\Testing\MutatorName;
+use Infection\Tests\Mutation\MutationBuilder;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-/**
- * This service is a utility to make the TeamCity logs more readable by allowing
- * them to have blank lines for visual spacing.
- *
- * Note that this is purely for testing purposes for better readability: teamcity
- * logs do not need to be indented.
- */
-final class RemoveInternalBlankLines
+#[CoversClass(Test::class)]
+final class TestTest extends TestCase
 {
-    use CannotBeInstantiated;
+    #[DataProvider('caseProvider')]
+    public function test_it_can_be_created(
+        Mutation $mutation,
+        string $parentNodeId,
+        Test $expected,
+    ): void {
+        $actual = Test::create($mutation, $parentNodeId);
 
-    public static function remove(string $lines): string
+        $this->assertEquals($expected, $actual);
+    }
+
+    // We cannot use "testProvider" here, PHPUnit would otherwise understand it as a test.
+    public static function caseProvider(): iterable
     {
-        $lineArray = explode("\n", $lines);
-        $lineCount = count($lineArray);
+        yield [
+            self::createMutation(
+                '/path/to/project/src/Infrastructure/Http/Action/Greet.php',
+                LogicalOrMutator::class,
+            ),
+            'a93f8006e20d02d1',
+            new Test(
+                'fb9282c1c4fec68667212fb805238bc9',
+                'Infection\Mutator\Boolean\LogicalOr (fb9282c1c4fec68667212fb805238bc9)',
+                '2b4aa030e4a6eead',
+                'a93f8006e20d02d1',
+            ),
+        ];
+    }
 
-        $firstNonBlank = null;
-        $lastNonBlank = null;
-
-        foreach ($lineArray as $i => $line) {
-            if (trim($line) !== '') {
-                $firstNonBlank ??= $i;
-                $lastNonBlank = $i;
-            }
-        }
-
-        if ($firstNonBlank === null) {
-            return $lines;
-        }
-
-        Assert::integer($lastNonBlank);
-        $result = [];
-
-        for ($i = 0; $i < $firstNonBlank; ++$i) {
-            $result[] = $lineArray[$i];
-        }
-
-        for ($i = $firstNonBlank; $i <= $lastNonBlank; ++$i) {
-            if (trim($lineArray[$i]) !== '') {
-                $result[] = $lineArray[$i];
-            }
-        }
-
-        for ($i = $lastNonBlank + 1; $i < $lineCount; ++$i) {
-            $result[] = $lineArray[$i];
-        }
-
-        return implode("\n", $result);
+    private static function createMutation(
+        string $sourceFilePath,
+        string $mutatorClassName,
+    ): Mutation {
+        return MutationBuilder::withMinimalTestData()
+            ->withOriginalFilePath($sourceFilePath)
+            ->withMutatorClass($mutatorClassName)
+            ->withMutatorName(MutatorName::getName($mutatorClassName))
+            ->build();
     }
 }

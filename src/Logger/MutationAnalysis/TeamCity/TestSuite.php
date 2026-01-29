@@ -35,20 +35,49 @@ declare(strict_types=1);
 
 namespace Infection\Logger\MutationAnalysis\TeamCity;
 
+use Symfony\Component\Filesystem\Path;
+
 /**
- * Only contains a subset of the allowed messages.
- *
- * @see https://www.jetbrains.com/help/teamcity/service-messages.html
+ * @phpstan-import-type MessageAttributes from TeamCity
  *
  * @internal
  */
-enum MessageName: string
+final readonly class TestSuite
 {
-    case TEST_COUNT = 'testCount';
-    case TEST_SUITE_STARTED = 'testSuiteStarted';
-    case TEST_SUITE_FINISHED = 'testSuiteFinished';
-    case TEST_STARTED = 'testStarted';
-    case TEST_FINISHED = 'testFinished';
-    case TEST_FAILED = 'testFailed';
-    case TEST_IGNORED = 'testIgnored';
+    /**
+     * @param string $sourceFilePath Absolute path of the source file.
+     */
+    public function __construct(
+        public string $sourceFilePath,
+        public string $name,
+        public string $nodeId,
+    ) {
+    }
+
+    public static function create(
+        string $sourceFilePath,
+        string $basePath,
+    ): self {
+        $relativeSourceFilePath = Path::makeRelative(
+            $sourceFilePath,
+            $basePath,
+        );
+
+        return new self(
+            sourceFilePath: $sourceFilePath,
+            name: $relativeSourceFilePath,
+            nodeId: NodeIdFactory::create($relativeSourceFilePath),
+        );
+    }
+
+    /**
+     * @return MessageAttributes
+     */
+    public function toAttributes(): array
+    {
+        return [
+            'name' => $this->name,
+            'nodeId' => $this->nodeId,
+        ];
+    }
 }

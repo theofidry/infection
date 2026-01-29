@@ -37,6 +37,8 @@ namespace Infection\Tests\Logger\MutationAnalysis\TeamCity;
 
 use Infection\Logger\MutationAnalysis\TeamCity\MessageName;
 use Infection\Logger\MutationAnalysis\TeamCity\TeamCity;
+use Infection\Logger\MutationAnalysis\TeamCity\Test;
+use Infection\Logger\MutationAnalysis\TeamCity\TestSuite;
 use Infection\Mutant\DetectionStatus;
 use Infection\Mutant\MutantExecutionResult;
 use Infection\Mutator\Boolean\LogicalAnd as LogicalAndMutator;
@@ -47,6 +49,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(TeamCity::class)]
+#[CoversClass(TestSuite::class)]
+#[CoversClass(Test::class)]
 final class TeamCityTest extends TestCase
 {
     private TeamCity $teamcity;
@@ -70,89 +74,101 @@ final class TeamCityTest extends TestCase
             $valueOrAttributes,
         );
 
-        $indentedActual = TeamCityLogIndenter::indent($actual);
-
-        $this->assertSame($expected, $indentedActual);
+        $this->assertSame($expected, $actual);
     }
 
     public static function messageProvider(): iterable
     {
         yield 'single-attribute message' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             'value',
-            "##teamcity[flowStarted 'value']\n",
+            "##teamcity[testCount 'value']\n",
         ];
 
         yield 'multiple-attribute message' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             ['name1' => 'value1', 'name2' => 'value2'],
-            "##teamcity[flowStarted name1='value1' name2='value2']\n",
+            "##teamcity[testCount name1='value1' name2='value2']\n",
         ];
 
         yield '[escape] apostrophe' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             "'",
-            "##teamcity[flowStarted '|'']\n",
+            "##teamcity[testCount '|'']\n",
         ];
 
         yield '[escape] line feed' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             "\n",
-            "##teamcity[flowStarted '|n']\n",
+            "##teamcity[testCount '|n']\n",
         ];
 
         yield '[escape] carriage return' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             "\r",
-            "##teamcity[flowStarted '|r']\n",
+            "##teamcity[testCount '|r']\n",
         ];
 
         yield '[escape] vertical bar' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             '|',
-            "##teamcity[flowStarted '||']\n",
+            "##teamcity[testCount '||']\n",
         ];
 
         yield '[escape] opening bracket' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             '[',
-            "##teamcity[flowStarted '|[']\n",
+            "##teamcity[testCount '|[']\n",
         ];
 
         yield '[escape] closing bracket' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             ']',
-            "##teamcity[flowStarted '|]']\n",
+            "##teamcity[testCount '|]']\n",
         ];
 
         yield '[escape] message with escaped characters' => [
-            MessageName::FLOW_STARTED,
+            MessageName::TEST_COUNT,
             '\'\u99AA[||]\u00FF',
-            "##teamcity[flowStarted '|'|0x99AA|[|||||]|0x00FF']\n",
+            "##teamcity[testCount '|'|0x99AA|[|||||]|0x00FF']\n",
+        ];
+
+        yield '[escape] numeric value (int)' => [
+            MessageName::TEST_COUNT,
+            ['count' => 42],
+            "##teamcity[testCount count='42']\n",
+        ];
+
+        yield '[escape] numeric value (float)' => [
+            MessageName::TEST_COUNT,
+            ['duration' => 3.14],
+            "##teamcity[testCount duration='3.14']\n",
         ];
     }
 
     #[DataProvider('executionResultProvider')]
     public function test_it_can_map_the_execution_result_to_a_finished_test(
         bool $timeoutsAsEscaped,
+        Test $test,
         MutantExecutionResult $executionResult,
-        string $flowId,
-        string $parentFlowId,
         string $expected,
     ): void {
         $teamCity = new TeamCity($timeoutsAsEscaped);
 
-        $actual = $teamCity->testFinished(
-            $executionResult,
-            $flowId,
-            $parentFlowId,
-        );
+        $actual = $teamCity->testFinished($test, $executionResult);
 
         $this->assertSame($expected, $actual);
     }
 
     public static function executionResultProvider(): iterable
     {
+        $nominalTest = new Test(
+            id: 'mutantHash',
+            name: 'Infection\Mutator\Boolean\LogicalAnd (mutantHash)',
+            nodeId: '1A',
+            parentNodeId: 'A',
+        );
+
         $mutationDiff = <<<'PHP_DIFF'
             --- Original
             +++ Mutated
@@ -174,64 +190,174 @@ final class TeamCityTest extends TestCase
 
         yield 'nominal' => [
             false,
+            $nominalTest,
             $nominalExecutionResultBuilder
                 ->build(),
-            '1A',
-            'A',
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' parentNodeId='A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='3000']
 
                 TEAM_CITY,
         ];
 
         yield 'timed-out with timeouts NOT counting as escaped' => [
             false,
+            $nominalTest,
             $nominalExecutionResultBuilder
                 ->withDetectionStatus(DetectionStatus::TIMED_OUT)
                 ->build(),
-            '1A',
-            'A',
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' parentNodeId='A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' details='{$escapedMutationDiff}' duration='3000']
 
                 TEAM_CITY,
         ];
 
         yield 'timed-out with timeouts counting as escaped' => [
             true,
+            $nominalTest,
             $nominalExecutionResultBuilder
                 ->withDetectionStatus(DetectionStatus::TIMED_OUT)
                 ->build(),
-            '1A',
-            'A',
             <<<TEAM_CITY
-                ##teamcity[testFailed name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' parentNodeId='A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFailed name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' details='{$escapedMutationDiff}' duration='3000']
 
                 TEAM_CITY,
         ];
 
         yield 'with an evaluation process that took some time' => [
             false,
+            $nominalTest,
             $nominalExecutionResultBuilder
                 ->withProcessRuntime(5.772644996643066)
                 ->build(),
-            '1A',
-            'A',
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' parentNodeId='A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5773']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5773']
+
+                TEAM_CITY,
+        ];
+
+        yield 'with an evaluation process that took some time (round half to upper)' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withProcessRuntime(5.7725)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5773']
 
                 TEAM_CITY,
         ];
 
         yield 'with an evaluation process that did not take any time (e.g. killed by an heuristic)' => [
             false,
+            $nominalTest,
             $nominalExecutionResultBuilder
                 ->withProcessRuntime(0.)
                 ->build(),
-            '1A',
-            'A',
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' parentNodeId='A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='0']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='0']
+
+                TEAM_CITY,
+        ];
+
+        yield 'with an evaluation process that rounds down (fractional ms < 0.5)' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withProcessRuntime(5.7721)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5772']
+
+                TEAM_CITY,
+        ];
+
+        yield 'killed by static analysis' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withDetectionStatus(DetectionStatus::KILLED_BY_STATIC_ANALYSIS)
+                ->withProcessRuntime(3.)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: killed by SA' details='{$escapedMutationDiff}' duration='3000']
+
+                TEAM_CITY,
+        ];
+
+        yield 'error' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withDetectionStatus(DetectionStatus::ERROR)
+                ->withProcessRuntime(3.)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: error' details='{$escapedMutationDiff}' duration='3000']
+
+                TEAM_CITY,
+        ];
+
+        yield 'syntax error' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withDetectionStatus(DetectionStatus::SYNTAX_ERROR)
+                ->withProcessRuntime(3.)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: syntax error' details='{$escapedMutationDiff}' duration='3000']
+
+                TEAM_CITY,
+        ];
+
+        yield 'escaped' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withDetectionStatus(DetectionStatus::ESCAPED)
+                ->withProcessRuntime(3.)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testFailed name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: escaped' details='{$escapedMutationDiff}' duration='3000']
+
+                TEAM_CITY,
+        ];
+
+        yield 'skipped' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withDetectionStatus(DetectionStatus::SKIPPED)
+                ->withProcessRuntime(3.)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: skipped' details='{$escapedMutationDiff}' duration='3000']
+
+                TEAM_CITY,
+        ];
+
+        yield 'not covered' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withDetectionStatus(DetectionStatus::NOT_COVERED)
+                ->withProcessRuntime(3.)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: not covered' details='{$escapedMutationDiff}' duration='3000']
+
+                TEAM_CITY,
+        ];
+
+        yield 'ignored' => [
+            false,
+            $nominalTest,
+            $nominalExecutionResultBuilder
+                ->withDetectionStatus(DetectionStatus::IGNORED)
+                ->withProcessRuntime(3.)
+                ->build(),
+            <<<TEAM_CITY
+                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: ignored' details='{$escapedMutationDiff}' duration='3000']
 
                 TEAM_CITY,
         ];
