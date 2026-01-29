@@ -86,6 +86,7 @@ use Infection\Logger\FederatedLogger;
 use Infection\Logger\MutationAnalysis\MutationAnalysisLogger;
 use Infection\Logger\MutationAnalysis\MutationAnalysisLoggerFactory;
 use Infection\Logger\MutationAnalysis\MutationAnalysisLoggerName;
+use Infection\Logger\MutationAnalysis\TeamCity\TeamCity;
 use Infection\Metrics\FilteringResultsCollectorFactory;
 use Infection\Metrics\MaxTimeoutsChecker;
 use Infection\Metrics\MetricsCalculator;
@@ -596,6 +597,14 @@ final class Container extends DIContainer
                         ),
                     );
                 },
+            ),
+            TeamCity::class => static fn (self $container): TeamCity => new TeamCity(
+                $container->getConfiguration()->timeoutsAsEscaped,
+            ),
+            MutationAnalysisLoggerFactory::class => static fn (self $container): MutationAnalysisLoggerFactory => new MutationAnalysisLoggerFactory(
+                $container->getOutput(),
+                $container->get(TeamCity::class),
+                $container->getConfiguration()->configurationPathname,
             ),
         ]);
 
