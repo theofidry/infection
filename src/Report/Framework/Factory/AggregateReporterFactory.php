@@ -6,7 +6,7 @@ namespace Infection\Report\Framework\Factory;
 
 use Infection\Configuration\Entry\Logs;
 use Infection\Report\AggregateReporter;
-use Infection\Report\Reporter;
+use Infection\Reporter\Reporter;
 use function array_map;
 
 final class AggregateReporterFactory implements ReporterFactory

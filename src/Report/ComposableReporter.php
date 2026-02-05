@@ -6,6 +6,7 @@ namespace Infection\Report;
 
 use Infection\Report\Framework\DataProducer;
 use Infection\Report\Framework\Writer\ReportWriter;
+use Infection\Reporter\Reporter;
 
 final readonly class ComposableReporter implements Reporter
 {

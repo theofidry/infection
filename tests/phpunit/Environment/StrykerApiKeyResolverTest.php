@@ -36,7 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\Environment;
 
 use Infection\Environment\CouldNotResolveStrykerApiKey;
-use Infection\Report\Stryker\StrykerApiKeyResolver;
+use Infection\Environment\StrykerApiKeyResolver;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use stdClass;

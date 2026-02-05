@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Infection\Report\Framework\Factory;
 
 use Infection\Configuration\Entry\Logs;
-use Infection\Report\Reporter;
+use Infection\Reporter\Reporter;
 
 interface ReporterFactory
 {

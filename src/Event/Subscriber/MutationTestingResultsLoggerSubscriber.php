@@ -37,7 +37,7 @@ namespace Infection\Event\Subscriber;
 
 use Infection\Event\Events\MutationAnalysis\MutationTestingWasFinished;
 use Infection\Event\Events\MutationAnalysis\MutationTestingWasFinishedSubscriber;
-use Infection\Report\Reporter;
+use Infection\Reporter\Reporter;
 
 /**
  * @internal
@@ -45,12 +45,12 @@ use Infection\Report\Reporter;
 final readonly class MutationTestingResultsLoggerSubscriber implements MutationTestingWasFinishedSubscriber
 {
     public function __construct(
-        private Reporter $logger,
+        private Reporter $reporter,
     ) {
     }
 
     public function onMutationTestingWasFinished(MutationTestingWasFinished $event): void
     {
-        $this->logger->report();
+        $this->reporter->report();
     }
 }

@@ -38,7 +38,7 @@ namespace Infection\Tests\Event\Subscriber;
 use Infection\Event\EventDispatcher\SyncEventDispatcher;
 use Infection\Event\Events\MutationAnalysis\MutationTestingWasFinished;
 use Infection\Event\Subscriber\MutationTestingResultsLoggerSubscriber;
-use Infection\Report\Reporter;
+use Infection\Reporter\Reporter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

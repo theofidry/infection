@@ -37,7 +37,7 @@ namespace Infection\Tests\Event\Subscriber;
 
 use Infection\Event\Subscriber\MutationTestingResultsLoggerSubscriber;
 use Infection\Event\Subscriber\MutationTestingResultsLoggerSubscriberFactory;
-use Infection\Report\Reporter;
+use Infection\Reporter\Reporter;
 use Infection\Tests\Fixtures\Console\FakeOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
