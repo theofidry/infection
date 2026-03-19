@@ -38,43 +38,26 @@ namespace Infection\PhpParser\Visitor;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
-/**
- * Mark all node as eligible. This visitor should be registered as last, so if
- * a node is code that should be ignored because not covered by tests, for example,
- * then this visitor should not traverse that node at all.
- *
- * @internal
- */
-final class LabelNodesAsEligibleVisitor extends NodeVisitorAbstract
+final class ExcludeNonMutableCodeVisitor extends NodeVisitorAbstract
 {
-    private const ELIGIBLE = 'eligible';
-
-    public static function getEligibility(Node $node): ?bool
+    public function enterNode(Node $node): null
     {
-        return $node->getAttribute(self::ELIGIBLE);
-    }
-
-    public static function isEligible(Node $node): bool
-    {
-        return $node->getAttribute(self::ELIGIBLE, default: false);
-    }
-
-    public function enterNode(Node $node): ?int
-    {
-        if (!$node->hasAttribute(self::ELIGIBLE)) {
-            self::markAsEligible($node);
+        if (!$this->isOnFunctionSignature($node)
+            && !$this->isInsideFunction($node)
+        ) {
+            LabelNodesAsEligibleVisitor::markAsIneligible($node);
         }
 
         return null;
     }
 
-    public static function markAsIneligible(Node $node): void
+    private function isOnFunctionSignature(Node $node): bool
     {
-        $node->setAttribute(self::ELIGIBLE, false);
+        return $node->getAttribute(ReflectionVisitor::IS_ON_FUNCTION_SIGNATURE, false);
     }
 
-    private static function markAsEligible(Node $node): void
+    private function isInsideFunction(Node $node): bool
     {
-        $node->setAttribute(self::ELIGIBLE, true);
+        return $node->getAttribute(ReflectionVisitor::IS_INSIDE_FUNCTION_KEY, false);
     }
 }

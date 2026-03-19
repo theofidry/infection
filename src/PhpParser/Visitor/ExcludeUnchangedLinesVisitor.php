@@ -35,46 +35,40 @@ declare(strict_types=1);
 
 namespace Infection\PhpParser\Visitor;
 
+use Infection\Source\Matcher\SourceLineMatcher;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
-/**
- * Mark all node as eligible. This visitor should be registered as last, so if
- * a node is code that should be ignored because not covered by tests, for example,
- * then this visitor should not traverse that node at all.
- *
- * @internal
- */
-final class LabelNodesAsEligibleVisitor extends NodeVisitorAbstract
+final class ExcludeUnchangedLinesVisitor extends NodeVisitorAbstract
 {
-    private const ELIGIBLE = 'eligible';
-
-    public static function getEligibility(Node $node): ?bool
-    {
-        return $node->getAttribute(self::ELIGIBLE);
+    public function __construct(
+        private readonly SourceLineMatcher $sourceLineMatcher,
+        private readonly string $filePath,
+    ) {
     }
 
-    public static function isEligible(Node $node): bool
+    public function enterNode(Node $node): null
     {
-        return $node->getAttribute(self::ELIGIBLE, default: false);
-    }
+        $eligibility = LabelNodesAsEligibleVisitor::getEligibility($node);
 
-    public function enterNode(Node $node): ?int
-    {
-        if (!$node->hasAttribute(self::ELIGIBLE)) {
-            self::markAsEligible($node);
+        if ($eligibility !== false) {
+            $this->labelUntouchedNodeAsIneligible($node);
         }
 
         return null;
     }
 
-    public static function markAsIneligible(Node $node): void
+    private function labelUntouchedNodeAsIneligible(Node $node): void
     {
-        $node->setAttribute(self::ELIGIBLE, false);
-    }
+        /** @psalm-suppress InvalidArgument */
+        $touches = $this->sourceLineMatcher->touches(
+            $this->filePath,
+            $node->getStartLine(),
+            $node->getEndLine(),
+        );
 
-    private static function markAsEligible(Node $node): void
-    {
-        $node->setAttribute(self::ELIGIBLE, true);
+        if (!$touches) {
+            LabelNodesAsEligibleVisitor::markAsIneligible($node);
+        }
     }
 }

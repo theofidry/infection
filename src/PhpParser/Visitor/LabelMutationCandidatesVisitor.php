@@ -39,42 +39,43 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
- * Mark all node as eligible. This visitor should be registered as last, so if
- * a node is code that should be ignored because not covered by tests, for example,
- * then this visitor should not traverse that node at all.
+ * This mutator aims at reflecting the behaviour of NodeMutationGenerator to
+ * give a visual of the nodes it is look at.
+ *
+ * This is different from "visited" and "eligible". Indeed, at the time of
+ * writing a node may be:
+ * - Visited without being eligible or a mutation candidate (e.g. a namespace statement).
+ * - Eligible without being a mutation candidate (as NodeMutationGenerator
+ *   currently has additional checks on top of the eligibility).
+ *
+ * @see NodeMutationGenerator
  *
  * @internal
  */
-final class LabelNodesAsEligibleVisitor extends NodeVisitorAbstract
+final class LabelMutationCandidatesVisitor extends NodeVisitorAbstract
 {
-    private const ELIGIBLE = 'eligible';
+    private const MUTATION_CANDIDATE = 'mutationCandidate';
 
-    public static function getEligibility(Node $node): ?bool
+    public function enterNode(Node $node): null
     {
-        return $node->getAttribute(self::ELIGIBLE);
-    }
+        MarkTraversedNodesAsVisitedVisitor::markAsVisited($node);
 
-    public static function isEligible(Node $node): bool
-    {
-        return $node->getAttribute(self::ELIGIBLE, default: false);
-    }
-
-    public function enterNode(Node $node): ?int
-    {
-        if (!$node->hasAttribute(self::ELIGIBLE)) {
-            self::markAsEligible($node);
+        if (!LabelNodesAsEligibleVisitor::isEligible($node)) {
+            return null;
         }
+
+        self::markAsAMutationCandidate($node);
 
         return null;
     }
 
-    public static function markAsIneligible(Node $node): void
+    public static function markAsAMutationCandidate(Node $node): void
     {
-        $node->setAttribute(self::ELIGIBLE, false);
+        $node->setAttribute(self::MUTATION_CANDIDATE, true);
     }
 
-    private static function markAsEligible(Node $node): void
+    public static function isAMutationCandidate(Node $node): bool
     {
-        $node->setAttribute(self::ELIGIBLE, true);
+        return $node->hasAttribute(self::MUTATION_CANDIDATE);
     }
 }

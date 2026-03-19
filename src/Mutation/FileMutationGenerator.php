@@ -44,7 +44,6 @@ use Infection\PhpParser\NodeTraverserFactory;
 use Infection\PhpParser\UnparsableFile;
 use Infection\PhpParser\Visitor\MutationCollectorVisitor;
 use Infection\Source\Exception\NoSourceFound;
-use Infection\Source\Matcher\SourceLineMatcher;
 use Infection\TestFramework\Tracing\Throwable\NoTraceFound;
 use Infection\TestFramework\Tracing\Trace\EmptyTrace;
 use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
@@ -66,7 +65,6 @@ class FileMutationGenerator
         private readonly FileParser $parser,
         private readonly NodeTraverserFactory $traverserFactory,
         private readonly LineRangeCalculator $lineRangeCalculator,
-        private readonly SourceLineMatcher $sourceLineMatcher,
         private readonly Tracer $tracer,
         private readonly FileStore $fileStore,
     ) {
@@ -127,7 +125,6 @@ class FileMutationGenerator
                 trace: $trace,
                 onlyCovered: $onlyCovered,
                 lineRangeCalculator: $this->lineRangeCalculator,
-                sourceLineMatcher: $this->sourceLineMatcher,
                 originalFileTokens: $originalFileTokens,
                 originalFileContent: $this->fileStore->getContents($sourceFile),
             ),
@@ -152,9 +149,8 @@ class FileMutationGenerator
     {
         [$initialStatements, $originalFileTokens] = $this->parser->parse($sourceFile);
 
-        // Pre-traverse the nodes to connect them
-        $preTraverser = $this->traverserFactory->createEnrichmentTraverser();
-        $preTraverser->traverse($initialStatements);
+        $traverser = $this->traverserFactory->createEnrichmentTraverser($sourceFile);
+        $traverser->traverse($initialStatements);
 
         return [$initialStatements, $originalFileTokens];
     }

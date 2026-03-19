@@ -38,6 +38,8 @@ namespace Infection\PhpParser\NodeDumper;
 use function get_debug_type;
 use function implode;
 use Infection\PhpParser\Visitor\AddIdToTraversedNodesVisitor\AddIdToTraversedNodesVisitor;
+use Infection\PhpParser\Visitor\LabelMutationCandidatesVisitor;
+use Infection\PhpParser\Visitor\LabelNodesAsEligibleVisitor;
 use Infection\PhpParser\Visitor\MarkTraversedNodesAsVisitedVisitor;
 use InvalidArgumentException;
 use function is_array;
@@ -128,9 +130,10 @@ final class NodeDumper
         private readonly bool $dumpProperties = false,
         private readonly bool $dumpComments = false,
         private bool $dumpPositions = false,
-        private readonly bool $dumpOtherAttributes = true,
+        private bool $dumpOtherAttributes = true,
         // Infection specific parameter(s)
         private bool $onlyVisitedNodes = true,
+        private bool $highlightMutationCandidates = false,
     ) {
     }
 
@@ -148,15 +151,27 @@ final class NodeDumper
         array|Node $node,
         ?string $code = null,
         ?bool $dumpPositions = null,
+        ?bool $dumpOtherAttributes = null,
         // Infection specific parameter(s)
         ?bool $onlyVisitedNodes = null,
+        ?bool $highlightMutationCandidates = null,
     ): string {
         $result = '';
         $newLine = "\n";
 
+        if ($dumpOtherAttributes !== null) {
+            $originalDumpOtherAttributes = $this->dumpOtherAttributes;
+            $this->dumpOtherAttributes = $dumpOtherAttributes;
+        }
+
         if ($onlyVisitedNodes !== null) {
             $originalOnlyVisitedNodes = $this->onlyVisitedNodes;
             $this->onlyVisitedNodes = $onlyVisitedNodes;
+        }
+
+        if ($highlightMutationCandidates !== null) {
+            $originalHighlightMutationCandidates = $this->highlightMutationCandidates;
+            $this->highlightMutationCandidates = $highlightMutationCandidates;
         }
 
         if ($dumpPositions !== null) {
@@ -173,6 +188,14 @@ final class NodeDumper
             $newLine,
             indent: false,
         );
+
+        if ($dumpOtherAttributes !== null) {
+            $this->dumpOtherAttributes = $originalDumpOtherAttributes;
+        }
+
+        if ($highlightMutationCandidates !== null) {
+            $this->highlightMutationCandidates = $originalHighlightMutationCandidates;
+        }
 
         if ($onlyVisitedNodes !== null) {
             $this->onlyVisitedNodes = $originalOnlyVisitedNodes;
@@ -286,7 +309,15 @@ final class NodeDumper
                 return;
             }
 
-            $result .= $node->getType();
+            $isEligible = LabelNodesAsEligibleVisitor::isEligible($node);
+            $isMutationCandidate = LabelMutationCandidatesVisitor::isAMutationCandidate($node);
+
+            $result .= $isMutationCandidate && $this->highlightMutationCandidates
+                ? sprintf(
+                    '<mutation-candidate>%s</mutation-candidate>',
+                    $node->getType(),
+                )
+                : $node->getType();
 
             if ($this->dumpPositions && null !== $p = $this->dumpPosition($node, $code)) {
                 $result .= $p;

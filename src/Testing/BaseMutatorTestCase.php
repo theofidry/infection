@@ -45,10 +45,8 @@ use Infection\Framework\Str;
 use Infection\Mutation\Mutation;
 use Infection\Mutator\Mutator;
 use Infection\Mutator\NodeMutationGenerator;
-use Infection\PhpParser\NodeTraverserFactory;
 use Infection\PhpParser\Visitor\MutationCollectorVisitor;
 use Infection\PhpParser\Visitor\MutatorVisitor;
-use Infection\Source\Matcher\NullSourceLineMatcher;
 use Infection\TestFramework\Tracing\Trace\EmptyTrace;
 use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
 use Infection\Tests\TestingUtility\FileSystem\MockSplFileInfo;
@@ -245,16 +243,17 @@ abstract class BaseMutatorTestCase extends TestCase
                 ),
                 onlyCovered: false,
                 lineRangeCalculator: new LineRangeCalculator(),
-                sourceLineMatcher: new NullSourceLineMatcher(),
                 originalFileTokens: $originalFileTokens,
                 originalFileContent: $code,
             ),
         );
 
-        $factory = new NodeTraverserFactory();
+        $factory = SingletonContainer::getContainer()->getNodeTraverserFactory();
 
         $factory
-            ->createEnrichmentTraverser()
+            ->createEnrichmentTraverser(
+                new MockSplFileInfo(realPath: '/path/to/virtual-test-file.php'),
+            )
             ->traverse($nodes);
 
         $factory
