@@ -63,6 +63,7 @@ use Infection\TestFramework\Coverage\Locator\Throwable\ReportLocationThrowable;
 use Infection\TestFramework\Coverage\Locator\Throwable\TooManyReportsFound;
 use Infection\TestFramework\Coverage\XmlReport\InvalidCoverage;
 use Infection\TestFramework\ProvidesInitialRunOnlyOptions;
+use Infection\TestFramework\TestFramework;
 use Infection\TestFramework\TestFrameworkExtraOptionsFilter;
 use Webmozart\Assert\Assert;
 
@@ -85,8 +86,9 @@ final readonly class Engine
         private ConsoleOutput $consoleOutput,
         private MetricsCalculator $metricsCalculator,
         private TestFrameworkExtraOptionsFilter $testFrameworkExtraOptionsFilter,
-        private ?InitialStaticAnalysisRunner $initialStaticAnalysisRunner = null,
-        private ?StaticAnalysisToolAdapter $staticAnalysisToolAdapter = null,
+        private ?InitialStaticAnalysisRunner $initialStaticAnalysisRunner,
+        private ?StaticAnalysisToolAdapter $staticAnalysisToolAdapter,
+        private TestFramework $testFramework,
     ) {
     }
 
@@ -106,16 +108,12 @@ final readonly class Engine
     public function execute(): void
     {
         $initialTestSuiteOutput = $this->runInitialTestSuite();
-        $this->runInitialStaticAnalysis();
+        // $this->runInitialStaticAnalysis();
 
-        /*
-         * Limit the memory used for the mutation processes based on the memory
-         * used for the initial test run.
-         * This is done AFTER static analysis to avoid restricting PHPStan's memory.
-         */
-        if ($initialTestSuiteOutput !== null) {
-            $this->memoryLimiter->limitMemory($initialTestSuiteOutput, $this->adapter);
-        }
+        // The test framework can do it itself.
+        // if ($initialTestSuiteOutput !== null) {
+        //            $this->memoryLimiter->limitMemory($initialTestSuiteOutput, $this->adapter);
+        //        }
 
         $this->runMutationAnalysis();
 
@@ -139,27 +137,42 @@ final readonly class Engine
     {
         if ($this->config->skipInitialTests) {
             $this->consoleOutput->logSkippingInitialTests();
-            $this->coverageChecker->checkCoverageExists();
+
+            // Note here that it is the test framework checking the artefacts, not the other way around!
+            $this->testFramework->checkRequiredArtefacts();
+            // $this->coverageChecker->checkCoverageExists();
 
             return null;
         }
 
-        $initialTestSuiteProcess = $this->initialTestsRunner->run(
-            $this->config->testFrameworkExtraOptions,
-            $this->getInitialTestsPhpOptionsArray(),
-            $this->config->skipCoverage,
-        );
+        $this->testFramework->executeInitialRun();
 
-        if (!$initialTestSuiteProcess->isSuccessful()) {
-            throw InitialTestsFailed::fromProcessAndAdapter($initialTestSuiteProcess, $this->adapter);
-        }
+        // All of the following can be done by the test framework itself!
+        // In the case of PHPUnit/PhpSpec/Codeception:
+        // - check that the version used is valid (checkRequiredArtefacts can do that too in the skipped initial tests scenario)
+        // - checking that the output is valid and otherwise throw a InitialTestsFailed exception
+        // - check that the code coverage has been generated
+        // - get the process consumption to limit the process usage in the sub-sequent processes.
+        //   indeed, this is test framework specific.
+        //   and this allows for instance PHPUnit to set it to one specific limit, and PHPStan to set
+        //   it to another!
 
-        $this->coverageChecker->checkCoverageHasBeenGenerated(
-            $initialTestSuiteProcess->getCommandLine(),
-            $initialTestSuiteProcess->getOutput(),
-        );
-
-        return $initialTestSuiteProcess->getOutput();
+        // $initialTestSuiteProcess = $this->initialTestsRunner->run(
+        //    $this->config->testFrameworkExtraOptions,
+        //    $this->getInitialTestsPhpOptionsArray(),
+        //    $this->config->skipCoverage,
+        // );
+        //
+        // if (!$initialTestSuiteProcess->isSuccessful()) {
+        //    throw InitialTestsFailed::fromProcessAndAdapter($initialTestSuiteProcess, $this->adapter);
+        // }
+        //
+        // $this->coverageChecker->checkCoverageHasBeenGenerated(
+        //    $initialTestSuiteProcess->getCommandLine(),
+        //    $initialTestSuiteProcess->getOutput(),
+        // );
+        //
+        // return $initialTestSuiteProcess->getOutput();
     }
 
     /**
@@ -169,6 +182,9 @@ final readonly class Engine
      */
     private function runInitialStaticAnalysis(): void
     {
+        // This would not make sense if StaticAnalysisTestFrameworkAdapter = TestFrameworkAdapter.
+        // But equally, PHPStan = disabled => we do not add PHPStanTestFramework as part of the test
+        // framework used for the runs, so this functionality can be preserved.
         if (!$this->config->isStaticAnalysisEnabled()) {
             return;
         }
