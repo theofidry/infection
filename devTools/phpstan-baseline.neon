@@ -388,6 +388,18 @@ parameters:
 			path: ../src/TestFramework/Coverage/CoverageChecker.php
 
 		-
+			rawMessage: 'Method Infection\TestFramework\Coverage\JUnit\JUnitTestCaseSorter::sortedLocationsGenerator() should return list<string> but returns list<string|null>.'
+			identifier: return.type
+			count: 1
+			path: ../src/TestFramework/Coverage/JUnit/JUnitTestCaseSorter.php
+
+		-
+			rawMessage: 'Unable to resolve the template type TMapKey in call to method Pipeline\Standard<mixed,Infection\AbstractTestFramework\Coverage\TestLocation>::map()'
+			identifier: argument.templateType
+			count: 1
+			path: ../src/TestFramework/Coverage/JUnit/JUnitTestCaseSorter.php
+
+		-
 			rawMessage: Do not use magic number in arithmetic operations. Move to constant with a suitable name.
 			count: 1
 			path: ../src/TestFramework/Coverage/JUnit/TestLocationBucketSorter.php

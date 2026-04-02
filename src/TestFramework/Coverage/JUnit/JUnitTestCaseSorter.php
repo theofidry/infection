@@ -38,6 +38,7 @@ namespace Infection\TestFramework\Coverage\JUnit;
 use function count;
 use function current;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
+use function Pipeline\take;
 use function usort;
 
 /**
@@ -61,9 +62,9 @@ final class JUnitTestCaseSorter
     /**
      * @param TestLocation[] $tests
      *
-     * @return iterable<string>
+     * @return list<string>
      */
-    public function getUniqueSortedFileNames(array $tests): iterable
+    public function getUniqueSortedFileNames(array $tests): array
     {
         $uniqueTestLocations = $this->uniqueByTestFile($tests);
 
@@ -113,16 +114,13 @@ final class JUnitTestCaseSorter
     /**
      * @param iterable<TestLocation> $sortedTestLocations
      *
-     * @return iterable<string>
+     * @return list<string>
      */
-    private static function sortedLocationsGenerator(iterable $sortedTestLocations): iterable
+    private static function sortedLocationsGenerator(iterable $sortedTestLocations): array
     {
-        foreach ($sortedTestLocations as $testLocation) {
-            /** @var string $filePath */
-            $filePath = $testLocation->getFilePath();
-
-            yield $filePath;
-        }
+        return take($sortedTestLocations)
+            ->map(static fn (TestLocation $testLocation) => $testLocation->getFilePath())
+            ->toList();
     }
 
     /**
