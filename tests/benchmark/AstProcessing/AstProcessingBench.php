@@ -47,8 +47,14 @@ use Webmozart\Assert\Assert;
  */
 final class AstProcessingBench
 {
+    /**
+     * @var Closure():(positive-int|0)
+     */
     private Closure $main;
 
+    /**
+     * @var positive-int|0
+     */
     private int $count;
 
     public function setUp(): void

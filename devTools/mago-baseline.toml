@@ -4533,13 +4533,7 @@ count = 1
 [[issues]]
 file = "tests/benchmark/AstProcessing/AstProcessingBench.php"
 code = "mixed-property-type-coercion"
-message = "A value with a less specific type `mixed` is being assigned to property `$$count` (int)."
-count = 1
-
-[[issues]]
-file = "tests/benchmark/AstProcessing/AstProcessingBench.php"
-code = "mixed-property-type-coercion"
-message = "A value with a less specific type `mixed` is being assigned to property `$$main` ((closure(...mixed=): mixed))."
+message = "A value with a less specific type `mixed` is being assigned to property `$$main` ((closure(): int(0)|positive-int))."
 count = 1
 
 [[issues]]

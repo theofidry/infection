@@ -142,7 +142,6 @@ if (!function_exists('Infection\Benchmark\AstProcessing\takePercentageOfTraces')
         }
 
         $selectedIndexedTracesList = [];
-        $selectedIndexedTraces = [];
 
         foreach ($indexedTracesGroupedBySourceType as $indexedTraces) {
             $tracesOffset = (int) max(
