@@ -35,26 +35,29 @@ declare(strict_types=1);
 
 namespace Infection\Benchmark\AstProcessing;
 
-use function array_splice;
+use function array_key_exists;
+use function array_map;
+use function array_merge;
+use function array_slice;
 use function class_exists;
 use Closure;
 use function count;
 use function function_exists;
 use Infection\Container\Container;
-use Infection\PhpParser\Visitor\AddIdToTraversedNodesVisitor\AddIdToTraversedNodesVisitor;
 use Infection\TestFramework\Tracing\Trace\Trace;
 use Infection\TestFramework\Tracing\TraceProvider;
 use function iterator_to_array;
 use function max;
 use function min;
 use PhpParser\Node;
-use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
 use Psr\Log\NullLogger;
 use function round;
+use function Safe\preg_replace;
 use function sprintf;
 use Symfony\Component\Console\Output\NullOutput;
+use function usort;
 use Webmozart\Assert\Assert;
 
 require_once __DIR__ . '/../../../vendor/autoload.php';
@@ -126,17 +129,76 @@ if (!function_exists('Infection\Benchmark\AstProcessing\takePercentageOfTraces')
      */
     function takePercentageOfTraces(float $percentage, array $traces): array
     {
-        $tracesOffset = (int) max(
-            0,
-            min(
-                count($traces),
-                round(
-                    count($traces) * $percentage,
+        $indexedTracesGroupedBySourceType = [];
+
+        foreach ($traces as $index => $trace) {
+            $sourceType = getTraceSourceType($trace);
+
+            if (!array_key_exists($sourceType, $indexedTracesGroupedBySourceType)) {
+                $indexedTracesGroupedBySourceType[$sourceType] = [];
+            }
+
+            $indexedTracesGroupedBySourceType[$sourceType][] = [$index, $trace];
+        }
+
+        $selectedIndexedTracesList = [];
+        $selectedIndexedTraces = [];
+
+        foreach ($indexedTracesGroupedBySourceType as $indexedTraces) {
+            $tracesOffset = (int) max(
+                0,
+                min(
+                    count($indexedTraces),
+                    round(
+                        count($indexedTraces) * $percentage,
+                    ),
                 ),
-            ),
+            );
+
+            $selectedIndexedTracesList[] = array_slice($indexedTraces, 0, $tracesOffset);
+        }
+
+        $selectedIndexedTraces = array_merge(...$selectedIndexedTracesList);
+        usort(
+            $selectedIndexedTraces,
+            static fn (array $left, array $right): int => $left[0] <=> $right[0],
         );
 
-        return array_splice($traces, 0, $tracesOffset);
+        return array_map(
+            static fn (array $indexedTrace): Trace => $indexedTrace[1],
+            $selectedIndexedTraces,
+        );
+    }
+}
+
+if (!function_exists('Infection\Benchmark\AstProcessing\getTraceSourceType')) {
+    function getTraceSourceType(Trace $trace): string
+    {
+        $sourceFileInfo = $trace->getSourceFileInfo();
+        $sourceFileExtension = $sourceFileInfo->getExtension();
+        $sourceFileName = $sourceFileExtension === ''
+            ? $sourceFileInfo->getBasename()
+            : $sourceFileInfo->getBasename('.' . $sourceFileExtension);
+        $sourceFileType = preg_replace('/\d+$/', '', $sourceFileName);
+
+        if ($sourceFileType === $sourceFileName) {
+            return '';
+        }
+
+        if ($sourceFileExtension === '') {
+            return sprintf(
+                '%s/%s',
+                $sourceFileInfo->getPath(),
+                $sourceFileType,
+            );
+        }
+
+        return sprintf(
+            '%s/%s.%s',
+            $sourceFileInfo->getPath(),
+            $sourceFileType,
+            $sourceFileExtension,
+        );
     }
 }
 
@@ -146,36 +208,33 @@ if (!function_exists('Infection\Benchmark\AstProcessing\takePercentageOfTraces')
  * @return Closure():(positive-int|0)
  */
 return static function (int $maxCount, float $percentage = 1.): Closure {
+    Assert::range(
+        $percentage,
+        0,
+        1,
+        sprintf(
+            'Expected the percentage to be an element of [0., 1.]. Got "%s".',
+            $percentage,
+        ),
+    );
+
     $container = createContainer();
     $traces = collectTraces();
+    $tracesSubset = takePercentageOfTraces($percentage, $traces);
     $fileParser = $container->getFileParser();
     $traverserFactory = $container->getNodeTraverserFactory();
 
-    return static function (?float $dynamicPercentage = null) use (
+    return static function () use (
         $fileParser,
         $maxCount,
-        $percentage,
-        $traces,
+        $tracesSubset,
         $traverserFactory,
     ): int {
-        $percentage = $dynamicPercentage ?? $percentage;
-        Assert::range(
-            $percentage,
-            0,
-            1,
-            sprintf(
-                'Expected the percentage to be an element of [0., 1.]. Got "%s".',
-                $percentage,
-            ),
-        );
-
-        $tracesSubset = takePercentageOfTraces($percentage, $traces);
-
         $count = 0;
 
         foreach ($tracesSubset as $trace) {
             $sourceFile = $trace->getSourceFileInfo();
-            [$initialStatements, $originalFileTokens] = $fileParser->parse($sourceFile);
+            [$initialStatements] = $fileParser->parse($sourceFile);
 
             $traverserFactory
                 ->createEnrichmentTraverser($sourceFile, $trace)
