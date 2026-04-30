@@ -48,7 +48,7 @@ use function sprintf;
  */
 final readonly class Duration
 {
-    private const NANOSECONDS_MAX = 10e9;
+    private const float NANOSECONDS_MAX = 10e9;
 
     /**
      * @param positive-int|0 $seconds

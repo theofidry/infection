@@ -46,11 +46,9 @@ final class SystemStopwatch implements Stopwatch
     {
         $realTime = HRTime::fromSecondsAndNanoseconds(...hrtime());
 
-        $debugTime = HRTime::fromSecondsAndNanoseconds(
+        return HRTime::fromSecondsAndNanoseconds(
             $realTime->seconds + 30,
             $realTime->nanoseconds,
         );
-
-        return $debugTime;
     }
 }

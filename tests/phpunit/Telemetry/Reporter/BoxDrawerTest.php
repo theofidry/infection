@@ -47,6 +47,9 @@ use function sprintf;
 #[CoversClass(BoxDrawer::class)]
 final class BoxDrawerTest extends TestCase
 {
+    /**
+     * @param int[][]|int[][]|int[][]|int[][]|int[] $lines
+     */
     #[DataProvider('linesProvider')]
     public function test_it_can_draw_lines_with_boxes(
         array $lines,
@@ -258,8 +261,8 @@ final class BoxDrawerTest extends TestCase
     private static function drawLines(
         BoxDrawer $drawer,
         array $lines,
-        $depth = 0,
-        $result = '',
+        int|float $depth = 0,
+        string $result = '',
     ): string {
         $linesCount = count($lines);
         $sequenceIndex = 0;

@@ -35,20 +35,14 @@ declare(strict_types=1);
 
 namespace Infection\Mutator;
 
-use function count;
-use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\Mutation\Mutation;
 use Infection\PhpParser\MutatedNode;
-use Infection\PhpParser\Visitor\ReflectionVisitor;
+use Infection\PhpParser\Visitor\AddTestsVisitor;
+use Infection\PhpParser\Visitor\LabelNodesAsEligibleVisitor;
 use Infection\Source\Exception\NoSourceFound;
-use Infection\Source\Matcher\SourceLineMatcher;
-use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
-use Infection\TestFramework\Tracing\Trace\Trace;
-use function iterator_to_array;
 use PhpParser\Node;
 use PhpParser\Token;
 use Throwable;
-use Traversable;
 use Webmozart\Assert\Assert;
 
 /**
@@ -57,13 +51,10 @@ use Webmozart\Assert\Assert;
  */
 class NodeMutationGenerator
 {
+    public $trace;
+
     /** @var Mutator<Node>[] */
     private readonly array $mutators;
-
-    private Node $currentNode;
-
-    /** @var TestLocation[]|null */
-    private ?array $testsMemoized = null;
 
     /**
      * @param Mutator<Node>[] $mutators
@@ -74,10 +65,6 @@ class NodeMutationGenerator
         array $mutators,
         private readonly string $filePath,
         private readonly array $fileNodes,
-        private readonly Trace $trace,
-        private readonly bool $onlyCovered,
-        private readonly LineRangeCalculator $lineRangeCalculator,
-        private readonly SourceLineMatcher $sourceLineMatcher,
         private readonly array $originalFileTokens,
         private readonly string $originalFileContent,
     ) {
@@ -93,17 +80,7 @@ class NodeMutationGenerator
      */
     public function generate(Node $node): iterable
     {
-        $this->currentNode = $node;
-        $this->testsMemoized = null;
-
-        if (!$this->isOnFunctionSignature()
-            && !$this->isInsideFunction()
-        ) {
-            return;
-        }
-
-        /** @psalm-suppress InvalidArgument */
-        if (!$this->sourceLineMatcher->touches($this->filePath, $node->getStartLine(), $node->getEndLine())) {
+        if (!LabelNodesAsEligibleVisitor::isEligible($node)) {
             return;
         }
 
@@ -131,12 +108,6 @@ class NodeMutationGenerator
             );
         }
 
-        $tests = $this->getAllTestsForCurrentNode();
-
-        if ($this->onlyCovered && count($tests) === 0) {
-            return;
-        }
-
         $mutationByMutatorIndex = 0;
 
         foreach ($mutator->mutate($node) as $mutatedNode) {
@@ -149,7 +120,7 @@ class NodeMutationGenerator
                 $node::class,
                 MutatedNode::wrap($mutatedNode),
                 $mutationByMutatorIndex,
-                $tests,
+                AddTestsVisitor::getTests($node),
                 $this->originalFileTokens,
                 $this->originalFileContent,
                 $this->trace,
@@ -157,36 +128,5 @@ class NodeMutationGenerator
 
             ++$mutationByMutatorIndex;
         }
-    }
-
-    private function isOnFunctionSignature(): bool
-    {
-        return $this->currentNode->getAttribute(ReflectionVisitor::IS_ON_FUNCTION_SIGNATURE, false);
-    }
-
-    private function isInsideFunction(): bool
-    {
-        return $this->currentNode->getAttribute(ReflectionVisitor::IS_INSIDE_FUNCTION_KEY, false);
-    }
-
-    /**
-     * @return TestLocation[]
-     */
-    private function getAllTestsForCurrentNode(): array
-    {
-        if ($this->testsMemoized !== null) {
-            return $this->testsMemoized;
-        }
-
-        $testsMemoized = $this->trace->getAllTestsForMutation(
-            $this->lineRangeCalculator->calculateRange($this->currentNode),
-            $this->isOnFunctionSignature(),
-        );
-
-        if ($testsMemoized instanceof Traversable) {
-            $testsMemoized = iterator_to_array($testsMemoized, false);
-        }
-
-        return $this->testsMemoized = $testsMemoized;
     }
 }

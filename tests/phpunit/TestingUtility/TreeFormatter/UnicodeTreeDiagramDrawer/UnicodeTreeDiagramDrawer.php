@@ -54,19 +54,19 @@ use Infection\Tests\TestingUtility\TreeFormatter\TreeFormatter;
  */
 final class UnicodeTreeDiagramDrawer
 {
-    private const BOX_DRAWINGS_LIGHT_VERTICAL_AND_RIGHT = '├─';
+    private const string BOX_DRAWINGS_LIGHT_VERTICAL_AND_RIGHT = '├─';
 
-    private const BOX_DRAWINGS_LIGHT_UP_AND_RIGHT = '└─';
+    private const string BOX_DRAWINGS_LIGHT_UP_AND_RIGHT = '└─';
 
-    private const BOX_DRAWINGS_LIGHT_VERTICAL = '│';
+    private const string BOX_DRAWINGS_LIGHT_VERTICAL = '│';
 
-    private const BOX_DRAWINGS_LIGHT_DOWN_AND_RIGHT = '┌─';
+    private const string BOX_DRAWINGS_LIGHT_DOWN_AND_RIGHT = '┌─';
 
-    private const BOX_DRAWINGS_LIGHT_HORIZONTAL = '─';
+    private const string BOX_DRAWINGS_LIGHT_HORIZONTAL = '─';
 
-    private const INDENT = '    ';
+    private const string INDENT = '    ';
 
-    private const PARTIAL_INDENT = '   ';   // Indent for when there is a vertical line
+    private const string PARTIAL_INDENT = '   ';   // Indent for when there is a vertical line
 
     private int $drawCount = 0;
 

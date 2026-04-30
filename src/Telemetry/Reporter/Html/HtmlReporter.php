@@ -47,7 +47,6 @@ use Infection\Resource\Memory\MemoryFormatter;
 use Infection\Telemetry\Metric\Time\Duration;
 use Infection\Telemetry\Metric\Time\DurationFormatter;
 use Infection\Telemetry\Metric\Time\HRTime;
-use Infection\Telemetry\Tracing\RootScope;
 use Infection\Telemetry\Tracing\Span;
 use Infection\Telemetry\Tracing\Trace;
 use function json_encode;
@@ -68,17 +67,8 @@ final readonly class HtmlReporter
     ) {
     }
 
-    /**
-     * @param positive-int $maxDepth
-     * @param list<RootScope> $rootScopes
-     * @param int<0, 100> $minTimeThreshold
-     */
     public function report(
         Trace $trace,
-        int $maxDepth,
-        array $rootScopes,
-        int $minTimeThreshold,
-        ?string $spanId,
     ): void {
         $html = $this->generateHtml($trace);
 

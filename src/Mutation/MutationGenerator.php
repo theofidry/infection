@@ -43,7 +43,7 @@ use Infection\Mutator\Mutator;
 use Infection\PhpParser\UnparsableFile;
 use Infection\Source\Collector\SourceCollector;
 use Infection\Source\Exception\NoSourceFound;
-use Infection\TestFramework\Coverage\JUnit\TestFileNameNotFoundException;
+use Infection\TestFramework\Coverage\JUnit\TestNotFound;
 use Infection\TestFramework\Coverage\Locator\Throwable\NoReportFound;
 use Infection\TestFramework\Coverage\Locator\Throwable\ReportLocationThrowable;
 use Infection\TestFramework\Coverage\Locator\Throwable\TooManyReportsFound;
@@ -82,7 +82,7 @@ class MutationGenerator
      * @throws NoReportFound
      * @throws TooManyReportsFound
      * @throws ReportLocationThrowable
-     * @throws TestFileNameNotFoundException
+     * @throws TestNotFound
      *
      * @return iterable<Mutation>
      */

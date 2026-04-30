@@ -45,9 +45,9 @@ use function round;
  */
 final class DurationFormatter
 {
-    private const MILLISECOND_DIVISOR = 0.001;
+    private const float MILLISECOND_DIVISOR = 0.001;
 
-    private const THRESHOLDS = [
+    private const array THRESHOLDS = [
         [
             'threshold' => 60,
             'unit' => 'min',
@@ -85,6 +85,9 @@ final class DurationFormatter
         return '0ms';
     }
 
+    /**
+     * @param array<string, int>|array<string, string>|array<string, float> $config
+     */
     private static function formatForUnit(float $totalSeconds, array $config): string
     {
         if ($config['unit'] === 'ms') {

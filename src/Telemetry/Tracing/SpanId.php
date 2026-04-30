@@ -44,12 +44,8 @@ use Stringable;
  */
 final readonly class SpanId implements Stringable
 {
-    private function __construct(
-        public RootScope|Scope $scope,
-        public string $scopeId,
-        public ?self $parentId,
-    ) {
-        $x = '';
+    private function __construct(public RootScope|Scope $scope, public string $scopeId, public ?self $parentId)
+    {
     }
 
     public function __toString(): string

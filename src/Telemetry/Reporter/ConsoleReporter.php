@@ -35,18 +35,13 @@ declare(strict_types=1);
 
 namespace Infection\Telemetry\Reporter;
 
-use function array_filter;
-use function array_map;
-use function array_values;
 use function count;
-use function in_array;
 use Infection\Console\IO;
 use Infection\Resource\Memory\MemoryFormatter;
 use Infection\Telemetry\Metric\Time\DurationFormatter;
 use Infection\Telemetry\Tracing\RootScope;
 use Infection\Telemetry\Tracing\Span;
 use Infection\Telemetry\Tracing\Trace;
-use InvalidArgumentException;
 use function sprintf;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -133,51 +128,6 @@ final class ConsoleReporter
         );
 
         $this->resetLastFiltered();
-    }
-
-    /**
-     * @param list<RootScope> $rootScopes
-     */
-    private static function filterSpans(
-        Trace $trace,
-        array $rootScopes,
-        ?string $spanId,
-    ): Trace {
-        $rootScopeValues = array_map(
-            static fn (RootScope $scope) => $scope->value,
-            $rootScopes,
-        );
-
-        $filter = static fn (Span $span) => in_array($span->scope, $rootScopeValues, true);
-
-        $filteredSpans = array_filter(
-            $trace->spans,
-            $filter,
-        );
-
-        if ($spanId !== null) {
-            $filteredSpans = [self::findSpanById($spanId, $filteredSpans)];
-        }
-
-        return $trace->withSpans(
-            array_values($filteredSpans),
-        );
-    }
-
-    private static function findSpanById(string $id, array $spans): Span
-    {
-        $span = self::findSpanByIdRecursively($id, $spans);
-
-        if ($span === null) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Not span with the ID "%s" was found.',
-                    $id,
-                ),
-            );
-        }
-
-        return $span;
     }
 
     /**

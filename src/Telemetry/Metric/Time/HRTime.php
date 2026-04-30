@@ -45,7 +45,7 @@ use function sprintf;
  */
 final readonly class HRTime
 {
-    private const NANOSECONDS_MAX = 1e9;
+    private const float NANOSECONDS_MAX = 1e9;
 
     /**
      * @param positive-int|0 $seconds

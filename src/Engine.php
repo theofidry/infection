@@ -61,7 +61,7 @@ use Infection\Resource\Memory\MemoryLimiter;
 use Infection\Source\Exception\NoSourceFound;
 use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
 use Infection\TestFramework\Coverage\CoverageChecker;
-use Infection\TestFramework\Coverage\JUnit\TestFileNameNotFoundException;
+use Infection\TestFramework\Coverage\JUnit\TestNotFound;
 use Infection\TestFramework\Coverage\Locator\Throwable\NoReportFound;
 use Infection\TestFramework\Coverage\Locator\Throwable\ReportLocationThrowable;
 use Infection\TestFramework\Coverage\Locator\Throwable\TooManyReportsFound;
@@ -105,7 +105,7 @@ final readonly class Engine
      * @throws NoReportFound
      * @throws TooManyReportsFound
      * @throws ReportLocationThrowable
-     * @throws TestFileNameNotFoundException
+     * @throws TestNotFound
      */
     public function execute(): void
     {
@@ -221,13 +221,14 @@ final readonly class Engine
      * @throws NoReportFound
      * @throws TooManyReportsFound
      * @throws ReportLocationThrowable
-     * @throws TestFileNameNotFoundException
+     * @throws TestNotFound
      */
     private function runMutationAnalysis(): void
     {
         $this->eventDispatcher->dispatch(new MutationAnalysisWasStarted());
 
         $mutations = $this->mutationGenerator->generate(
+            // TODO: inject it in the constructor instead
             $this->config->mutateOnlyCoveredCode(),
         );
 

@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Mutation;
 
+use Infection\Command\Debug\DumpAstCommand;
 use Infection\Event\EventDispatcher\EventDispatcher;
 use Infection\Event\Events\Ast\AstEnrichment\AstEnrichmentWasFinished;
 use Infection\Event\Events\Ast\AstEnrichment\AstEnrichmentWasStarted;
@@ -53,10 +54,8 @@ use Infection\PhpParser\NodeTraverserFactory;
 use Infection\PhpParser\UnparsableFile;
 use Infection\PhpParser\Visitor\MutationCollectorVisitor;
 use Infection\Source\Exception\NoSourceFound;
-use Infection\Source\Matcher\SourceLineMatcher;
 use Infection\TestFramework\Tracing\Throwable\NoTraceFound;
 use Infection\TestFramework\Tracing\Trace\EmptyTrace;
-use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
 use Infection\TestFramework\Tracing\Trace\Trace;
 use Infection\TestFramework\Tracing\Tracer;
 use PhpParser\Node;
@@ -74,8 +73,6 @@ class FileMutationGenerator
     public function __construct(
         private readonly FileParser $parser,
         private readonly NodeTraverserFactory $traverserFactory,
-        private readonly LineRangeCalculator $lineRangeCalculator,
-        private readonly SourceLineMatcher $sourceLineMatcher,
         private readonly Tracer $tracer,
         private readonly FileStore $fileStore,
         private readonly EventDispatcher $eventDispatcher,
@@ -103,14 +100,15 @@ class FileMutationGenerator
             return;
         }
 
-        [$initialStatements, $originalFileTokens] = $this->createAst($sourceFile);
+        [$initialStatements, $originalFileTokens] = $this->createAst(
+            $sourceFile,
+            $trace,
+        );
 
         yield from $this->generateMutations(
             $mutators,
             $sourceFile,
             $initialStatements,
-            $trace,
-            $onlyCovered,
             $originalFileTokens,
         );
     }
@@ -126,8 +124,6 @@ class FileMutationGenerator
         array $mutators,
         SplFileInfo $sourceFile,
         mixed $initialStatements,
-        Trace $trace,
-        bool $onlyCovered,
         mixed $originalFileTokens,
     ): iterable {
         $sourceRealPath = $sourceFile->getRealPath();
@@ -141,16 +137,12 @@ class FileMutationGenerator
                 mutators: $mutators,
                 filePath: $sourceRealPath,
                 fileNodes: $initialStatements,
-                trace: $trace,
-                onlyCovered: $onlyCovered,
-                lineRangeCalculator: $this->lineRangeCalculator,
-                sourceLineMatcher: $this->sourceLineMatcher,
                 originalFileTokens: $originalFileTokens,
                 originalFileContent: $this->fileStore->getContents($sourceFile),
             ),
         );
 
-        $traverser = $this->traverserFactory->create($mutationCollectorVisitor);
+        $traverser = $this->traverserFactory->createMutationTraverser($mutationCollectorVisitor);
         $traverser->traverse($initialStatements);
 
         $sourceFileMutationIds = [];
@@ -170,12 +162,18 @@ class FileMutationGenerator
     }
 
     /**
+     * Copy/pasted to DumpAstCommand.
+     *
+     * @see DumpAstCommand
+     *
      * @throws UnparsableFile
      *
      * @return array{Stmt[], Token[]}
      */
-    private function createAst(SplFileInfo $sourceFile): array
-    {
+    private function createAst(
+        SplFileInfo $sourceFile,
+        Trace $trace,
+    ): array {
         // TODO: should be moved to its own service
         // TODO: move NodeIdFactory and rename it if we stick with it
         $sourceFilePath = $sourceFile->getRealPath();
@@ -195,7 +193,6 @@ class FileMutationGenerator
                 $sourceFilePath,
             ),
         );
-
         [$initialStatements, $originalFileTokens] = $this->parser->parse($sourceFile);
 
         $this->eventDispatcher->dispatch(
@@ -210,9 +207,9 @@ class FileMutationGenerator
             ),
         );
 
-        // Pre-traverse the nodes to connect them
-        $preTraverser = $this->traverserFactory->createPreTraverser();
-        $preTraverser->traverse($initialStatements);
+        $this->traverserFactory
+            ->createEnrichmentTraverser($sourceFile, $trace)
+            ->traverse($initialStatements);
 
         $this->eventDispatcher->dispatch(
             new AstEnrichmentWasFinished($sourceFileId),

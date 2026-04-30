@@ -97,7 +97,7 @@ final class SpanTest extends TestCase
 
     public static function spanProvider(): iterable
     {
-        $gcStatus = self::createGarbageCollectorStatus();
+        self::createGarbageCollectorStatus();
         $snapshot1 = self::createSnapshot(0, 0, 1000);
         $snapshot2 = self::createSnapshot(1, 0, 2000);
 
