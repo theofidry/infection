@@ -123,9 +123,6 @@ final class Application extends BaseApplication
                 new DescribeCommand(),
                 new ListSourcesCommand(),
                 new MakeCustomMutatorCommand(),
-                new Telemetry\ShowTraceCommand(
-                    new Filesystem(),
-                ),
             ],
         );
     }

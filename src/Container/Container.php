@@ -181,7 +181,6 @@ use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
 use Infection\TestFramework\Tracing\TraceProvider;
 use Infection\TestFramework\Tracing\TraceProviderAdapterTracer;
 use Infection\TestFramework\Tracing\Tracer;
-use Infection\Tests\Reporter\NullReporter;
 use OndraM\CiDetector\CiDetector;
 use function php_ini_loaded_file;
 use PhpParser\Parser;
@@ -413,19 +412,12 @@ final class Container extends DIContainer
                     $container->get(DispatchPcntlSignalSubscriber::class),
                 ];
 
-                if ($container->getConfiguration()->isDebugEnabled) {
-                    $subscriberFactories[] = $container->get(DebugEventsSubscriber::class);
-                }
-
                 if ($container->getConfiguration()->isStaticAnalysisEnabled()) {
                     $subscriberFactories[] = $container->get(InitialStaticAnalysisExecutionLoggerSubscriber::class);
                 }
 
                 return new ChainSubscriberFactory(...$subscriberFactories);
             },
-            DebugEventsSubscriber::class => static fn (self $container): DebugEventsSubscriber => new DebugEventsSubscriber(
-                $container->getLogger(),
-            ),
             CleanUpAfterMutationTestingFinishedSubscriberFactory::class => static function (self $container): CleanUpAfterMutationTestingFinishedSubscriberFactory {
                 $config = $container->getConfiguration();
 
