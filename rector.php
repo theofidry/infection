@@ -55,6 +55,7 @@ use Rector\Instanceof_\Rector\Ternary\FlipNegatedTernaryInstanceofRector;
 use Rector\Php73\Rector\String_\SensitiveHereNowDocRector;
 use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
 use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
+use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\AddInstanceofAssertForNullableInstanceRector;
 use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\DataProviderArrayItemsNewLinedRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertCompareOnCountableWithMethodToAssertCountRector;
@@ -87,13 +88,13 @@ return RectorConfig::configure()
         __DIR__ . '/tests/phpunit',
     ])
     ->withSkipPath(
-        __DIR__ . '/tests/phpunit/TestingUtility/PhpParser/NodeDumper/NodeDumper.php',
+        __DIR__ . '/src/PhpParser/NodeDumper/NodeDumper.php',
     )
     ->withCache(
         cacheClass: FileCacheStorage::class,
         cacheDirectory: __DIR__ . '/var/cache/rector',
     )
-    ->withPhpSets(php82: true)
+    ->withPhpSets(php83: true)
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,
@@ -128,6 +129,10 @@ return RectorConfig::configure()
         ],
     )
     ->withSkip([
+        AddOverrideAttributeToOverriddenMethodsRector::class => [
+            // To remove this skip once we drop support for Symfony 6.4.
+            'src/FileSystem/FileSystem.php',
+        ],
         'Rector\PHPUnit\CodeQuality\Rector\ClassMethod\BareCreateMockAssignToDirectUseRector',
         AbsolutizeRequireAndIncludePathRector::class,
         AddArrowFunctionReturnTypeRector::class,

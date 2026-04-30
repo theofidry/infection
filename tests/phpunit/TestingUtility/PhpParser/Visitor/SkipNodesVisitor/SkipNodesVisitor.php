@@ -36,7 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\TestingUtility\PhpParser\Visitor\SkipNodesVisitor;
 
 use function in_array;
-use Infection\Tests\TestingUtility\PhpParser\Visitor\AddIdToTraversedNodesVisitor\AddIdToTraversedNodesVisitor;
+use Infection\PhpParser\Visitor\AddIdToTraversedNodesVisitor\AddIdToTraversedNodesVisitor;
 use PhpParser\Node;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
@@ -46,7 +46,7 @@ use PhpParser\NodeVisitorAbstract;
  */
 final class SkipNodesVisitor extends NodeVisitorAbstract
 {
-    public const DEFAULT_STOP_TRAVERSE_TYPE = self::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
+    public const int DEFAULT_STOP_TRAVERSE_TYPE = self::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
 
     /**
      * @param list<int> $nodeIds

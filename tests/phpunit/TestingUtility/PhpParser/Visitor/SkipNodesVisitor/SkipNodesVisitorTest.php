@@ -35,8 +35,8 @@ declare(strict_types=1);
 
 namespace Infection\Tests\TestingUtility\PhpParser\Visitor\SkipNodesVisitor;
 
+use Infection\PhpParser\Visitor\MarkTraversedNodesAsVisitedVisitor;
 use Infection\Tests\PhpParser\Visitor\VisitorTestCase\VisitorTestCase;
-use Infection\Tests\TestingUtility\PhpParser\Visitor\MarkTraversedNodesAsVisitedVisitor\MarkTraversedNodesAsVisitedVisitor;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -109,8 +109,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'first'
                                                         nodeId: 9
+                                                        rawValue: 'first'
                                                     )
                                                     nodeId: 8
                                                 )
@@ -120,8 +120,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'second'
                                                         nodeId: 12
+                                                        rawValue: 'second'
                                                     )
                                                     nodeId: 11
                                                 )
@@ -131,8 +131,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'third'
                                                         nodeId: 15
+                                                        rawValue: 'third'
                                                     )
                                                     nodeId: 14
                                                 )
@@ -189,8 +189,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'first'
                                                         nodeId: 9
+                                                        rawValue: 'first'
                                                     )
                                                     nodeId: 8
                                                 )
@@ -201,8 +201,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'third'
                                                         nodeId: 15
+                                                        rawValue: 'third'
                                                     )
                                                     nodeId: 14
                                                 )
@@ -259,8 +259,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'first'
                                                         nodeId: 9
+                                                        rawValue: 'first'
                                                     )
                                                     nodeId: 8
                                                 )
@@ -271,8 +271,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'third'
                                                         nodeId: 15
+                                                        rawValue: 'third'
                                                     )
                                                     nodeId: 14
                                                 )
@@ -329,8 +329,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'first'
                                                         nodeId: 9
+                                                        rawValue: 'first'
                                                     )
                                                     nodeId: 8
                                                 )
@@ -344,8 +344,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'third'
                                                         nodeId: 15
+                                                        rawValue: 'third'
                                                     )
                                                     nodeId: 14
                                                 )
@@ -402,8 +402,8 @@ final class SkipNodesVisitorTest extends VisitorTestCase
                                                 value: Expr_ArrowFunction(
                                                     expr: Scalar_String(
                                                         kind: KIND_SINGLE_QUOTED (1)
-                                                        rawValue: 'first'
                                                         nodeId: 9
+                                                        rawValue: 'first'
                                                     )
                                                     nodeId: 8
                                                 )
