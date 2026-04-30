@@ -67,6 +67,9 @@ final class ComposableReporterTest extends TestCase
         $reporter->report();
     }
 
+    /**
+     * @return iterable<string, array{iterable<string>|string}>
+     */
     public static function contentsOrLinesProvider(): iterable
     {
         yield 'contents' => [

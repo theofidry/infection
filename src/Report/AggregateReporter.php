@@ -37,6 +37,9 @@ namespace Infection\Report;
 
 use Infection\Reporter\Reporter;
 
+/**
+ * @internal
+ */
 final readonly class AggregateReporter implements Reporter
 {
     /**

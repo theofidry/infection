@@ -38,6 +38,7 @@ namespace Infection\Report\Framework\Writer;
 use function implode;
 use function is_string;
 use function iterator_to_array;
+use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -51,6 +52,11 @@ final readonly class FileWriter implements ReportWriter
     ) {
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @throws IOException
+     */
     public function write(iterable|string $contentOrLines): void
     {
         $contents = is_string($contentOrLines)

@@ -40,10 +40,41 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
+use UnexpectedValueException;
 
 #[CoversClass(StreamWriter::class)]
 final class StreamWriterTest extends TestCase
 {
+    /**
+     * @param StreamWriter::STDOUT_STREAM|StreamWriter::STDERR_STREAM $stream
+     */
+    #[DataProvider('streamProvider')]
+    public function test_it_can_be_created_for_a_stream(string $stream): void
+    {
+        $writer = StreamWriter::createForStream($stream);
+
+        $this->assertInstanceOf(StreamWriter::class, $writer);
+    }
+
+    public function test_it_cannot_be_created_for_an_unknown_stream(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+
+        /** @phpstan-ignore argument.type */
+        StreamWriter::createForStream('/path/to/file.log');
+    }
+
+    public static function streamProvider(): iterable
+    {
+        yield 'stdout' => [
+            StreamWriter::STDOUT_STREAM,
+        ];
+
+        yield 'stderr' => [
+            StreamWriter::STDERR_STREAM,
+        ];
+    }
+
     /**
      * @param iterable<string>|string $contentOrLines
      */
@@ -62,6 +93,9 @@ final class StreamWriterTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    /**
+     * @return iterable<string, array{iterable<string>|string, string}>
+     */
     public static function contentsOrLinesProvider(): iterable
     {
         yield 'contents' => [

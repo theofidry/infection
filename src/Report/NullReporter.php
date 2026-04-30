@@ -37,6 +37,9 @@ namespace Infection\Report;
 
 use Infection\Reporter\Reporter;
 
+/**
+ * @internal
+ */
 final class NullReporter implements Reporter
 {
     public function report(): void

@@ -40,7 +40,10 @@ use Infection\Configuration\Entry\Logs;
 use Infection\Report\AggregateReporter;
 use Infection\Reporter\Reporter;
 
-final class AggregateReporterFactory implements ReporterFactory
+/**
+ * @internal
+ */
+final readonly class AggregateReporterFactory implements ReporterFactory
 {
     /**
      * @param ReporterFactory[] $factories

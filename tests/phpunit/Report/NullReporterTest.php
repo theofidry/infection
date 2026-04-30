@@ -33,52 +33,19 @@
 
 declare(strict_types=1);
 
-namespace Infection\Report\Framework\Writer;
+namespace Infection\Tests\Report;
 
-use function is_string;
-use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Output\OutputInterface;
-use UnexpectedValueException;
+use Infection\Report\NullReporter;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
-/**
- * Writes the content to a stream. It is implemented as a wrapper around the
- * Symfony ConsoleOutput – which is a streamable OutputInterface, for simplicity.
- *
- * @internal
- */
-final readonly class StreamWriter implements ReportWriter
+#[CoversClass(NullReporter::class)]
+final class NullReporterTest extends TestCase
 {
-    public const string STDOUT_STREAM = 'php://stdout';
-
-    public const string STDERR_STREAM = 'php://stderr';
-
-    public function __construct(
-        private OutputInterface $output,
-    ) {
-    }
-
-    /**
-     * @param self::STDOUT_STREAM|self::STDERR_STREAM $stream
-     */
-    public static function createForStream(string $stream): self
+    public function test_it_does_not_report_anything(): void
     {
-        $output = match ($stream) {
-            self::STDOUT_STREAM => new ConsoleOutput(),
-            self::STDERR_STREAM => (new ConsoleOutput())->getErrorOutput(),
-            default => throw new UnexpectedValueException(),
-        };
+        $this->expectNotToPerformAssertions();
 
-        return new self($output);
-    }
-
-    public function write(iterable|string $contentOrLines): void
-    {
-        if (is_string($contentOrLines)) {
-            $this->output->write($contentOrLines);
-        } else {
-            foreach ($contentOrLines as $line) {
-                $this->output->writeln($line);
-            }
-        }
+        (new NullReporter())->report();
     }
 }
