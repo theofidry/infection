@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Report\Framework\Writer;
 
+use Infection\Framework\Str;
 use Infection\Report\Framework\Writer\StreamWriter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -108,11 +109,11 @@ final class StreamWriterTest extends TestCase
                 'First line',
                 'Second line',
             ],
-            <<<'EOF'
+            Str::toSystemLineEndings(<<<'EOF'
                 First line
                 Second line
 
-                EOF,
+                EOF),
         ];
     }
 }
