@@ -12,6 +12,32 @@ commandTests:
         args: ["--version"]
         exitCode: 0
 
+    -   name: "PIE is executable"
+        command: "pie"
+        args: ["--version"]
+        expectedOutput: ["PHP Installer for Extensions"]
+        exitCode: 0
+
+    -   name: "nc is executable"
+        command: "sh"
+        args: ["-lc", "command -v nc"]
+        expectedOutput: ["nc"]
+        exitCode: 0
+
+    -   name: "grpc and xdebug are loaded"
+        command: "php"
+        args: ["-m"]
+        expectedOutput:
+            - "(?m)^grpc$"
+            - "(?m)^xdebug$"
+        exitCode: 0
+
+    -   name: "Xdebug coverage mode is enabled"
+        command: "php"
+        args: ["-r", "echo ini_get('xdebug.mode'), PHP_EOL;"]
+        expectedOutput: ["(?m)^coverage$"]
+        exitCode: 0
+
     - name: "Container runs as agent user"
       command: "whoami"
       expectedOutput: ["(?m)^agent$"]

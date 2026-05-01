@@ -37,13 +37,15 @@ namespace Infection\Telemetry;
 
 use Infection\Configuration\Entry\TelemetryEntry;
 use Infection\Telemetry\Configuration\InvalidTelemetryConfiguration;
+use function in_array;
 use function is_numeric;
 use OpenTelemetry\API\Common\Time\SystemClock;
 use OpenTelemetry\API\Signals;
 use OpenTelemetry\Contrib\Otlp\HttpEndpointResolver;
-use OpenTelemetry\Contrib\Otlp\OtlpHttpTransportFactory;
+use OpenTelemetry\Contrib\Otlp\OtlpUtil;
 use OpenTelemetry\Contrib\Otlp\Protocols;
 use OpenTelemetry\Contrib\Otlp\SpanExporter;
+use OpenTelemetry\SDK\Registry;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
@@ -58,6 +60,7 @@ use OpenTelemetry\SDK\Trace\SpanLimitsBuilder;
 use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\ResourceAttributes;
+use RuntimeException;
 use function sprintf;
 
 final class OpenTelemetryFactory
@@ -102,20 +105,31 @@ final class OpenTelemetryFactory
 
     private static function createOtlpSpanExporter(TelemetryEntry $config): SpanExporter
     {
-        if ($config->otlp->protocol !== Protocols::HTTP_PROTOBUF && $config->otlp->protocol !== Protocols::HTTP_JSON) {
+        if (!in_array($config->otlp->protocol, [Protocols::GRPC, Protocols::HTTP_PROTOBUF, Protocols::HTTP_JSON], true)) {
             throw new InvalidTelemetryConfiguration(sprintf(
-                'Unsupported telemetry OTLP protocol "%s". Supported values are "http/protobuf" and "http/json".',
+                'Unsupported telemetry OTLP protocol "%s". Supported values are "grpc", "http/protobuf" and "http/json".',
                 $config->otlp->protocol,
             ));
         }
 
-        $endpoint = $config->otlp->tracesEndpoint
-            ?? HttpEndpointResolver::create()->resolveToString($config->otlp->endpoint, Signals::TRACE);
+        $endpoint = $config->otlp->tracesEndpoint ?? match ($config->otlp->protocol) {
+            Protocols::GRPC => $config->otlp->endpoint . OtlpUtil::method(Signals::TRACE),
+            default => HttpEndpointResolver::create()->resolveToString($config->otlp->endpoint, Signals::TRACE),
+        };
 
-        $transport = (new OtlpHttpTransportFactory())->create(
+        try {
+            $transportFactory = Registry::transportFactory($config->otlp->protocol);
+        } catch (RuntimeException $exception) {
+            throw new InvalidTelemetryConfiguration(sprintf(
+                'No OpenTelemetry transport is registered for OTLP protocol "%s". Install and enable the matching transport package.',
+                $config->otlp->protocol,
+            ), previous: $exception);
+        }
+
+        $transport = $transportFactory->create(
             $endpoint,
             Protocols::contentType($config->otlp->protocol),
-            $config->otlp->headers,
+            [...$config->otlp->headers, ...OtlpUtil::getUserAgentHeader()],
             $config->otlp->compression,
             $config->otlp->timeout / 1000,
         );

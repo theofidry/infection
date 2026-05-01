@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\Telemetry;
 
 use Infection\Configuration\Entry\TelemetryEntry;
+use Infection\Configuration\Entry\TelemetryOtlpEntry;
 use Infection\Telemetry\InfectionTelemetry;
 use Infection\Telemetry\OpenTelemetryFactory;
 use Infection\Telemetry\SpanLink;
@@ -119,6 +120,32 @@ final class InfectionTelemetryTest extends TestCase
         $this->assertCount(1, $spans[0]->getLinks());
         $this->assertSame('source_file', $spans[1]->getName());
         $this->assertSame($spans[1]->getSpanId(), $spans[0]->getLinks()[0]->getSpanContext()->getSpanId());
+    }
+
+    public function test_it_creates_a_grpc_otlp_exporter_when_the_transport_is_registered(): void
+    {
+        $config = self::telemetryConfig();
+        $config = new TelemetryEntry(
+            enabled: $config->enabled,
+            serviceName: $config->serviceName,
+            resourceAttributes: $config->resourceAttributes,
+            traces: $config->traces,
+            otlp: new TelemetryOtlpEntry(
+                endpoint: 'http://localhost:4317',
+                tracesEndpoint: null,
+                protocol: 'grpc',
+                headers: [],
+                compression: 'none',
+                timeout: 10000,
+            ),
+            batchSpanProcessor: $config->batchSpanProcessor,
+            limits: $config->limits,
+        );
+
+        $telemetry = (new OpenTelemetryFactory())->create($config);
+
+        $this->assertTrue($telemetry->isEnabled());
+        $this->assertTrue($telemetry->shutdown());
     }
 
     private static function telemetryConfig(): TelemetryEntry

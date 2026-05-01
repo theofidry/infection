@@ -19,7 +19,39 @@
             "report": "master"
         },
         "telemetry": {
-            "enabled": false
+            "enabled": true,
+            "serviceName": "infection",
+            "resourceAttributes": {
+                "service.namespace": "infection",
+                "deployment.environment": "local",
+                "telemetry.backend": "signoz"
+            },
+            "traces": {
+                "exporter": "otlp",
+                "sampler": "parentbased_always_on",
+                "samplerArg": null
+            },
+            "otlp": {
+                "endpoint": "http://localhost:4317",
+                "tracesEndpoint": null,
+                "protocol": "grpc",
+                "headers": {},
+                "compression": "none",
+                "timeout": 10000
+            },
+            "batchSpanProcessor": {
+                "scheduleDelay": 5000,
+                "exportTimeout": 30000,
+                "maxQueueSize": 2048,
+                "maxExportBatchSize": 512
+            },
+            "limits": {
+                "attributeValueLength": null,
+                "attributeCount": 128,
+                "spanAttributeCount": 128,
+                "spanEventCount": 128,
+                "spanLinkCount": 128
+            }
         }
     },
     "phpStan": {

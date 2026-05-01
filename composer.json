@@ -63,6 +63,7 @@
         "open-telemetry/exporter-otlp": "^1.4",
         "open-telemetry/sdk": "^1.14",
         "open-telemetry/sem-conv": "^1.38",
+        "open-telemetry/transport-grpc": "^1.2",
         "psr/log": "^2.0 || ^3.0",
         "sanmai/di-container": "^0.1.12",
         "sanmai/duoclock": "^0.1.0",
