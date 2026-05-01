@@ -40,6 +40,10 @@ use function array_fill_keys;
 use function array_key_exists;
 use function array_keys;
 use function count;
+use Infection\Event\Events\Application\ApplicationExecutionWasFinished;
+use Infection\Event\Events\Application\ApplicationExecutionWasFinishedSubscriber;
+use Infection\Event\Events\Application\ApplicationExecutionWasStarted;
+use Infection\Event\Events\Application\ApplicationExecutionWasStartedSubscriber;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasFinished;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasFinishedSubscriber;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasStarted;
@@ -104,189 +108,206 @@ use Infection\Event\Events\SourceCollection\SourceCollectionWasFinished;
 use Infection\Event\Events\SourceCollection\SourceCollectionWasFinishedSubscriber;
 use Infection\Event\Events\SourceCollection\SourceCollectionWasStarted;
 use Infection\Event\Events\SourceCollection\SourceCollectionWasStartedSubscriber;
-use Infection\Telemetry\Tracing\RootScope;
-use Infection\Telemetry\Tracing\Scope;
-use Infection\Telemetry\Tracing\SpanBuilder;
-use Infection\Telemetry\Tracing\Tracer;
+use Infection\Telemetry\InfectionSpanAttribute;
+use Infection\Telemetry\InfectionSpanName;
+use Infection\Telemetry\InfectionTelemetry;
+use Infection\Telemetry\SpanHandle;
+use Infection\Telemetry\SpanLink;
 use function spl_object_id;
 
 /**
  * @internal
  */
-final class TelemetrySubscriber implements ArtefactCollectionWasFinishedSubscriber, ArtefactCollectionWasStartedSubscriber, AstEnrichmentWasFinishedSubscriber, AstEnrichmentWasStartedSubscriber, AstParsingWasFinishedSubscriber, AstParsingWasStartedSubscriber, AstProcessingWasFinishedSubscriber, AstProcessingWasStartedSubscriber, InitialStaticAnalysisRunWasFinishedSubscriber, InitialStaticAnalysisRunWasStartedSubscriber, InitialTestSuiteWasFinishedSubscriber, InitialTestSuiteWasStartedSubscriber, MutantEvaluationWasFinishedSubscriber, MutantEvaluationWasStartedSubscriber, MutantMaterialisationWasFinishedSubscriber, MutantMaterialisationWasStartedSubscriber, MutantProcessWasFinishedSubscriber, MutationAnalysisWasFinishedSubscriber, MutationAnalysisWasStartedSubscriber, MutationEvaluationForMutationWasStartedSubscriber, MutationGenerationForFileWasFinishedSubscriber, MutationGenerationForFileWasStartedSubscriber, MutationGenerationWasFinishedSubscriber, MutationGenerationWasStartedSubscriber, MutationHeuristicsWasFinishedSubscriber, MutationHeuristicsWasStartedSubscriber, MutationTestingWasFinishedSubscriber, MutationTestingWasStartedSubscriber, ReportingWasFinishedSubscriber, ReportingWasStartedSubscriber, SourceCollectionWasFinishedSubscriber, SourceCollectionWasStartedSubscriber
+final class TelemetrySubscriber implements ApplicationExecutionWasFinishedSubscriber, ApplicationExecutionWasStartedSubscriber, ArtefactCollectionWasFinishedSubscriber, ArtefactCollectionWasStartedSubscriber, AstEnrichmentWasFinishedSubscriber, AstEnrichmentWasStartedSubscriber, AstParsingWasFinishedSubscriber, AstParsingWasStartedSubscriber, AstProcessingWasFinishedSubscriber, AstProcessingWasStartedSubscriber, InitialStaticAnalysisRunWasFinishedSubscriber, InitialStaticAnalysisRunWasStartedSubscriber, InitialTestSuiteWasFinishedSubscriber, InitialTestSuiteWasStartedSubscriber, MutantEvaluationWasFinishedSubscriber, MutantEvaluationWasStartedSubscriber, MutantMaterialisationWasFinishedSubscriber, MutantMaterialisationWasStartedSubscriber, MutantProcessWasFinishedSubscriber, MutationAnalysisWasFinishedSubscriber, MutationAnalysisWasStartedSubscriber, MutationEvaluationForMutationWasStartedSubscriber, MutationGenerationForFileWasFinishedSubscriber, MutationGenerationForFileWasStartedSubscriber, MutationGenerationWasFinishedSubscriber, MutationGenerationWasStartedSubscriber, MutationHeuristicsWasFinishedSubscriber, MutationHeuristicsWasStartedSubscriber, MutationTestingWasFinishedSubscriber, MutationTestingWasStartedSubscriber, ReportingWasFinishedSubscriber, ReportingWasStartedSubscriber, SourceCollectionWasFinishedSubscriber, SourceCollectionWasStartedSubscriber
 {
-    private SpanBuilder $sourceCollectionSpan;
+    private SpanHandle $runSpan;
 
-    private SpanBuilder $artefactCollectionSpan;
+    private SpanHandle $sourceCollectionSpan;
 
-    private SpanBuilder $initialTestSuiteSpan;
+    private SpanHandle $artefactCollectionSpan;
 
-    private SpanBuilder $initialStaticAnalysisRunSpan;
+    private SpanHandle $initialTestSuiteSpan;
 
-    private SpanBuilder $mutationGenerationSpan;
+    private SpanHandle $initialStaticAnalysisRunSpan;
 
-    private SpanBuilder $mutationAnalysisSpan;
+    private SpanHandle $mutationAnalysisSpan;
 
-    private SpanBuilder $mutationEvaluationSpan;
+    private SpanHandle $mutationGenerationSpan;
 
-    private SpanBuilder $reportingSpan;
+    private SpanHandle $mutationEvaluationSpan;
 
-    /** @var array<string, SpanBuilder> key=sourceFileId */
+    private SpanHandle $reportingSpan;
+
+    private bool $runSpanStarted = false;
+
+    /** @var array<string, SpanHandle> key=sourceFileId */
     private array $sourceFileSpans = [];
 
-    /** @var array<string, SpanBuilder> key=sourceFileId */
+    /** @var array<string, SpanHandle> key=sourceFileId */
     private array $astProcessingSpans = [];
 
-    /** @var array<string, SpanBuilder> key=sourceFileId */
+    /** @var array<string, SpanHandle> key=sourceFileId */
     private array $astParsingSpans = [];
 
-    /** @var array<string, SpanBuilder> key=sourceFileId */
+    /** @var array<string, SpanHandle> key=sourceFileId */
     private array $astEnrichmentSpans = [];
 
-    /** @var array<string, SpanBuilder> key=sourceFileId */
-    private array $sourceFileMutationGenerationSpan = [];
+    /** @var array<string, SpanHandle> key=sourceFileId */
+    private array $sourceFileMutationGenerationSpans = [];
 
-    /** @var array<string, SpanBuilder> key=mutationId */
+    /** @var array<string, SpanHandle> key=mutationId */
     private array $individualMutationEvaluationSpans = [];
 
-    /** @var array<string, SpanBuilder> key=spanId */
+    /** @var array<string, SpanHandle> key=processSpanId */
     private array $individualMutantEvaluationSpans = [];
 
-    /** @var array<string, array<string, SpanBuilder>> key1=mutationId, key2=heuristicIdName */
+    /** @var array<string, array<string, SpanHandle>> key1=mutationId, key2=heuristicIdName */
     private array $mutationHeuristicsSpans = [];
 
-    /** @var array<string, SpanBuilder> key=mutationId */
+    /** @var array<string, SpanHandle> key=mutationId */
     private array $mutationMaterialisationSpans = [];
 
-    /**
-     * @var array<string, array<string, true>>
-     */
+    /** @var array<string, array<string, true>> */
     private array $finishedMutationHashesBySourceFileId = [];
 
-    /**
-     * @var array<string, array<string, true>>
-     */
+    /** @var array<string, array<string, true>> */
     private array $remainingMutationHashesBySourceFileId = [];
 
-    /**
-     * @var array<string, string>
-     */
+    /** @var array<string, string> */
     private array $sourceFileIdByMutationHash = [];
 
     public function __construct(
-        private readonly Tracer $tracer,
+        private readonly InfectionTelemetry $telemetry,
     ) {
+        $this->runSpan = SpanHandle::invalid();
+        $this->sourceCollectionSpan = SpanHandle::invalid();
+        $this->artefactCollectionSpan = SpanHandle::invalid();
+        $this->initialTestSuiteSpan = SpanHandle::invalid();
+        $this->initialStaticAnalysisRunSpan = SpanHandle::invalid();
+        $this->mutationAnalysisSpan = SpanHandle::invalid();
+        $this->mutationGenerationSpan = SpanHandle::invalid();
+        $this->mutationEvaluationSpan = SpanHandle::invalid();
+        $this->reportingSpan = SpanHandle::invalid();
+    }
+
+    public function onApplicationExecutionWasStarted(ApplicationExecutionWasStarted $event): void
+    {
+        $this->ensureRunSpan();
+    }
+
+    public function onApplicationExecutionWasFinished(ApplicationExecutionWasFinished $event): void
+    {
+        $this->endOpenSpans();
+
+        if ($this->runSpanStarted) {
+            $this->telemetry->end($this->runSpan);
+            $this->runSpanStarted = false;
+        }
+
+        $this->telemetry->shutdown();
     }
 
     public function onSourceCollectionWasStarted(SourceCollectionWasStarted $event): void
     {
-        $this->sourceCollectionSpan = $this->tracer->startSpan(RootScope::SOURCE_COLLECTION);
+        $this->sourceCollectionSpan = $this->startRunChild(InfectionSpanName::SOURCE_COLLECTION);
     }
 
     public function onSourceCollectionWasFinished(SourceCollectionWasFinished $event): void
     {
-        $this->tracer->endSpan(
+        $this->telemetry->end(
             $this->sourceCollectionSpan,
-            attributes: ['sourcesCount' => $event->sourcesCount],
+            [InfectionSpanAttribute::SOURCE_COUNT => $event->sourcesCount],
         );
     }
 
     public function onArtefactCollectionWasStarted(ArtefactCollectionWasStarted $event): void
     {
-        $this->artefactCollectionSpan = $this->tracer->startSpan(RootScope::ARTEFACT_COLLECTION);
+        $this->artefactCollectionSpan = $this->startRunChild(InfectionSpanName::ARTEFACT_COLLECTION);
     }
 
     public function onArtefactCollectionWasFinished(ArtefactCollectionWasFinished $event): void
     {
-        $this->tracer->endSpan($this->artefactCollectionSpan);
+        $this->telemetry->end($this->artefactCollectionSpan);
     }
 
     public function onInitialTestSuiteWasStarted(InitialTestSuiteWasStarted $event): void
     {
-        $this->initialTestSuiteSpan = $this->tracer->startChildSpan(
+        $this->initialTestSuiteSpan = $this->telemetry->startChildSpan(
             $this->artefactCollectionSpan,
-            Scope::INITIAL_TESTS,
-            attributes: [
-                'testFrameworkName' => $event->testFrameworkName,
-                'testFrameworkVersion' => $event->testFrameworkVersion,
+            InfectionSpanName::INITIAL_TESTS,
+            [
+                InfectionSpanAttribute::TEST_FRAMEWORK_NAME => $event->testFrameworkName,
+                InfectionSpanAttribute::TEST_FRAMEWORK_VERSION => $event->testFrameworkVersion,
             ],
         );
     }
 
     public function onInitialTestSuiteWasFinished(InitialTestSuiteWasFinished $event): void
     {
-        $this->tracer->endSpan($this->initialTestSuiteSpan);
+        $this->telemetry->end($this->initialTestSuiteSpan);
     }
 
     public function onInitialStaticAnalysisRunWasStarted(InitialStaticAnalysisRunWasStarted $event): void
     {
-        $this->initialStaticAnalysisRunSpan = $this->tracer->startChildSpan(
+        $this->initialStaticAnalysisRunSpan = $this->telemetry->startChildSpan(
             $this->artefactCollectionSpan,
-            Scope::INITIAL_STATIC_ANALYSIS,
+            InfectionSpanName::INITIAL_STATIC_ANALYSIS,
         );
     }
 
     public function onInitialStaticAnalysisRunWasFinished(InitialStaticAnalysisRunWasFinished $event): void
     {
-        $this->tracer->endSpan($this->initialStaticAnalysisRunSpan);
+        $this->telemetry->end($this->initialStaticAnalysisRunSpan);
     }
 
     public function onMutationAnalysisWasStarted(MutationAnalysisWasStarted $event): void
     {
-        $this->mutationAnalysisSpan = $this->tracer->startSpan(RootScope::MUTATION_ANALYSIS);
+        $this->mutationAnalysisSpan = $this->startRunChild(InfectionSpanName::MUTATION_ANALYSIS);
     }
 
     public function onMutationAnalysisWasFinished(MutationAnalysisWasFinished $event): void
     {
-        $this->tracer->endSpan($this->mutationAnalysisSpan);
+        $this->telemetry->end($this->mutationAnalysisSpan);
     }
 
     public function onMutationGenerationWasStarted(MutationGenerationWasStarted $event): void
     {
-        $this->mutationGenerationSpan = $this->tracer->startChildSpan(
+        $this->mutationGenerationSpan = $this->telemetry->startChildSpan(
             $this->mutationAnalysisSpan,
-            Scope::MUTATION_GENERATION,
+            InfectionSpanName::MUTATION_GENERATION,
+            ['infection.source_file.mutable_count' => $event->mutableFilesCount],
         );
     }
 
     public function onMutationGenerationWasFinished(MutationGenerationWasFinished $event): void
     {
-        $this->tracer->endSpan($this->mutationGenerationSpan);
+        $this->telemetry->end($this->mutationGenerationSpan);
     }
 
     public function onAstProcessingWasStarted(AstProcessingWasStarted $event): void
     {
         $sourceFileId = $event->sourceFileId;
+        $sourceFileAttributes = self::sourceFileAttributes($sourceFileId, $event->sourceFilePath);
 
-        $sourceFileSpan = $this->tracer->startSpan(
-            RootScope::SOURCE_FILE,
-            $sourceFileId,
-        );
-        $this->sourceFileSpans[$sourceFileId] = $sourceFileSpan;
-
-        $sourceFileSpan->setAttribute('sourceFile', $event->sourceFilePath);
-
-        $astProcessingSpan = $this->tracer->startChildSpan(
-            $sourceFileSpan,
-            Scope::AST_PROCESSING,
-            $sourceFileId,
-            attributes: ['sourceFile' => $event->sourceFilePath],
+        $this->sourceFileSpans[$sourceFileId] = $this->telemetry->startChildSpan(
+            $this->mutationGenerationSpan,
+            InfectionSpanName::SOURCE_FILE,
+            $sourceFileAttributes,
         );
 
-        $this->astProcessingSpans[$sourceFileId] = $astProcessingSpan;
-        $this->mutationGenerationSpan->addChild($astProcessingSpan);
+        $this->astProcessingSpans[$sourceFileId] = $this->telemetry->startChildSpan(
+            $this->sourceFileSpans[$sourceFileId],
+            InfectionSpanName::AST_PROCESSING,
+            $sourceFileAttributes,
+        );
     }
 
     public function onAstParsingWasStarted(AstParsingWasStarted $event): void
     {
-        $sourceFileId = $event->sourceFileId;
-        $astProcessingSpan = $this->astProcessingSpans[$sourceFileId];
-
-        $this->astParsingSpans[$sourceFileId] = $this->tracer->startChildSpan(
-            $astProcessingSpan,
-            Scope::AST_PARSING,
-            $sourceFileId,
-            attributes: ['sourceFile' => $event->sourceFilePath],
+        $this->astParsingSpans[$event->sourceFileId] = $this->telemetry->startChildSpan(
+            $this->astProcessingSpans[$event->sourceFileId],
+            InfectionSpanName::AST_PARSING,
+            self::sourceFileAttributes($event->sourceFileId, $event->sourceFilePath),
         );
     }
 
@@ -294,20 +315,16 @@ final class TelemetrySubscriber implements ArtefactCollectionWasFinishedSubscrib
     {
         $sourceFileId = $event->sourceFileId;
 
-        $this->tracer->endSpan($this->astParsingSpans[$sourceFileId]);
+        $this->telemetry->end($this->astParsingSpans[$sourceFileId]);
         unset($this->astParsingSpans[$sourceFileId]);
     }
 
     public function onAstEnrichmentWasStarted(AstEnrichmentWasStarted $event): void
     {
-        $sourceFileId = $event->sourceFileId;
-        $astProcessingSpan = $this->astProcessingSpans[$sourceFileId];
-
-        $this->astEnrichmentSpans[$sourceFileId] = $this->tracer->startChildSpan(
-            $astProcessingSpan,
-            Scope::AST_ENRICHMENT,
-            $sourceFileId,
-            attributes: ['sourceFile' => $event->sourceFilePath],
+        $this->astEnrichmentSpans[$event->sourceFileId] = $this->telemetry->startChildSpan(
+            $this->astProcessingSpans[$event->sourceFileId],
+            InfectionSpanName::AST_ENRICHMENT,
+            self::sourceFileAttributes($event->sourceFileId, $event->sourceFilePath),
         );
     }
 
@@ -315,7 +332,7 @@ final class TelemetrySubscriber implements ArtefactCollectionWasFinishedSubscrib
     {
         $sourceFileId = $event->sourceFileId;
 
-        $this->tracer->endSpan($this->astEnrichmentSpans[$sourceFileId]);
+        $this->telemetry->end($this->astEnrichmentSpans[$sourceFileId]);
         unset($this->astEnrichmentSpans[$sourceFileId]);
     }
 
@@ -323,176 +340,147 @@ final class TelemetrySubscriber implements ArtefactCollectionWasFinishedSubscrib
     {
         $sourceFileId = $event->sourceFileId;
 
-        $this->tracer->endSpan($this->astProcessingSpans[$sourceFileId]);
+        $this->telemetry->end($this->astProcessingSpans[$sourceFileId]);
         unset($this->astProcessingSpans[$sourceFileId]);
     }
 
     public function onMutationGenerationForFileWasStarted(MutationGenerationForFileWasStarted $event): void
     {
-        $sourceFileId = $event->sourceFileId;
-        $sourceFileSpan = $this->sourceFileSpans[$sourceFileId];
-
-        $sourceFileMutationGenerationSpan = $this->tracer->startChildSpan(
-            $sourceFileSpan,
-            Scope::MUTATION_GENERATION_FOR_FILE,
-            attributes: ['sourceFile' => $event->sourceRealPath],
+        $this->sourceFileMutationGenerationSpans[$event->sourceFileId] = $this->telemetry->startChildSpan(
+            $this->sourceFileSpans[$event->sourceFileId],
+            InfectionSpanName::MUTATION_GENERATION_FOR_SOURCE_FILE,
+            self::sourceFileAttributes($event->sourceFileId, $event->sourceRealPath),
         );
-
-        $this->sourceFileMutationGenerationSpan[$sourceFileId] = $sourceFileMutationGenerationSpan;
-        $this->mutationGenerationSpan->addChild($sourceFileMutationGenerationSpan);
     }
 
     public function onMutationGenerationForFileWasFinished(MutationGenerationForFileWasFinished $event): void
     {
-        $this->tracer->endSpan(
-            $this->sourceFileMutationGenerationSpan[$event->sourceFileId],
-            attributes: [
-                'mutationIds' => $event->mutationHashes,
-                'mutationCount' => count($event->mutationHashes),
+        $this->telemetry->end(
+            $this->sourceFileMutationGenerationSpans[$event->sourceFileId],
+            [
+                InfectionSpanAttribute::MUTATION_IDS => $event->mutationHashes,
+                InfectionSpanAttribute::MUTATION_COUNT => count($event->mutationHashes),
             ],
         );
+        unset($this->sourceFileMutationGenerationSpans[$event->sourceFileId]);
 
-        $this->registerMutationsForSourceFile(
-            $event->sourceFileId,
-            $event->mutationHashes,
-        );
-
+        $this->registerMutationsForSourceFile($event->sourceFileId, $event->mutationHashes);
         $this->endFileSpanIfAllMutationsAreEvaluated($event->sourceFileId);
     }
 
     public function onMutationTestingWasStarted(MutationTestingWasStarted $event): void
     {
-        $this->mutationEvaluationSpan = $this->tracer->startChildSpan(
+        $this->mutationEvaluationSpan = $this->telemetry->startChildSpan(
             $this->mutationAnalysisSpan,
-            Scope::MUTATION_EVALUATION,
+            InfectionSpanName::MUTATION_EVALUATION,
+            [InfectionSpanAttribute::MUTATION_COUNT => $event->mutationCount],
         );
     }
 
     public function onMutationTestingWasFinished(MutationTestingWasFinished $event): void
     {
-        $this->tracer->endSpan($this->mutationEvaluationSpan);
+        $this->telemetry->end($this->mutationEvaluationSpan);
     }
 
     public function onMutationEvaluationForMutationWasStarted(MutationEvaluationForMutationWasStarted $event): void
     {
-        $sourceFileId = $event->sourceFileId;
-
         $mutation = $event->mutation;
         $mutationId = $mutation->getHash();
+        $sourceFileId = $event->sourceFileId;
 
         $this->sourceFileIdByMutationHash[$mutationId] = $sourceFileId;
 
-        $mutationEvaluationSpan = $this->tracer->startChildSpan(
-            $this->sourceFileSpans[$sourceFileId],
-            Scope::MUTATION_EVALUATION_FOR_MUTATION,
-            $mutationId,
-            attributes: [
-                'mutationId' => $event->mutation->getHash(),
-                'mutatorClass' => $event->mutation->getMutatorClass(),
-                'mutatorName' => $event->mutation->getMutatorName(),
+        $this->individualMutationEvaluationSpans[$mutationId] = $this->telemetry->startChildSpan(
+            $this->mutationEvaluationSpan,
+            InfectionSpanName::MUTATION_EVALUATION_FOR_MUTATION,
+            [
+                InfectionSpanAttribute::SOURCE_FILE_ID => $sourceFileId,
+                InfectionSpanAttribute::SOURCE_FILE_PATH => $mutation->getOriginalFilePath(),
+                InfectionSpanAttribute::MUTATION_ID => $mutationId,
+                InfectionSpanAttribute::MUTATOR_CLASS => $mutation->getMutatorClass(),
+                InfectionSpanAttribute::MUTATOR_NAME => $mutation->getMutatorName(),
             ],
+            $this->sourceFileLinks($sourceFileId),
         );
-        $this->mutationEvaluationSpan->addChild($mutationEvaluationSpan);
-        $this->individualMutationEvaluationSpans[$mutationId] = $mutationEvaluationSpan;
     }
 
     public function onMutationHeuristicsWasStarted(MutationHeuristicsWasStarted $event): void
     {
-        $mutation = $event->mutation;
-        $mutationId = $mutation->getHash();
+        $mutationId = $event->mutation->getHash();
         $heuristicId = $event->heuristicId;
 
-        $mutationEvaluationSpan = $this->individualMutationEvaluationSpans[$mutationId];
-
-        $heuristicsSpan = $this->tracer->startChildSpan(
-            $mutationEvaluationSpan,
-            Scope::HEURISTIC_SUPPRESSION,
-            $mutationId . $heuristicId->name,
-            attributes: [
-                'heuristicKey' => $heuristicId->name,
-                'heuristic' => $heuristicId->value,
+        $this->mutationHeuristicsSpans[$mutationId][$heuristicId->name] = $this->telemetry->startChildSpan(
+            $this->individualMutationEvaluationSpans[$mutationId],
+            InfectionSpanName::HEURISTIC_SUPPRESSION,
+            [
+                InfectionSpanAttribute::MUTATION_ID => $mutationId,
+                InfectionSpanAttribute::HEURISTIC_ID => $heuristicId->name,
+                InfectionSpanAttribute::HEURISTIC_NAME => $heuristicId->value,
             ],
         );
-
-        $this->mutationHeuristicsSpans[$mutationId][$heuristicId->name] = $heuristicsSpan;
     }
 
     public function onMutationHeuristicsWasFinished(MutationHeuristicsWasFinished $event): void
     {
         $mutationId = $event->mutation->getHash();
         $sourceFileId = $this->sourceFileIdByMutationHash[$mutationId];
+        $heuristicName = $event->heuristicId->name;
 
-        $spansToFinish = [$this->mutationHeuristicsSpans[$mutationId][$event->heuristicId->name]];
+        $this->telemetry->end($this->mutationHeuristicsSpans[$mutationId][$heuristicName]);
+        unset($this->mutationHeuristicsSpans[$mutationId][$heuristicName]);
 
         if (!$event->escaped) {
-            $spansToFinish[] = $this->individualMutationEvaluationSpans[$mutationId];
+            $this->telemetry->end($this->individualMutationEvaluationSpans[$mutationId]);
+            unset($this->individualMutationEvaluationSpans[$mutationId]);
             $this->markMutationAsFinished($sourceFileId, $mutationId);
         }
-
-        $this->tracer->endSpan($spansToFinish);
 
         $this->endFileSpanIfAllMutationsAreEvaluated($sourceFileId);
     }
 
     public function onMutantMaterialisationWasStarted(MutantMaterialisationWasStarted $event): void
     {
-        $mutation = $event->mutant->getMutation();
-        $mutationId = $mutation->getHash();
+        $mutationId = $event->mutant->getMutation()->getHash();
 
-        $mutationEvaluationSpan = $this->individualMutationEvaluationSpans[$mutationId];
-
-        $materialisationSpan = $this->tracer->startChildSpan(
-            $mutationEvaluationSpan,
-            Scope::MUTATION_MATERIALISATION,
-            $mutationId,
+        $this->mutationMaterialisationSpans[$mutationId] = $this->telemetry->startChildSpan(
+            $this->individualMutationEvaluationSpans[$mutationId],
+            InfectionSpanName::MUTATION_MATERIALISATION,
+            [InfectionSpanAttribute::MUTATION_ID => $mutationId],
         );
-
-        $this->mutationMaterialisationSpans[$mutationId] = $materialisationSpan;
     }
 
     public function onMutantMaterialisationWasFinished(MutantMaterialisationWasFinished $event): void
     {
-        $mutation = $event->mutant->getMutation();
-        $mutationId = $mutation->getHash();
+        $mutationId = $event->mutant->getMutation()->getHash();
 
-        $materialisationSpan = $this->mutationMaterialisationSpans[$mutationId];
-
-        $this->tracer->endSpan($materialisationSpan);
+        $this->telemetry->end($this->mutationMaterialisationSpans[$mutationId]);
         unset($this->mutationMaterialisationSpans[$mutationId]);
     }
 
     public function onMutantEvaluationWasStarted(MutantEvaluationWasStarted $event): void
     {
         $mutantProcess = $event->mutantProcessContainer->getCurrent();
-        $mutation = $mutantProcess->getMutant()->getMutation();
-        $mutationId = $mutation->getHash();
-        $spanId = $mutationId . spl_object_id($mutantProcess);
+        $mutationId = $mutantProcess->getMutant()->getMutation()->getHash();
+        $processSpanId = self::processSpanId($mutationId, $mutantProcess);
 
-        $mutationEvaluationSpan = $this->individualMutationEvaluationSpans[$mutationId];
-
-        $mutantEvaluationSpan = $this->tracer->startChildSpan(
-            $mutationEvaluationSpan,
-            Scope::MUTANT_EVALUATION,
-            $spanId,    // should have an ID for this process instead...
-            attributes: [
-                'testFrameworkName' => $mutantProcess->testFrameworkName,
-                'commandLine' => $mutantProcess->getProcess()->getCommandLine(),
+        $this->individualMutantEvaluationSpans[$processSpanId] = $this->telemetry->startChildSpan(
+            $this->individualMutationEvaluationSpans[$mutationId],
+            InfectionSpanName::MUTANT_EVALUATION,
+            [
+                InfectionSpanAttribute::MUTATION_ID => $mutationId,
+                InfectionSpanAttribute::TEST_FRAMEWORK_NAME => $mutantProcess->testFrameworkName,
+                InfectionSpanAttribute::PROCESS_COMMAND_LINE => $mutantProcess->getProcess()->getCommandLine(),
             ],
         );
-
-        $this->individualMutantEvaluationSpans[$spanId] = $mutantEvaluationSpan;
     }
 
-    // Currently, this event is only dispatched if the mutant evaluation process continues
     public function onMutantEvaluationWasFinished(MutantEvaluationWasFinished $event): void
     {
         $mutantProcess = $event->mutantProcessContainer->getCurrent();
-        $spanId = $mutantProcess->getMutant()->getMutation()->getHash() . spl_object_id($mutantProcess);
+        $processSpanId = self::processSpanId($mutantProcess->getMutant()->getMutation()->getHash(), $mutantProcess);
 
-        $mutantEvaluationSpan = $this->individualMutantEvaluationSpans[$spanId];
-
-        $this->tracer->endSpan($mutantEvaluationSpan);
-        unset($this->individualMutantEvaluationSpans[$spanId]);
+        $this->telemetry->end($this->individualMutantEvaluationSpans[$processSpanId]);
+        unset($this->individualMutantEvaluationSpans[$processSpanId]);
     }
 
     public function onMutantProcessWasFinished(MutantProcessWasFinished $event): void
@@ -500,36 +488,109 @@ final class TelemetrySubscriber implements ArtefactCollectionWasFinishedSubscrib
         $mutationId = $event->executionResult->getMutantHash();
         $sourceFileId = $this->sourceFileIdByMutationHash[$mutationId];
 
-        $this->tracer->endSpan(
+        $this->telemetry->end(
             $this->individualMutationEvaluationSpans[$mutationId],
-            attributes: [
-                'diff' => $event->executionResult->getMutantDiff(),
-                'result' => $event->executionResult->getDetectionStatus(),
+            [
+                InfectionSpanAttribute::MUTATION_DIFF => $event->executionResult->getMutantDiff(),
+                InfectionSpanAttribute::MUTATION_RESULT => $event->executionResult->getDetectionStatus()->value,
             ],
         );
+        unset($this->individualMutationEvaluationSpans[$mutationId]);
 
         $this->markMutationAsFinished($sourceFileId, $mutationId);
-
         $this->endFileSpanIfAllMutationsAreEvaluated($sourceFileId);
     }
 
     public function onReportingWasStarted(ReportingWasStarted $event): void
     {
-        $this->reportingSpan = $this->tracer->startSpan(RootScope::REPORTING);
+        $this->reportingSpan = $this->startRunChild(InfectionSpanName::REPORTING);
     }
 
     public function onReportingWasFinished(ReportingWasFinished $event): void
     {
-        $this->tracer->endSpan($this->reportingSpan);
+        $this->telemetry->end($this->reportingSpan);
+    }
+
+    private function ensureRunSpan(): void
+    {
+        if (!$this->runSpanStarted) {
+            $this->runSpan = $this->telemetry->startRootSpan(InfectionSpanName::RUN);
+            $this->runSpanStarted = true;
+        }
+    }
+
+    private function startRunChild(string $name): SpanHandle
+    {
+        $this->ensureRunSpan();
+
+        return $this->telemetry->startChildSpan($this->runSpan, $name);
+    }
+
+    private function endOpenSpans(): void
+    {
+        foreach ($this->individualMutantEvaluationSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        foreach ($this->mutationMaterialisationSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        foreach ($this->mutationHeuristicsSpans as $spansByHeuristic) {
+            foreach ($spansByHeuristic as $span) {
+                $this->telemetry->end($span);
+            }
+        }
+
+        foreach ($this->individualMutationEvaluationSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        foreach ($this->sourceFileMutationGenerationSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        foreach ($this->astEnrichmentSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        foreach ($this->astParsingSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        foreach ($this->astProcessingSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        foreach ($this->sourceFileSpans as $span) {
+            $this->telemetry->end($span);
+        }
+
+        $this->telemetry->end($this->reportingSpan);
+        $this->telemetry->end($this->mutationEvaluationSpan);
+        $this->telemetry->end($this->mutationGenerationSpan);
+        $this->telemetry->end($this->mutationAnalysisSpan);
+        $this->telemetry->end($this->initialStaticAnalysisRunSpan);
+        $this->telemetry->end($this->initialTestSuiteSpan);
+        $this->telemetry->end($this->artefactCollectionSpan);
+        $this->telemetry->end($this->sourceCollectionSpan);
+
+        $this->individualMutantEvaluationSpans = [];
+        $this->mutationMaterialisationSpans = [];
+        $this->mutationHeuristicsSpans = [];
+        $this->individualMutationEvaluationSpans = [];
+        $this->sourceFileMutationGenerationSpans = [];
+        $this->astEnrichmentSpans = [];
+        $this->astParsingSpans = [];
+        $this->astProcessingSpans = [];
+        $this->sourceFileSpans = [];
     }
 
     /**
      * @param list<string> $mutationHashes
      */
-    private function registerMutationsForSourceFile(
-        string $sourceFileId,
-        array $mutationHashes,
-    ): void {
+    private function registerMutationsForSourceFile(string $sourceFileId, array $mutationHashes): void
+    {
         $finishedMutationHashes = array_keys($this->finishedMutationHashesBySourceFileId[$sourceFileId] ?? []);
         $remainingMutationHashes = array_diff($mutationHashes, $finishedMutationHashes);
 
@@ -550,24 +611,56 @@ final class TelemetrySubscriber implements ArtefactCollectionWasFinishedSubscrib
         if (
             !array_key_exists($sourceFileId, $this->sourceFileSpans)
             || !array_key_exists($sourceFileId, $this->remainingMutationHashesBySourceFileId)
+            || count($this->remainingMutationHashesBySourceFileId[$sourceFileId]) !== 0
         ) {
             return;
         }
 
-        if (count($this->remainingMutationHashesBySourceFileId[$sourceFileId]) === 0) {
-            $this->tracer->endSpan($this->sourceFileSpans[$sourceFileId]);
+        $this->telemetry->end($this->sourceFileSpans[$sourceFileId]);
 
-            $mutationHashes = array_keys($this->finishedMutationHashesBySourceFileId[$sourceFileId] ?? []);
+        $mutationHashes = array_keys($this->finishedMutationHashesBySourceFileId[$sourceFileId] ?? []);
 
-            foreach ($mutationHashes as $mutationHash) {
-                unset($this->sourceFileIdByMutationHash[$mutationHash]);
-            }
-
-            unset(
-                $this->sourceFileSpans[$sourceFileId],
-                $this->remainingMutationHashesBySourceFileId[$sourceFileId],
-                $this->finishedMutationHashesBySourceFileId[$sourceFileId],
-            );
+        foreach ($mutationHashes as $mutationHash) {
+            unset($this->sourceFileIdByMutationHash[$mutationHash]);
         }
+
+        unset(
+            $this->sourceFileSpans[$sourceFileId],
+            $this->remainingMutationHashesBySourceFileId[$sourceFileId],
+            $this->finishedMutationHashesBySourceFileId[$sourceFileId],
+        );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function sourceFileAttributes(string $sourceFileId, string $sourceFilePath): array
+    {
+        return [
+            InfectionSpanAttribute::SOURCE_FILE_ID => $sourceFileId,
+            InfectionSpanAttribute::SOURCE_FILE_PATH => $sourceFilePath,
+        ];
+    }
+
+    /**
+     * @return list<SpanLink>
+     */
+    private function sourceFileLinks(string $sourceFileId): array
+    {
+        if (!array_key_exists($sourceFileId, $this->sourceFileSpans)) {
+            return [];
+        }
+
+        return [
+            new SpanLink(
+                $this->sourceFileSpans[$sourceFileId],
+                [InfectionSpanAttribute::SOURCE_FILE_ID => $sourceFileId],
+            ),
+        ];
+    }
+
+    private static function processSpanId(string $mutationId, object $mutantProcess): string
+    {
+        return $mutationId . spl_object_id($mutantProcess);
     }
 }

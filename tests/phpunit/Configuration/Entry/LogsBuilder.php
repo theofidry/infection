@@ -103,9 +103,7 @@ final class LogsBuilder
             useGitHubAnnotationsLogger: true,
             strykerConfig: StrykerConfig::forFullReport('master'),
             summaryJsonLogFilePath: '/var/log/infection/summary.json',
-            telemetryEntry: new TelemetryEntry(
-                serializedFilePath: 'trace.serialized.php',
-            ),
+            telemetryEntry: TelemetryEntry::createDefault(),
         );
     }
 

@@ -150,9 +150,7 @@ final class SchemaConfigurationBuilder
                 useGitHubAnnotationsLogger: true,
                 strykerConfig: StrykerConfig::forBadge('master'),
                 summaryJsonLogFilePath: 'summary.json',
-                telemetryEntry: new TelemetryEntry(
-                    serializedFilePath: 'trace.serialized.php',
-                ),
+                telemetryEntry: TelemetryEntry::createDefault(),
             ),
             tmpDir: '/tmp/infection',
             phpUnit: new PhpUnit('/config/phpunit', '/custom/phpunit'),

@@ -33,61 +33,28 @@
 
 declare(strict_types=1);
 
-namespace Infection\Configuration\Entry;
+namespace Infection\Telemetry;
 
-final readonly class TelemetryEntry
+use OpenTelemetry\API\Trace\Span as OpenTelemetrySpan;
+use OpenTelemetry\API\Trace\SpanInterface;
+use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextInterface;
+
+final readonly class SpanHandle
 {
-    /**
-     * @param array<string, bool|float|int|string> $resourceAttributes
-     */
     public function __construct(
-        public bool $enabled,
-        public string $serviceName,
-        public array $resourceAttributes,
-        public TelemetryTracesEntry $traces,
-        public TelemetryOtlpEntry $otlp,
-        public TelemetryBatchSpanProcessorEntry $batchSpanProcessor,
-        public TelemetryLimitsEntry $limits,
+        public SpanInterface $span,
+        public ContextInterface $context,
     ) {
     }
 
-    public static function createDefault(): self
+    public static function invalid(): self
     {
-        return new self(
-            enabled: true,
-            serviceName: 'infection',
-            resourceAttributes: [],
-            traces: new TelemetryTracesEntry(
-                exporter: 'otlp',
-                sampler: 'parentbased_always_on',
-                samplerArg: null,
-            ),
-            otlp: new TelemetryOtlpEntry(
-                endpoint: 'http://localhost:4318',
-                tracesEndpoint: null,
-                protocol: 'http/protobuf',
-                headers: [],
-                compression: 'none',
-                timeout: 10000,
-            ),
-            batchSpanProcessor: new TelemetryBatchSpanProcessorEntry(
-                scheduleDelay: 5000,
-                exportTimeout: 30000,
-                maxQueueSize: 2048,
-                maxExportBatchSize: 512,
-            ),
-            limits: new TelemetryLimitsEntry(
-                attributeValueLength: null,
-                attributeCount: 128,
-                spanAttributeCount: 128,
-                spanEventCount: 128,
-                spanLinkCount: 128,
-            ),
-        );
-    }
+        $span = OpenTelemetrySpan::getInvalid();
 
-    public function withAbsolutePaths(): self
-    {
-        return $this;
+        return new self(
+            $span,
+            $span->storeInContext(Context::getCurrent()),
+        );
     }
 }

@@ -70,9 +70,7 @@ final class StrykerReporterFactoryTest extends TestCase
                 useGitHubAnnotationsLogger: true,
                 strykerConfig: null,
                 summaryJsonLogFilePath: '/a/file',
-                telemetryEntry: new TelemetryEntry(
-                    '/a/file',
-                ),
+                telemetryEntry: TelemetryEntry::createDefault(),
             ),
         );
 
@@ -173,9 +171,7 @@ final class StrykerReporterFactoryTest extends TestCase
                 true,
                 StrykerConfig::forBadge('branch'),
                 'summary_json',
-                telemetryEntry: new TelemetryEntry(
-                    '/a/file',
-                ),
+                telemetryEntry: TelemetryEntry::createDefault(),
             ),
             StrykerReporter::class,
         ];

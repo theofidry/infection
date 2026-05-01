@@ -38,6 +38,7 @@ namespace Infection\Container;
 use function array_filter;
 use Closure;
 use DIContainer\Container as DIContainer;
+use function getenv;
 use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\CI\MemoizedCiDetector;
 use Infection\CI\NullCiDetector;
@@ -91,7 +92,6 @@ use Infection\Logger\ArtefactCollection\InitialStaticAnalysisExecution\InitialSt
 use Infection\Logger\ArtefactCollection\InitialStaticAnalysisExecution\InitialStaticAnalysisExecutionLoggerFactory;
 use Infection\Logger\ArtefactCollection\InitialTestsExecution\InitialTestsExecutionLogger;
 use Infection\Logger\ArtefactCollection\InitialTestsExecution\InitialTestsExecutionLoggerFactory;
-use Infection\Logger\DebugEventsSubscriber;
 use Infection\Logger\MutationAnalysis\MutationAnalysisLogger;
 use Infection\Logger\MutationAnalysis\MutationAnalysisLoggerFactory;
 use Infection\Logger\MutationAnalysis\MutationAnalysisLoggerName;
@@ -136,7 +136,6 @@ use Infection\Reporter\Reporter;
 use Infection\Reporter\ShowMetricsReporter;
 use Infection\Reporter\ShowMutationsReporter;
 use Infection\Reporter\StrykerReporterFactory;
-use Infection\Reporter\Telemetry\SerializedTraceReporter;
 use Infection\Resource\Listener\PerformanceLoggerSubscriber;
 use Infection\Resource\Memory\MemoryFormatter;
 use Infection\Resource\Memory\MemoryLimiter;
@@ -155,6 +154,8 @@ use Infection\Source\Matcher\SourceLineMatcher;
 use Infection\StaticAnalysis\Config\StaticAnalysisConfigLocator;
 use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
 use Infection\StaticAnalysis\StaticAnalysisToolFactory;
+use Infection\Telemetry\Configuration\OpenTelemetryConfigurationResolver;
+use Infection\Telemetry\InfectionTelemetry;
 use Infection\Telemetry\Metric\GarbageCollection\GarbageCollectorInspector;
 use Infection\Telemetry\Metric\GarbageCollection\SystemGarbageCollectorInspector;
 use Infection\Telemetry\Metric\Memory\MemoryInspector;
@@ -163,8 +164,8 @@ use Infection\Telemetry\Metric\ResourceInspector;
 use Infection\Telemetry\Metric\Time\DurationFormatter;
 use Infection\Telemetry\Metric\Time\Stopwatch as TelemetryStopwatch;
 use Infection\Telemetry\Metric\Time\SystemStopwatch;
+use Infection\Telemetry\OpenTelemetryFactory;
 use Infection\Telemetry\Reporter\TraceProvider as TelemetryTraceProvider;
-use Infection\Telemetry\Subscriber\ReportTelemetryAfterApplicationFinishedSubscriber;
 use Infection\Telemetry\Subscriber\TelemetrySubscriber;
 use Infection\Telemetry\Tracing\Tracer as TelemetryTracer;
 use Infection\TestFramework\AdapterInstallationDecider;
@@ -187,6 +188,7 @@ use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
 use Infection\TestFramework\Tracing\TraceProvider;
 use Infection\TestFramework\Tracing\TraceProviderAdapterTracer;
 use Infection\TestFramework\Tracing\Tracer;
+use function is_array;
 use OndraM\CiDetector\CiDetector;
 use function php_ini_loaded_file;
 use PhpParser\Parser;
@@ -410,12 +412,14 @@ final class Container extends DIContainer
                     $container->get(MutationAnalysisLoggerSubscriber::class),
                     $container->get(ReportAfterMutationTestingFinishedSubscriber::class),
                     $container->get(PerformanceLoggerSubscriber::class),
-                    $container->get(TelemetrySubscriber::class),
-                    $container->get(ReportTelemetryAfterApplicationFinishedSubscriber::class),
                     $container->getCleanUpAfterMutationTestingFinishedSubscriberFactory(),
                     $container->get(StopInfectionOnSigintSignalSubscriber::class),
                     $container->get(DispatchPcntlSignalSubscriber::class),
                 ];
+
+                if ($container->get(InfectionTelemetry::class)->isEnabled()) {
+                    $subscriberFactories[] = $container->get(TelemetrySubscriber::class);
+                }
 
                 if ($container->getConfiguration()->isStaticAnalysisEnabled()) {
                     $subscriberFactories[] = $container->get(InitialStaticAnalysisExecutionLoggerSubscriber::class);
@@ -474,20 +478,19 @@ final class Container extends DIContainer
                 $container->getConfiguration()->threadCount,
                 $container->getOutput(),
             ),
-            FileMutationGenerator::class => static function (self $container): FileMutationGenerator {
-                return new FileMutationGenerator(
-                    $container->getFileParser(),
-                    $container->getNodeTraverserFactory(),
-                    $container->getTracer(),
+            FileMutationGenerator::class => static fn (self $container): FileMutationGenerator => new FileMutationGenerator(
+                $container->getFileParser(),
+                $container->getNodeTraverserFactory(),
+                $container->getTracer(),
                 $container->getFileStore(),
+                $container->getEventDispatcher(),
             ),
             NodeTraverserFactory::class => static fn (self $container) => new NodeTraverserFactory(
-                    $container->getSourceLineMatcher(),
-                    $container->getLineRangeCalculator(),
-                    $container->getConfiguration()->mutateOnlyCoveredCode(),
-                    $container->getEventDispatcher(),
-                );
-            },
+                $container->getSourceLineMatcher(),
+                $container->getLineRangeCalculator(),
+                $container->getConfiguration()->mutateOnlyCoveredCode(),
+                $container->getEventDispatcher(),
+            ),
             FileReporterFactory::class => static function (self $container): FileReporterFactory {
                 $config = $container->getConfiguration();
 
@@ -504,13 +507,30 @@ final class Container extends DIContainer
                     $config->processTimeout,
                 );
             },
-            GarbageCollectorInspector::class => static fn (): GarbageCollectorInspector => SystemGarbageCollectorInspector::create(),
+            GarbageCollectorInspector::class => SystemGarbageCollectorInspector::create(...),
             MemoryInspector::class => static fn (): MemoryInspector => new SystemMemoryInspector(),
             TelemetryStopwatch::class => static fn (): TelemetryStopwatch => new SystemStopwatch(),
             ResourceInspector::class => static fn (self $container): ResourceInspector => new ResourceInspector(
                 $container->get(TelemetryStopwatch::class),
                 $container->get(MemoryInspector::class),
                 $container->get(GarbageCollectorInspector::class),
+            ),
+            InfectionTelemetry::class => static function (self $container): InfectionTelemetry {
+                $environment = getenv();
+
+                if (!is_array($environment)) {
+                    $environment = [];
+                }
+
+                return (new OpenTelemetryFactory())->create(
+                    (new OpenTelemetryConfigurationResolver())->resolve(
+                        $container->getConfiguration()->logs->telemetryEntry,
+                        array_filter($environment, is_string(...)),
+                    ),
+                );
+            },
+            TelemetrySubscriber::class => static fn (self $container): TelemetrySubscriber => new TelemetrySubscriber(
+                $container->get(InfectionTelemetry::class),
             ),
             Reporter::class => static function (self $container): Reporter {
                 $output = $container->getOutput();
@@ -549,18 +569,6 @@ final class Container extends DIContainer
                     ),
                     $container->getEventDispatcher(),
                 );
-            },
-            ReportTelemetryAfterApplicationFinishedSubscriber::class => static fn (self $container): ReportTelemetryAfterApplicationFinishedSubscriber => new ReportTelemetryAfterApplicationFinishedSubscriber(
-                $container->get(SerializedTraceReporter::class),
-            ),
-            SerializedTraceReporter::class => static function (self $container): Reporter {
-                return $container->getConfiguration()->logs->telemetryEntry === null
-                    ? new NullReporter()    // TODO: needs to be moved to the src
-                    : new SerializedTraceReporter(
-                        $container->getFileSystem(),
-                        $container->get(TelemetryTraceProvider::class),
-                        $container->getConfiguration()->logs->telemetryEntry->serializedFilePath,
-                    );
             },
             TelemetryTraceProvider::class => static fn (self $container): TelemetryTraceProvider => $container->get(TelemetryTracer::class),
             ReportAfterMutationTestingFinishedSubscriber::class => static fn (self $container): ReportAfterMutationTestingFinishedSubscriber => new ReportAfterMutationTestingFinishedSubscriber(

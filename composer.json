@@ -51,6 +51,7 @@
         "colinodell/json5": "^3.0",
         "composer/xdebug-handler": "^3.0",
         "fidry/cpu-core-counter": "^1.0",
+        "guzzlehttp/guzzle": "^7.10",
         "infection/abstract-testframework-adapter": "^0.5.0",
         "infection/extension-installer": "^0.1.0",
         "infection/include-interceptor": "^0.2.5",
@@ -58,6 +59,10 @@
         "justinrainbow/json-schema": "^6.0",
         "nikic/php-parser": "^5.6.2",
         "ondram/ci-detector": "^4.1.0",
+        "open-telemetry/api": "^1.9",
+        "open-telemetry/exporter-otlp": "^1.4",
+        "open-telemetry/sdk": "^1.14",
+        "open-telemetry/sem-conv": "^1.38",
         "psr/log": "^2.0 || ^3.0",
         "sanmai/di-container": "^0.1.12",
         "sanmai/duoclock": "^0.1.0",
@@ -103,8 +108,10 @@
         },
         "sort-packages": true,
         "allow-plugins": {
+            "infection/extension-installer": true,
+            "php-http/discovery": true,
             "phpstan/extension-installer": true,
-            "infection/extension-installer": true
+            "tbachert/spi": true
         }
     },
     "autoload": {

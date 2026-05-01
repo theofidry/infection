@@ -99,9 +99,7 @@ final class FileReporterFactoryTest extends TestCase
                 true,
                 null,
                 '/a/file',
-                new TelemetryEntry(
-                    '/a/file',
-                ),
+                TelemetryEntry::createDefault(),
             ),
         );
 

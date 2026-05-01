@@ -217,9 +217,7 @@ final class ConfigurationBuilder
                 useGitHubAnnotationsLogger: true,
                 strykerConfig: StrykerConfig::forBadge('master'),
                 summaryJsonLogFilePath: 'summary.json',
-                telemetryEntry: new TelemetryEntry(
-                    serializedFilePath: 'trace.serialized.php',
-                ),
+                telemetryEntry: TelemetryEntry::createDefault(),
             ),
             logVerbosity: 'default',
             tmpDir: '/tmp/infection-test',

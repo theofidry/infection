@@ -33,61 +33,16 @@
 
 declare(strict_types=1);
 
-namespace Infection\Configuration\Entry;
+namespace Infection\Telemetry;
 
-final readonly class TelemetryEntry
+final readonly class SpanLink
 {
     /**
-     * @param array<string, bool|float|int|string> $resourceAttributes
+     * @param array<string, bool|float|int|string|array|null> $attributes
      */
     public function __construct(
-        public bool $enabled,
-        public string $serviceName,
-        public array $resourceAttributes,
-        public TelemetryTracesEntry $traces,
-        public TelemetryOtlpEntry $otlp,
-        public TelemetryBatchSpanProcessorEntry $batchSpanProcessor,
-        public TelemetryLimitsEntry $limits,
+        public SpanHandle $spanHandle,
+        public array $attributes = [],
     ) {
-    }
-
-    public static function createDefault(): self
-    {
-        return new self(
-            enabled: true,
-            serviceName: 'infection',
-            resourceAttributes: [],
-            traces: new TelemetryTracesEntry(
-                exporter: 'otlp',
-                sampler: 'parentbased_always_on',
-                samplerArg: null,
-            ),
-            otlp: new TelemetryOtlpEntry(
-                endpoint: 'http://localhost:4318',
-                tracesEndpoint: null,
-                protocol: 'http/protobuf',
-                headers: [],
-                compression: 'none',
-                timeout: 10000,
-            ),
-            batchSpanProcessor: new TelemetryBatchSpanProcessorEntry(
-                scheduleDelay: 5000,
-                exportTimeout: 30000,
-                maxQueueSize: 2048,
-                maxExportBatchSize: 512,
-            ),
-            limits: new TelemetryLimitsEntry(
-                attributeValueLength: null,
-                attributeCount: 128,
-                spanAttributeCount: 128,
-                spanEventCount: 128,
-                spanLinkCount: 128,
-            ),
-        );
-    }
-
-    public function withAbsolutePaths(): self
-    {
-        return $this;
     }
 }

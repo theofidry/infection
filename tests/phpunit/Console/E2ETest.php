@@ -63,6 +63,7 @@ use PHPUnit\Framework\TestCase;
 use function Safe\chdir;
 use function Safe\copy;
 use function Safe\file_get_contents;
+use function Safe\file_put_contents;
 use function Safe\getcwd;
 use function Safe\ini_get;
 use function sprintf;
@@ -73,6 +74,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
+use function unlink;
 
 #[Group('e2e')]
 #[Group('integration')]
@@ -172,6 +174,64 @@ final class E2ETest extends TestCase
     public function test_it_runs_an_e2e_test_with_success(string $fullPath): void
     {
         $this->runOnE2EFixture($fullPath);
+    }
+
+    #[RunInSeparateProcess]
+    public function test_telemetry_config_does_not_change_e2e_mutation_results(): void
+    {
+        chdir('tests/e2e/Ignore_All_Mutations/');
+
+        $this->installComposerDeps();
+
+        $telemetryConfigPath = 'telemetry-infection.json';
+
+        file_put_contents(
+            $telemetryConfigPath,
+            <<<'JSON'
+                {
+                    "timeout": 25,
+                    "source": {
+                        "directories": [
+                            "src"
+                        ]
+                    },
+                    "logs": {
+                        "summary": "infection.log",
+                        "telemetry": {
+                            "enabled": true,
+                            "serviceName": "infection-e2e",
+                            "traces": {
+                                "exporter": "otlp",
+                                "sampler": "always_off"
+                            }
+                        }
+                    },
+                    "mutators": {
+                        "Plus": true,
+                        "PublicVisibility": true
+                    },
+                    "tmpDir": "."
+                }
+                JSON,
+        );
+
+        try {
+            $output = $this->runInfection(self::EXPECT_SUCCESS, [
+                '--configuration=' . $telemetryConfigPath,
+            ]);
+
+            $this->assertMatchesRegularExpression('/\d+ mutations were generated/', $output);
+            $this->assertMatchesRegularExpression('/\d+ mutants were killed/', $output);
+
+            $expected = file_get_contents('expected-output.txt');
+            $expected = Str::toSystemLineEndings($expected);
+
+            $this->assertStringEqualsFile('infection.log', $expected);
+        } finally {
+            if (file_exists($telemetryConfigPath)) {
+                unlink($telemetryConfigPath);
+            }
+        }
     }
 
     public static function e2eTestSuiteDataProvider(): iterable

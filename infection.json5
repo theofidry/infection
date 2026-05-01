@@ -19,7 +19,7 @@
             "report": "master"
         },
         "telemetry": {
-            "serializedFile": "var/telemetry/trace.serialized.php"
+            "enabled": false
         }
     },
     "phpStan": {
