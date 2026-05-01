@@ -49,7 +49,7 @@ final readonly class SpanHandle
     public function __construct(
         public SpanInterface $span,
     ) {
-        $this->context = Context::getRoot()->withContextValue($span);
+        $this->context = $span->storeInContext(Context::getCurrent());
     }
 
     public function context(): ContextInterface

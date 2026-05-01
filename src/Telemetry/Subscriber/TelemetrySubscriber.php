@@ -65,24 +65,16 @@ use Infection\Telemetry\SpanHandle;
 /**
  * @internal
  */
-final class TelemetrySubscriber implements
-    ApplicationExecutionWasFinishedSubscriber,
-    ApplicationExecutionWasStartedSubscriber,
-    InitialStaticAnalysisRunWasFinishedSubscriber,
-    InitialStaticAnalysisRunWasStartedSubscriber,
-    InitialTestSuiteWasFinishedSubscriber,
-    InitialTestSuiteWasStartedSubscriber,
-    MutantProcessWasFinishedSubscriber,
-    MutationEvaluationWasStartedSubscriber,
-    MutationGenerationWasFinishedSubscriber,
-    MutationGenerationWasStartedSubscriber,
-    MutationTestingWasFinishedSubscriber,
-    MutationTestingWasStartedSubscriber
+final class TelemetrySubscriber implements ApplicationExecutionWasFinishedSubscriber, ApplicationExecutionWasStartedSubscriber, InitialStaticAnalysisRunWasFinishedSubscriber, InitialStaticAnalysisRunWasStartedSubscriber, InitialTestSuiteWasFinishedSubscriber, InitialTestSuiteWasStartedSubscriber, MutantProcessWasFinishedSubscriber, MutationEvaluationWasStartedSubscriber, MutationGenerationWasFinishedSubscriber, MutationGenerationWasStartedSubscriber, MutationTestingWasFinishedSubscriber, MutationTestingWasStartedSubscriber
 {
     private ?SpanHandle $rootSpan = null;
+
     private ?SpanHandle $initialTestsSpan = null;
+
     private ?SpanHandle $initialStaticAnalysisSpan = null;
+
     private ?SpanHandle $mutationGenerationSpan = null;
+
     private ?SpanHandle $mutationTestingSpan = null;
 
     /** @var array<string, SpanHandle> */
@@ -207,7 +199,8 @@ final class TelemetrySubscriber implements
     }
 
     /**
-     * @param array<string, bool|int|float|string> $attributes
+     * @param non-empty-string $name
+     * @param array<non-empty-string, bool|int|float|string> $attributes
      */
     private function startChild(string $name, array $attributes = [], ?SpanHandle $parent = null): ?SpanHandle
     {
@@ -217,7 +210,7 @@ final class TelemetrySubscriber implements
     }
 
     /**
-     * @param array<string, bool|int|float|string> $attributes
+     * @param array<non-empty-string, bool|int|float|string> $attributes
      */
     private function end(?SpanHandle $span, array $attributes = []): void
     {

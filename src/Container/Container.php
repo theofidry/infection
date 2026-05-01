@@ -431,7 +431,7 @@ final class Container extends DIContainer
                 );
             },
             InitialTestsExecutionLogger::class => static fn (self $container): InitialTestsExecutionLogger => $container->get(InitialTestsExecutionLoggerFactory::class)->create(),
-            InfectionTelemetry::class => static fn (): InfectionTelemetry => InfectionTelemetry::fromEnvironment(),
+            InfectionTelemetry::class => InfectionTelemetry::fromEnvironment(...),
             TelemetrySubscriber::class => static fn (self $container): TelemetrySubscriber => new TelemetrySubscriber(
                 $container->get(InfectionTelemetry::class),
             ),

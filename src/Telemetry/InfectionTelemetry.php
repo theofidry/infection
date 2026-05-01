@@ -35,16 +35,16 @@ declare(strict_types=1);
 
 namespace Infection\Telemetry;
 
+use const FILTER_NULL_ON_FAILURE;
+use const FILTER_VALIDATE_BOOL;
 use function filter_var;
 use function getenv;
-use function putenv;
-use function strtolower;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\SDK\Trace\NoopTracerProvider;
 use OpenTelemetry\SDK\Trace\TracerProviderFactory;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
-use const FILTER_VALIDATE_BOOL;
-use const FILTER_NULL_ON_FAILURE;
+use function Safe\putenv;
+use function strtolower;
 
 /**
  * @internal
@@ -91,7 +91,8 @@ final readonly class InfectionTelemetry
     }
 
     /**
-     * @param array<string, bool|int|float|string> $attributes
+     * @param non-empty-string $name
+     * @param array<non-empty-string, bool|int|float|string> $attributes
      */
     public function startRootSpan(string $name, array $attributes = []): SpanHandle
     {
@@ -105,7 +106,8 @@ final readonly class InfectionTelemetry
     }
 
     /**
-     * @param array<string, bool|int|float|string> $attributes
+     * @param non-empty-string $name
+     * @param array<non-empty-string, bool|int|float|string> $attributes
      */
     public function startChildSpan(SpanHandle $parent, string $name, array $attributes = []): SpanHandle
     {
@@ -119,7 +121,7 @@ final readonly class InfectionTelemetry
     }
 
     /**
-     * @param array<string, bool|int|float|string> $attributes
+     * @param array<non-empty-string, bool|int|float|string> $attributes
      */
     public function end(SpanHandle $span, array $attributes = []): void
     {
