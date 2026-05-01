@@ -36,7 +36,17 @@ declare(strict_types=1);
 namespace Infection\Mutation;
 
 use Infection\Command\Debug\DumpAstCommand;
+use Infection\Event\EventDispatcher\EventDispatcher;
+use Infection\Event\Events\Ast\AstEnrichment\AstEnrichmentWasFinished;
+use Infection\Event\Events\Ast\AstEnrichment\AstEnrichmentWasStarted;
+use Infection\Event\Events\Ast\AstParsing\AstParsingWasFinished;
+use Infection\Event\Events\Ast\AstParsing\AstParsingWasStarted;
+use Infection\Event\Events\Ast\AstProcessingWasFinished;
+use Infection\Event\Events\Ast\AstProcessingWasStarted;
+use Infection\Event\Events\MutationAnalysis\MutationGeneration\MutationGenerationForFileWasFinished;
+use Infection\Event\Events\MutationAnalysis\MutationGeneration\MutationGenerationForFileWasStarted;
 use Infection\FileSystem\FileStore;
+use Infection\Logger\MutationAnalysis\TeamCity\NodeIdFactory;
 use Infection\Mutator\Mutator;
 use Infection\Mutator\NodeMutationGenerator;
 use Infection\PhpParser\FileParser;
@@ -65,6 +75,7 @@ class FileMutationGenerator
         private readonly NodeTraverserFactory $traverserFactory,
         private readonly Tracer $tracer,
         private readonly FileStore $fileStore,
+        private readonly EventDispatcher $eventDispatcher,
     ) {
     }
 
@@ -115,10 +126,16 @@ class FileMutationGenerator
         mixed $initialStatements,
         mixed $originalFileTokens,
     ): iterable {
+        $sourceRealPath = $sourceFile->getRealPath();
+
+        $this->eventDispatcher->dispatch(
+            new MutationGenerationForFileWasStarted($sourceRealPath),
+        );
+
         $mutationCollectorVisitor = new MutationCollectorVisitor(
             new NodeMutationGenerator(
                 mutators: $mutators,
-                filePath: $sourceFile->getRealPath(),
+                filePath: $sourceRealPath,
                 fileNodes: $initialStatements,
                 originalFileTokens: $originalFileTokens,
                 originalFileContent: $this->fileStore->getContents($sourceFile),
@@ -128,7 +145,20 @@ class FileMutationGenerator
         $traverser = $this->traverserFactory->createMutationTraverser($mutationCollectorVisitor);
         $traverser->traverse($initialStatements);
 
-        yield from $mutationCollectorVisitor->getMutations();
+        $sourceFileMutationIds = [];
+
+        foreach ($mutationCollectorVisitor->getMutations() as $mutation) {
+            $sourceFileMutationIds[] = $mutation->getHash();
+
+            yield $mutation;
+        }
+
+        $this->eventDispatcher->dispatch(
+            new MutationGenerationForFileWasFinished(
+                $sourceRealPath,
+                $sourceFileMutationIds,
+            ),
+        );
     }
 
     /**
@@ -144,11 +174,50 @@ class FileMutationGenerator
         SplFileInfo $sourceFile,
         Trace $trace,
     ): array {
+        // TODO: should be moved to its own service
+        // TODO: move NodeIdFactory and rename it if we stick with it
+        $sourceFilePath = $sourceFile->getRealPath();
+        $sourceFileId = NodeIdFactory::create($sourceFilePath);
+
+        $this->eventDispatcher->dispatch(
+            new AstProcessingWasStarted(
+                $sourceFileId,
+                $sourceFilePath,
+            ),
+        );
+
+        // Those should be hidden within the PhpParser
+        $this->eventDispatcher->dispatch(
+            new AstParsingWasStarted(
+                $sourceFileId,
+                $sourceFilePath,
+            ),
+        );
         [$initialStatements, $originalFileTokens] = $this->parser->parse($sourceFile);
+
+        $this->eventDispatcher->dispatch(
+            new AstParsingWasFinished($sourceFileId),
+        );
+
+        // Those should be hidden within the Traverser
+        $this->eventDispatcher->dispatch(
+            new AstEnrichmentWasStarted(
+                $sourceFileId,
+                $sourceFilePath,
+            ),
+        );
 
         $this->traverserFactory
             ->createEnrichmentTraverser($sourceFile, $trace)
             ->traverse($initialStatements);
+
+        $this->eventDispatcher->dispatch(
+            new AstEnrichmentWasFinished($sourceFileId),
+        );
+
+        $this->eventDispatcher->dispatch(
+            new AstProcessingWasFinished($sourceFileId),
+        );
 
         return [$initialStatements, $originalFileTokens];
     }

@@ -44,8 +44,14 @@ use Infection\Configuration\Entry\PhpStan;
 use Infection\Configuration\Entry\PhpUnit;
 use Infection\Configuration\Entry\Source;
 use Infection\Configuration\Entry\StrykerConfig;
+use Infection\Configuration\Entry\TelemetryBatchSpanProcessorEntry;
+use Infection\Configuration\Entry\TelemetryEntry;
+use Infection\Configuration\Entry\TelemetryLimitsEntry;
+use Infection\Configuration\Entry\TelemetryOtlpEntry;
+use Infection\Configuration\Entry\TelemetryTracesEntry;
 use Infection\StaticAnalysis\StaticAnalysisToolTypes;
 use Infection\TestFramework\TestFrameworkTypes;
+use function is_string;
 use stdClass;
 use function trim;
 use Webmozart\Assert\Assert;
@@ -152,6 +158,7 @@ class SchemaConfigurationFactory
             $logs->github ?? false,
             self::createStrykerConfig($logs->stryker ?? null),
             self::normalizeString($logs->summaryJson ?? null),
+            self::createTelemetryConfig($logs->telemetry ?? null),
         );
     }
 
@@ -172,6 +179,50 @@ class SchemaConfigurationFactory
         }
 
         return StrykerConfig::forFullReport($branch);
+    }
+
+    private static function createTelemetryConfig(?stdClass $telemetry): ?TelemetryEntry
+    {
+        if ($telemetry === null) {
+            return null;
+        }
+
+        $traces = $telemetry->traces ?? new stdClass();
+        $otlp = $telemetry->otlp ?? new stdClass();
+        $batchSpanProcessor = $telemetry->batchSpanProcessor ?? new stdClass();
+        $limits = $telemetry->limits ?? new stdClass();
+
+        return new TelemetryEntry(
+            $telemetry->enabled ?? true,
+            self::normalizeString($telemetry->serviceName ?? null) ?? 'infection',
+            self::normalizePrimitiveMap((array) ($telemetry->resourceAttributes ?? [])),
+            new TelemetryTracesEntry(
+                self::normalizeString($traces->exporter ?? null) ?? 'otlp',
+                self::normalizeString($traces->sampler ?? null) ?? 'parentbased_always_on',
+                self::normalizeString($traces->samplerArg ?? null),
+            ),
+            new TelemetryOtlpEntry(
+                self::normalizeString($otlp->endpoint ?? null) ?? 'http://localhost:4318',
+                self::normalizeString($otlp->tracesEndpoint ?? null),
+                self::normalizeString($otlp->protocol ?? null) ?? 'http/protobuf',
+                self::normalizeStringMap((array) ($otlp->headers ?? [])),
+                self::normalizeString($otlp->compression ?? null) ?? 'none',
+                $otlp->timeout ?? 10000,
+            ),
+            new TelemetryBatchSpanProcessorEntry(
+                $batchSpanProcessor->scheduleDelay ?? 5000,
+                $batchSpanProcessor->exportTimeout ?? 30000,
+                $batchSpanProcessor->maxQueueSize ?? 2048,
+                $batchSpanProcessor->maxExportBatchSize ?? 512,
+            ),
+            new TelemetryLimitsEntry(
+                $limits->attributeValueLength ?? null,
+                $limits->attributeCount ?? 128,
+                $limits->spanAttributeCount ?? 128,
+                $limits->spanEventCount ?? 128,
+                $limits->spanLinkCount ?? 128,
+            ),
+        );
     }
 
     private static function createPhpUnit(stdClass $phpUnit): PhpUnit
@@ -230,5 +281,51 @@ class SchemaConfigurationFactory
         $normalizedValue = trim($value);
 
         return $normalizedValue === '' ? null : $normalizedValue;
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     *
+     * @return array<string, string>
+     */
+    private static function normalizeStringMap(array $values): array
+    {
+        $normalizedValues = [];
+
+        foreach ($values as $key => $value) {
+            if (!is_string($value)) {
+                continue;
+            }
+
+            $normalizedValue = self::normalizeString($value);
+
+            if ($normalizedValue !== null) {
+                $normalizedValues[$key] = $normalizedValue;
+            }
+        }
+
+        return $normalizedValues;
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     *
+     * @return array<string, bool|float|int|string>
+     */
+    private static function normalizePrimitiveMap(array $values): array
+    {
+        $normalizedValues = [];
+
+        foreach ($values as $key => $value) {
+            if (is_string($value)) {
+                $value = self::normalizeString($value);
+            }
+
+            if ($value !== null) {
+                $normalizedValues[$key] = $value;
+            }
+        }
+
+        return $normalizedValues;
     }
 }

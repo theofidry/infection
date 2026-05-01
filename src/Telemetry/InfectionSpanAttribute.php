@@ -33,17 +33,43 @@
 
 declare(strict_types=1);
 
-namespace Infection\Event\Events\MutationAnalysis\MutationEvaluation;
+namespace Infection\Telemetry;
 
-use Infection\Mutation\Mutation;
+use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 
-/**
- * @internal
- */
-final readonly class MutationEvaluationWasStarted
+final class InfectionSpanAttribute
 {
-    public function __construct(
-        public Mutation $mutation,
-    ) {
+    public const string SOURCE_COUNT = 'infection.source.count';
+
+    public const string SOURCE_FILE_ID = 'infection.source_file.id';
+
+    public const string SOURCE_FILE_PATH = CodeAttributes::CODE_FILE_PATH;
+
+    public const string MUTATION_ID = 'infection.mutation.id';
+
+    public const string MUTATION_IDS = 'infection.mutation.ids';
+
+    public const string MUTATION_COUNT = 'infection.mutation.count';
+
+    public const string MUTATOR_CLASS = 'infection.mutator.class';
+
+    public const string MUTATOR_NAME = 'infection.mutator.name';
+
+    public const string HEURISTIC_ID = 'infection.heuristic.id';
+
+    public const string HEURISTIC_NAME = 'infection.heuristic.name';
+
+    public const string TEST_FRAMEWORK_NAME = 'infection.test_framework.name';
+
+    public const string TEST_FRAMEWORK_VERSION = 'infection.test_framework.version';
+
+    public const string PROCESS_COMMAND_LINE = 'infection.process.command_line';
+
+    public const string MUTATION_DIFF = 'infection.mutation.diff';
+
+    public const string MUTATION_RESULT = 'infection.mutation.result';
+
+    private function __construct()
+    {
     }
 }

@@ -48,6 +48,11 @@ use Infection\Configuration\Entry\PhpStan;
 use Infection\Configuration\Entry\PhpUnit;
 use Infection\Configuration\Entry\Source;
 use Infection\Configuration\Entry\StrykerConfig;
+use Infection\Configuration\Entry\TelemetryBatchSpanProcessorEntry;
+use Infection\Configuration\Entry\TelemetryEntry;
+use Infection\Configuration\Entry\TelemetryLimitsEntry;
+use Infection\Configuration\Entry\TelemetryOtlpEntry;
+use Infection\Configuration\Entry\TelemetryTracesEntry;
 use Infection\Configuration\Schema\SchemaConfiguration;
 use Infection\Configuration\Schema\SchemaConfigurationFactory;
 use Infection\Mutator\ProfileList;
@@ -224,6 +229,106 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     null,
                     null,
+                    null,
+                ),
+            ]),
+        ];
+
+        yield '[logs][telemetry] nominal' => [
+            <<<'JSON'
+                {
+                    "source": {
+                        "directories": ["src"]
+                    },
+                    "logs": {
+                        "telemetry": {
+                            "enabled": true,
+                            "serviceName": "infection",
+                            "resourceAttributes": {
+                                "service.namespace": "infection",
+                                "deployment.environment": "ci"
+                            },
+                            "traces": {
+                                "exporter": "otlp",
+                                "sampler": "parentbased_always_on",
+                                "samplerArg": null
+                            },
+                            "otlp": {
+                                "endpoint": "http://localhost:4318",
+                                "tracesEndpoint": "http://localhost:4318/v1/traces",
+                                "protocol": "http/protobuf",
+                                "headers": {
+                                    "authorization": "Bearer token"
+                                },
+                                "compression": "none",
+                                "timeout": 10000
+                            },
+                            "batchSpanProcessor": {
+                                "scheduleDelay": 5000,
+                                "exportTimeout": 30000,
+                                "maxQueueSize": 2048,
+                                "maxExportBatchSize": 512
+                            },
+                            "limits": {
+                                "attributeValueLength": null,
+                                "attributeCount": 128,
+                                "spanAttributeCount": 128,
+                                "spanEventCount": 128,
+                                "spanLinkCount": 128
+                            }
+                        }
+                    }
+                }
+                JSON,
+            self::createConfig([
+                'source' => new Source(['src'], []),
+                'logs' => new Logs(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    false,
+                    null,
+                    null,
+                    new TelemetryEntry(
+                        enabled: true,
+                        serviceName: 'infection',
+                        resourceAttributes: [
+                            'service.namespace' => 'infection',
+                            'deployment.environment' => 'ci',
+                        ],
+                        traces: new TelemetryTracesEntry(
+                            exporter: 'otlp',
+                            sampler: 'parentbased_always_on',
+                            samplerArg: null,
+                        ),
+                        otlp: new TelemetryOtlpEntry(
+                            endpoint: 'http://localhost:4318',
+                            tracesEndpoint: 'http://localhost:4318/v1/traces',
+                            protocol: 'http/protobuf',
+                            headers: [
+                                'authorization' => 'Bearer token',
+                            ],
+                            compression: 'none',
+                            timeout: 10000,
+                        ),
+                        batchSpanProcessor: new TelemetryBatchSpanProcessorEntry(
+                            scheduleDelay: 5000,
+                            exportTimeout: 30000,
+                            maxQueueSize: 2048,
+                            maxExportBatchSize: 512,
+                        ),
+                        limits: new TelemetryLimitsEntry(
+                            attributeValueLength: null,
+                            attributeCount: 128,
+                            spanAttributeCount: 128,
+                            spanEventCount: 128,
+                            spanLinkCount: 128,
+                        ),
+                    ),
                 ),
             ]),
         ];
@@ -250,6 +355,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     null,
                     null,
                     false,
+                    null,
                     null,
                     null,
                 ),
@@ -280,6 +386,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     null,
                     null,
+                    null,
                 ),
             ]),
         ];
@@ -306,6 +413,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     null,
                     null,
                     false,
+                    null,
                     null,
                     null,
                 ),
@@ -336,6 +444,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     null,
                     null,
+                    null,
                 ),
             ]),
         ];
@@ -364,6 +473,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     null,
                     null,
+                    null,
                 ),
             ]),
         ];
@@ -390,6 +500,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     null,
                     'perMutator.log',
                     false,
+                    null,
                     null,
                     null,
                 ),
@@ -422,6 +533,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     StrykerConfig::forBadge('master'),
                     null,
+                    null,
                 ),
             ]),
         ];
@@ -451,6 +563,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     null,
                     false,
                     StrykerConfig::forFullReport('master'),
+                    null,
                     null,
                 ),
             ]),
@@ -482,6 +595,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     StrykerConfig::forBadge('/^foo$/'),
                     null,
+                    null,
                 ),
             ]),
         ];
@@ -512,6 +626,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     StrykerConfig::forFullReport('/^foo$/'),
                     null,
+                    null,
                 ),
             ]),
         ];
@@ -540,6 +655,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     false,
                     null,
                     'summary.json',
+                    null,
                 ),
             ]),
         ];
@@ -579,6 +695,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     true,
                     StrykerConfig::forBadge('master'),
                     'summary.json',
+                    null,
                 ),
             ]),
         ];
@@ -664,6 +781,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     true,
                     StrykerConfig::forBadge('master'),
                     'summary.json',
+                    null,
                 ),
             ]),
         ];
@@ -2502,6 +2620,7 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     true,
                     StrykerConfig::forBadge('master'),
                     'summary.json',
+                    null,
                 ),
                 'tmpDir' => 'custom-tmp',
                 'phpunit' => new PhpUnit(

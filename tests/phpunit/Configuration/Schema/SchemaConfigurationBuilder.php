@@ -41,6 +41,7 @@ use Infection\Configuration\Entry\PhpStan;
 use Infection\Configuration\Entry\PhpUnit;
 use Infection\Configuration\Entry\Source;
 use Infection\Configuration\Entry\StrykerConfig;
+use Infection\Configuration\Entry\TelemetryEntry;
 use Infection\Configuration\Schema\SchemaConfiguration;
 use Infection\StaticAnalysis\StaticAnalysisToolTypes;
 use Infection\TestFramework\TestFrameworkTypes;
@@ -149,6 +150,7 @@ final class SchemaConfigurationBuilder
                 useGitHubAnnotationsLogger: true,
                 strykerConfig: StrykerConfig::forBadge('master'),
                 summaryJsonLogFilePath: 'summary.json',
+                telemetryEntry: TelemetryEntry::createDefault(),
             ),
             tmpDir: '/tmp/infection',
             phpUnit: new PhpUnit('/config/phpunit', '/custom/phpunit'),

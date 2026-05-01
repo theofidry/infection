@@ -51,6 +51,8 @@ use Webmozart\Assert\Assert;
  */
 class NodeMutationGenerator
 {
+    public $trace;
+
     /** @var Mutator<Node>[] */
     private readonly array $mutators;
 
@@ -121,6 +123,7 @@ class NodeMutationGenerator
                 AddTestsVisitor::getTests($node),
                 $this->originalFileTokens,
                 $this->originalFileContent,
+                $this->trace,
             );
 
             ++$mutationByMutatorIndex;

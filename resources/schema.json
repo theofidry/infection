@@ -104,6 +104,118 @@
                         }
                     ]
                 },
+                "telemetry": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Enables OpenTelemetry tracing for this Infection run."
+                        },
+                        "serviceName": {
+                            "type": "string",
+                            "description": "OpenTelemetry service.name resource attribute."
+                        },
+                        "resourceAttributes": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": ["boolean", "number", "string"]
+                            },
+                            "description": "Additional OpenTelemetry resource attributes."
+                        },
+                        "traces": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "exporter": {
+                                    "type": "string"
+                                },
+                                "sampler": {
+                                    "type": "string"
+                                },
+                                "samplerArg": {
+                                    "type": ["null", "string"]
+                                }
+                            }
+                        },
+                        "otlp": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "endpoint": {
+                                    "type": "string"
+                                },
+                                "tracesEndpoint": {
+                                    "type": ["null", "string"]
+                                },
+                                "protocol": {
+                                    "type": "string"
+                                },
+                                "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                },
+                                "compression": {
+                                    "type": "string"
+                                },
+                                "timeout": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                }
+                            }
+                        },
+                        "batchSpanProcessor": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "scheduleDelay": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "exportTimeout": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "maxQueueSize": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "maxExportBatchSize": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "limits": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "attributeValueLength": {
+                                    "type": ["null", "integer"],
+                                    "minimum": 0
+                                },
+                                "attributeCount": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "spanAttributeCount": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "spanEventCount": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                },
+                                "spanLinkCount": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                }
+                            }
+                        }
+                    }
+                },
                 "github": {
                     "type": "boolean",
                     "description": "GitHub Annotations for escaped Mutants in the added/modifies files"

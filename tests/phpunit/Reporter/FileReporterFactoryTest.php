@@ -38,6 +38,7 @@ namespace Infection\Tests\Reporter;
 use function array_map;
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\StrykerConfig;
+use Infection\Configuration\Entry\TelemetryEntry;
 use Infection\Console\LogVerbosity;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
@@ -98,6 +99,7 @@ final class FileReporterFactoryTest extends TestCase
                 true,
                 null,
                 '/a/file',
+                TelemetryEntry::createDefault(),
             ),
         );
 
@@ -139,6 +141,7 @@ final class FileReporterFactoryTest extends TestCase
                 false,
                 null,
                 null,
+                null,
             ),
             [TextFileReporter::class],
         ];
@@ -153,6 +156,7 @@ final class FileReporterFactoryTest extends TestCase
                 null,
                 null,
                 false,
+                null,
                 null,
                 null,
             ),
@@ -171,6 +175,7 @@ final class FileReporterFactoryTest extends TestCase
                 true,
                 null,
                 null,
+                null,
             ),
             [GitHubActionsLogTextFileReporter::class, GitHubAnnotationsReporter::class],
         ];
@@ -185,6 +190,7 @@ final class FileReporterFactoryTest extends TestCase
                 null,
                 null,
                 false,
+                null,
                 null,
                 null,
             ),
@@ -203,6 +209,7 @@ final class FileReporterFactoryTest extends TestCase
                 false,
                 null,
                 null,
+                null,
             ),
             [SummaryFileReporter::class],
         ];
@@ -217,6 +224,7 @@ final class FileReporterFactoryTest extends TestCase
                 'debug_file',
                 null,
                 false,
+                null,
                 null,
                 null,
             ),
@@ -235,6 +243,7 @@ final class FileReporterFactoryTest extends TestCase
                 false,
                 null,
                 null,
+                null,
             ),
             [JsonReporter::class],
         ];
@@ -249,6 +258,7 @@ final class FileReporterFactoryTest extends TestCase
                 null,
                 null,
                 false,
+                null,
                 null,
                 null,
             ),
@@ -267,6 +277,7 @@ final class FileReporterFactoryTest extends TestCase
                 false,
                 null,
                 null,
+                null,
             ),
             [PerMutatorReporter::class],
         ];
@@ -281,6 +292,7 @@ final class FileReporterFactoryTest extends TestCase
                 null,
                 null,
                 true,
+                null,
                 null,
                 null,
             ),
@@ -299,6 +311,7 @@ final class FileReporterFactoryTest extends TestCase
                 false,
                 null,
                 'summary-json',
+                null,
             ),
             [SummaryJsonReporter::class],
         ];
@@ -315,6 +328,7 @@ final class FileReporterFactoryTest extends TestCase
                 true,
                 StrykerConfig::forBadge('branch'),
                 'summary-json',
+                null,
             ),
             [
                 TextFileReporter::class,

@@ -37,6 +37,7 @@ namespace Infection\Tests\Reporter;
 
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\StrykerConfig;
+use Infection\Configuration\Entry\TelemetryEntry;
 use Infection\Metrics\MetricsCalculator;
 use Infection\Metrics\ResultsCollector;
 use Infection\Reporter\Html\StrykerHtmlReportBuilder;
@@ -59,16 +60,17 @@ final class StrykerReporterFactoryTest extends TestCase
 
         $reporter = $factory->createFromLogEntries(
             new Logs(
-                '/a/file',
-                '/a/file',
-                '/a/file',
-                '/a/file',
-                '/a/file',
-                '/a/file',
-                '/a/file',
-                true,
-                null,
-                '/a/file',
+                textLogFilePath: '/a/file',
+                htmlLogFilePath: '/a/file',
+                summaryLogFilePath: '/a/file',
+                jsonLogFilePath: '/a/file',
+                gitlabLogFilePath: '/a/file',
+                debugLogFilePath: '/a/file',
+                perMutatorFilePath: '/a/file',
+                useGitHubAnnotationsLogger: true,
+                strykerConfig: null,
+                summaryJsonLogFilePath: '/a/file',
+                telemetryEntry: TelemetryEntry::createDefault(),
             ),
         );
 
@@ -90,6 +92,7 @@ final class StrykerReporterFactoryTest extends TestCase
                 null,
                 false,
                 StrykerConfig::forBadge('master'),
+                null,
                 null,
             ),
         );
@@ -134,6 +137,7 @@ final class StrykerReporterFactoryTest extends TestCase
                 false,
                 StrykerConfig::forBadge('foo'),
                 null,
+                null,
             ),
             StrykerReporter::class,
         ];
@@ -149,6 +153,7 @@ final class StrykerReporterFactoryTest extends TestCase
                 null,
                 false,
                 StrykerConfig::forFullReport('foo'),
+                null,
                 null,
             ),
             StrykerReporter::class,
@@ -166,6 +171,7 @@ final class StrykerReporterFactoryTest extends TestCase
                 true,
                 StrykerConfig::forBadge('branch'),
                 'summary_json',
+                telemetryEntry: TelemetryEntry::createDefault(),
             ),
             StrykerReporter::class,
         ];
