@@ -35,59 +35,18 @@ declare(strict_types=1);
 
 namespace Infection\Telemetry;
 
-use const FILTER_NULL_ON_FAILURE;
-use const FILTER_VALIDATE_BOOL;
-use function filter_var;
-use function getenv;
 use OpenTelemetry\API\Trace\TracerInterface;
-use OpenTelemetry\SDK\Trace\NoopTracerProvider;
-use OpenTelemetry\SDK\Trace\TracerProviderFactory;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
-use function Safe\putenv;
-use function strtolower;
 
 /**
  * @internal
  */
-final readonly class InfectionTelemetry
+final readonly class OpenTelemetryTracer
 {
-    private function __construct(
-        private bool $enabled,
+    public function __construct(
         private TracerInterface $tracer,
         private ?TracerProviderInterface $tracerProvider,
     ) {
-    }
-
-    public static function fromEnvironment(): self
-    {
-        if (self::isSdkDisabled() || !self::isRequested()) {
-            return self::disabled();
-        }
-
-        self::setDefaultServiceName();
-        $tracerProvider = (new TracerProviderFactory())->create();
-
-        return new self(
-            true,
-            $tracerProvider->getTracer('infection'),
-            $tracerProvider,
-        );
-    }
-
-    public static function disabled(): self
-    {
-        $tracerProvider = new NoopTracerProvider();
-
-        return new self(
-            false,
-            $tracerProvider->getTracer('infection'),
-            null,
-        );
-    }
-
-    public function isEnabled(): bool
-    {
-        return $this->enabled && $this->tracer->isEnabled();
     }
 
     /**
@@ -135,50 +94,5 @@ final readonly class InfectionTelemetry
     public function shutdown(): void
     {
         $this->tracerProvider?->shutdown();
-    }
-
-    private static function isSdkDisabled(): bool
-    {
-        $value = getenv('OTEL_SDK_DISABLED');
-
-        return $value !== false && filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) === true;
-    }
-
-    private static function isRequested(): bool
-    {
-        $tracesExporter = getenv('OTEL_TRACES_EXPORTER');
-
-        if ($tracesExporter !== false) {
-            return strtolower($tracesExporter) !== 'none';
-        }
-
-        return self::hasAnyEnv(
-            'OTEL_EXPORTER_OTLP_ENDPOINT',
-            'OTEL_EXPORTER_OTLP_TRACES_ENDPOINT',
-            'OTEL_EXPORTER_OTLP_PROTOCOL',
-            'OTEL_EXPORTER_OTLP_TRACES_PROTOCOL',
-        );
-    }
-
-    private static function hasAnyEnv(string ...$names): bool
-    {
-        foreach ($names as $name) {
-            if (getenv($name) !== false) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static function setDefaultServiceName(): void
-    {
-        if (getenv('OTEL_SERVICE_NAME') !== false) {
-            return;
-        }
-
-        putenv('OTEL_SERVICE_NAME=infection');
-        $_SERVER['OTEL_SERVICE_NAME'] = 'infection';
-        $_ENV['OTEL_SERVICE_NAME'] = 'infection';
     }
 }

@@ -59,13 +59,13 @@ use Infection\Event\Events\MutationAnalysis\MutationTestingWasFinished;
 use Infection\Event\Events\MutationAnalysis\MutationTestingWasFinishedSubscriber;
 use Infection\Event\Events\MutationAnalysis\MutationTestingWasStarted;
 use Infection\Event\Events\MutationAnalysis\MutationTestingWasStartedSubscriber;
-use Infection\Telemetry\InfectionTelemetry;
+use Infection\Telemetry\OpenTelemetryTracer;
 use Infection\Telemetry\SpanHandle;
 
 /**
  * @internal
  */
-final class TelemetrySubscriber implements ApplicationExecutionWasFinishedSubscriber, ApplicationExecutionWasStartedSubscriber, InitialStaticAnalysisRunWasFinishedSubscriber, InitialStaticAnalysisRunWasStartedSubscriber, InitialTestSuiteWasFinishedSubscriber, InitialTestSuiteWasStartedSubscriber, MutantProcessWasFinishedSubscriber, MutationEvaluationWasStartedSubscriber, MutationGenerationWasFinishedSubscriber, MutationGenerationWasStartedSubscriber, MutationTestingWasFinishedSubscriber, MutationTestingWasStartedSubscriber
+final class OpenTelemetryTracerSubscriber implements ApplicationExecutionWasFinishedSubscriber, ApplicationExecutionWasStartedSubscriber, InitialStaticAnalysisRunWasFinishedSubscriber, InitialStaticAnalysisRunWasStartedSubscriber, InitialTestSuiteWasFinishedSubscriber, InitialTestSuiteWasStartedSubscriber, MutantProcessWasFinishedSubscriber, MutationEvaluationWasStartedSubscriber, MutationGenerationWasFinishedSubscriber, MutationGenerationWasStartedSubscriber, MutationTestingWasFinishedSubscriber, MutationTestingWasStartedSubscriber
 {
     private ?SpanHandle $rootSpan = null;
 
@@ -81,7 +81,7 @@ final class TelemetrySubscriber implements ApplicationExecutionWasFinishedSubscr
     private array $mutationEvaluationSpans = [];
 
     public function __construct(
-        private readonly InfectionTelemetry $telemetry,
+        private readonly OpenTelemetryTracer $telemetry,
     ) {
     }
 

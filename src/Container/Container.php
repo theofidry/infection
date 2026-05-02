@@ -151,8 +151,7 @@ use Infection\Source\Matcher\SourceLineMatcher;
 use Infection\StaticAnalysis\Config\StaticAnalysisConfigLocator;
 use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
 use Infection\StaticAnalysis\StaticAnalysisToolFactory;
-use Infection\Telemetry\InfectionTelemetry;
-use Infection\Telemetry\Subscriber\TelemetrySubscriber;
+use Infection\Telemetry\Subscriber\OpenTelemetryTracerSubscriberFactory;
 use Infection\TestFramework\AdapterInstallationDecider;
 use Infection\TestFramework\AdapterInstaller;
 use Infection\TestFramework\Config\TestFrameworkConfigLocator;
@@ -388,7 +387,6 @@ final class Container extends DIContainer
                 $container->getConfiguration()->maxTimeouts,
             ),
             ChainSubscriberFactory::class => static function (self $container): ChainSubscriberFactory {
-                $telemetry = $container->get(InfectionTelemetry::class);
                 $subscriberFactories = [
                     $container->get(InitialTestsExecutionLoggerSubscriber::class),
                     $container->get(MutationGenerationLoggerSubscriber::class),
@@ -399,11 +397,8 @@ final class Container extends DIContainer
                     $container->getCleanUpAfterMutationTestingFinishedSubscriberFactory(),
                     $container->get(StopInfectionOnSigintSignalSubscriber::class),
                     $container->get(DispatchPcntlSignalSubscriber::class),
+                    $container->get(OpenTelemetryTracerSubscriberFactory::class),
                 ];
-
-                if ($telemetry->isEnabled()) {
-                    $subscriberFactories[] = $container->get(TelemetrySubscriber::class);
-                }
 
                 if ($container->getConfiguration()->isStaticAnalysisEnabled()) {
                     $subscriberFactories[] = $container->get(InitialStaticAnalysisExecutionLoggerSubscriber::class);
@@ -431,10 +426,6 @@ final class Container extends DIContainer
                 );
             },
             InitialTestsExecutionLogger::class => static fn (self $container): InitialTestsExecutionLogger => $container->get(InitialTestsExecutionLoggerFactory::class)->create(),
-            InfectionTelemetry::class => InfectionTelemetry::fromEnvironment(...),
-            TelemetrySubscriber::class => static fn (self $container): TelemetrySubscriber => new TelemetrySubscriber(
-                $container->get(InfectionTelemetry::class),
-            ),
             InitialStaticAnalysisExecutionLoggerFactory::class => static function (self $container): InitialStaticAnalysisExecutionLoggerFactory {
                 $config = $container->getConfiguration();
 

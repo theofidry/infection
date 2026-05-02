@@ -4,21 +4,15 @@ Infection can emit OpenTelemetry traces when standard `OTEL_*` environment
 variables request tracing. There is no Infection-specific telemetry config in
 `infection.json5` yet.
 
-Telemetry is disabled by default. Enable it by setting an OpenTelemetry traces
-exporter, for example:
+Telemetry is disabled by default. This first slice only allows the OpenTelemetry
+console trace exporter:
 
 ```bash
 OTEL_TRACES_EXPORTER=console vendor/bin/infection
 ```
 
-To export traces to an OTLP HTTP collector:
-
-```bash
-OTEL_TRACES_EXPORTER=otlp \
-OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 \
-vendor/bin/infection
-```
+Other trace exporters, metrics exporters, and logs exporters are rejected for
+now. OTLP export will be introduced in a later increment.
 
 Infection sets `OTEL_SERVICE_NAME=infection` when no service name is provided.
 Override it with:
