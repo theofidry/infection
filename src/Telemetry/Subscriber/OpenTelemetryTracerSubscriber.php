@@ -206,7 +206,9 @@ final class OpenTelemetryTracerSubscriber implements ApplicationExecutionWasFini
     {
         $parent ??= $this->rootSpan;
 
-        return $parent === null ? null : $this->telemetry->startChildSpan($parent, $name, $attributes);
+        return $parent === null
+            ? null
+            : $this->telemetry->startChildSpan($parent, $name, $attributes);
     }
 
     /**

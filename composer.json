@@ -73,6 +73,8 @@
         "symfony/finder": "^6.4 || ^7.0 || ^8.0",
         "symfony/polyfill-php85": "^1.33",
         "symfony/process": "^6.4 || ^7.0 || ^8.0",
+        "symfony/var-dumper": "^6.4 || ^7.0 || ^8.0",
+        "symfony/var-exporter": "^7.4",
         "thecodingmachine/safe": "^v3.0",
         "webmozart/assert": "^1.11 || ^2.0"
     },

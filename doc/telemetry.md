@@ -14,6 +14,13 @@ OTEL_TRACES_EXPORTER=console vendor/bin/infection
 Other trace exporters, metrics exporters, and logs exporters are rejected for
 now. OTLP export will be introduced in a later increment.
 
+To inspect the OpenTelemetry tracer service created from the current
+environment, use:
+
+```bash
+OTEL_TRACES_EXPORTER=console vendor/bin/infection debug:telemetry
+```
+
 Infection sets `OTEL_SERVICE_NAME=infection` when no service name is provided.
 Override it with:
 
