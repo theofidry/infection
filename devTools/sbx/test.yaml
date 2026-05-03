@@ -12,6 +12,11 @@ commandTests:
         args: ["--version"]
         exitCode: 0
 
+    -   name: "PIE is executable"
+        command: "pie"
+        args: ["--version"]
+        exitCode: 0
+
     - name: "Container runs as agent user"
       command: "whoami"
       expectedOutput: ["(?m)^agent$"]
