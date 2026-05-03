@@ -53,6 +53,8 @@ use function strtolower;
  */
 final readonly class OpenTelemetryTracerFactory
 {
+    private const INFECTION_TELEMETRY = 'INFECTION_TELEMETRY_ENABLED';
+
     /**
      * See https://github.com/open-telemetry/opentelemetry-specification/blob/v1.7.0/specification/trace/api.md#get-a-tracer
      */
@@ -62,9 +64,14 @@ final readonly class OpenTelemetryTracerFactory
     {
         self::guardSupportedExporters();
 
-        if (self::isSdkDisabled() || !self::isRequested()) {
+        if (
+            self::isSdkDisabled()
+            || (!self::isInfectionTelemetryEnabled() && !self::isRequested())
+        ) {
             return null;
         }
+
+        self::setDefaultTracesExporter();
 
         // Note that in theory we could create the TracerProvider directly,
         // not needing to set the service name via an environment variable.
@@ -85,12 +92,18 @@ final readonly class OpenTelemetryTracerFactory
 
         if ($tracer === null) {
             throw new InvalidArgumentException(sprintf(
-                'OpenTelemetry tracer is not enabled. Set %s=console to create it.',
+                'OpenTelemetry tracer is not enabled. Set %s=true or %s=console to create it.',
+                self::INFECTION_TELEMETRY,
                 Variables::OTEL_TRACES_EXPORTER,
             ));
         }
 
         return $tracer;
+    }
+
+    private function isInfectionTelemetryEnabled(): bool
+    {
+        return self::isBoolVariableEnabled(self::INFECTION_TELEMETRY);
     }
 
     private function isSdkDisabled(): bool
@@ -115,6 +128,17 @@ final readonly class OpenTelemetryTracerFactory
         putenv(Variables::OTEL_SERVICE_NAME . '=infection');
         $_SERVER[Variables::OTEL_SERVICE_NAME] = 'infection';
         $_ENV[Variables::OTEL_SERVICE_NAME] = 'infection';
+    }
+
+    private static function setDefaultTracesExporter(): void
+    {
+        if (getenv(Variables::OTEL_TRACES_EXPORTER) !== false) {
+            return;
+        }
+
+        putenv(Variables::OTEL_TRACES_EXPORTER . '=console');
+        $_SERVER[Variables::OTEL_TRACES_EXPORTER] = 'console';
+        $_ENV[Variables::OTEL_TRACES_EXPORTER] = 'console';
     }
 
     private static function guardSupportedExporters(): void
