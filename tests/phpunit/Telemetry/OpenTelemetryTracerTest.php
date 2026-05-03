@@ -62,7 +62,9 @@ final class OpenTelemetryTracerTest extends TestCase
     protected function setUp(): void
     {
         $this->exporter = new InMemoryExporter();
-        $this->tracerProvider = new TracerProvider(new SimpleSpanProcessor($this->exporter));
+        $this->tracerProvider = new TracerProvider(
+            new SimpleSpanProcessor($this->exporter),
+        );
         $this->tracer = new OpenTelemetryTracer(
             $this->tracerProvider->getTracer('infection'),
             $this->tracerProvider,
@@ -78,23 +80,17 @@ final class OpenTelemetryTracerTest extends TestCase
     {
         $root = $this->tracer->startRootSpan(
             'infection.root',
-            [
-                'infection.root.started' => true,
-            ],
+            ['infection.root.started' => true],
         );
         $child = $this->tracer->startChildSpan(
             $root,
             'infection.child',
-            [
-                'infection.child.started' => 1,
-            ],
+            ['infection.child.started' => 1],
         );
 
         $this->tracer->end(
             $child,
-            [
-                'infection.child.finished' => 'yes',
-            ],
+            ['infection.child.finished' => 'yes'],
         );
         $this->tracer->end($root);
 
@@ -126,7 +122,10 @@ final class OpenTelemetryTracerTest extends TestCase
 
     public function test_it_can_be_used_without_a_tracer_provider(): void
     {
-        $tracer = new OpenTelemetryTracer(NoopTracer::getInstance(), null);
+        $tracer = new OpenTelemetryTracer(
+            NoopTracer::getInstance(),
+            null,
+        );
 
         $tracer->shutdown();
 
