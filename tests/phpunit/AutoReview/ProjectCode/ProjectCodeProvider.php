@@ -91,6 +91,7 @@ use Infection\Source\Collector\FixedSourceCollector;
 use Infection\Source\Collector\GitDiffSourceCollector;
 use Infection\Source\Matcher\FakeSourceLineMatcher;
 use Infection\Source\Matcher\NullSourceLineMatcher;
+use Infection\Telemetry\SpanHandle;
 use Infection\TestFramework\AdapterInstaller;
 use Infection\TestFramework\Coverage\JUnit\TestFileTimeData;
 use Infection\TestFramework\Coverage\Locator\FakeLocator;
@@ -173,6 +174,7 @@ final class ProjectCodeProvider
         SchemaConfiguration::class,
         SingletonContainer::class,
         Source::class,
+        SpanHandle::class,
         StopInfectionOnSigintSignalSubscriber::class,
         StrykerCurlClient::class,
         Tokens::class,

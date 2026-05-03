@@ -73,7 +73,7 @@ final readonly class OpenTelemetryTracer
         return new SpanHandle(
             $this->tracer
                 ->spanBuilder($name)
-                ->setParent($parent->context())
+                ->setParent($parent->getContext())
                 ->setAttributes($attributes)
                 ->startSpan(),
         );

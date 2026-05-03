@@ -167,8 +167,8 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
 
     private function getSpanFromExporter(string $name): SpanDataInterface
     {
+        /** @var SpanDataInterface $span */
         foreach ($this->exporter->getSpans() as $span) {
-            /** @var SpanDataInterface $span */
             if ($span->getName() === $name) {
                 return $span;
             }
@@ -184,8 +184,8 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
 
     private function assertAllSpansAreFinished(): void
     {
+        /** @var SpanDataInterface $span */
         foreach ($this->exporter->getSpans() as $span) {
-            /** @var SpanDataInterface $span */
             $this->assertTrue(
                 $span->hasEnded(),
                 sprintf(

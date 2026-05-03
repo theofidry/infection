@@ -40,6 +40,10 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 
 /**
+ * Pairs a span with its captured context so that concurrent spans (e.g. per-mutation
+ * execution spans) can be independently ended and used as parents for child spans,
+ * without relying on the global active-span state.
+ *
  * @internal
  */
 final readonly class SpanHandle
@@ -52,7 +56,7 @@ final readonly class SpanHandle
         $this->context = $span->storeInContext(Context::getCurrent());
     }
 
-    public function context(): ContextInterface
+    public function getContext(): ContextInterface
     {
         return $this->context;
     }
