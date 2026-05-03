@@ -95,10 +95,7 @@ final readonly class OpenTelemetryTracerFactory
 
     private function isSdkDisabled(): bool
     {
-        $value = getenv(Variables::OTEL_SDK_DISABLED);
-
-        return $value !== false
-            && filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) === true;
+        return self::isBoolVariableEnabled(Variables::OTEL_SDK_DISABLED);
     }
 
     private function isRequested(): bool
@@ -125,6 +122,7 @@ final readonly class OpenTelemetryTracerFactory
         self::guardExporter(Variables::OTEL_TRACES_EXPORTER, ['console', 'none']);
         self::guardExporter(Variables::OTEL_METRICS_EXPORTER, ['none']);
         self::guardExporter(Variables::OTEL_LOGS_EXPORTER, ['none']);
+        self::guardAutoload();
     }
 
     /**
@@ -152,5 +150,40 @@ final readonly class OpenTelemetryTracerFactory
                 implode(', ', $allowedValues),
             ),
         );
+    }
+
+    /**
+     * @see https://opentelemetry.io/docs/languages/php/sdk/#autoloading
+     */
+    private static function guardAutoload(): void
+    {
+        $value = self::getEnabledBoolVariable(Variables::OTEL_PHP_AUTOLOAD_ENABLED);
+
+        if ($value === null) {
+            return;
+        }
+
+        throw new InvalidArgumentException(
+            sprintf(
+                'Unsupported OpenTelemetry autoload configured via %s="%s". Supported values: false.',
+                Variables::OTEL_PHP_AUTOLOAD_ENABLED,
+                $value,
+            ),
+        );
+    }
+
+    private static function isBoolVariableEnabled(string $name): bool
+    {
+        return self::getEnabledBoolVariable($name) !== null;
+    }
+
+    private static function getEnabledBoolVariable(string $name): ?string
+    {
+        $value = getenv($name);
+
+        return $value !== false
+            && filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) === true
+                ? $value
+                : null;
     }
 }

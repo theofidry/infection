@@ -125,6 +125,14 @@ final class OpenTelemetryTracerFactoryTest extends TestCase
             $expectTracer,
         ];
 
+        yield 'console traces exporter with OpenTelemetry PHP autoload disabled' => [
+            [
+                Variables::OTEL_TRACES_EXPORTER => 'console',
+                Variables::OTEL_PHP_AUTOLOAD_ENABLED => 'false',
+            ],
+            $expectTracer,
+        ];
+
         yield 'unsupported traces exporter' => [
             [
                 Variables::OTEL_TRACES_EXPORTER => 'otlp',
@@ -149,6 +157,15 @@ final class OpenTelemetryTracerFactoryTest extends TestCase
             ],
             new InvalidArgumentException(
                 'Unsupported OpenTelemetry exporter configured via OTEL_LOGS_EXPORTER="console". Supported values: none.',
+            ),
+        ];
+
+        yield 'OpenTelemetry PHP autoload enabled' => [
+            [
+                Variables::OTEL_PHP_AUTOLOAD_ENABLED => 'true',
+            ],
+            new InvalidArgumentException(
+                'Unsupported OpenTelemetry autoload configured via OTEL_PHP_AUTOLOAD_ENABLED="true". Supported values: false.',
             ),
         ];
 
