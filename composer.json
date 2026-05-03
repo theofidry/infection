@@ -51,13 +51,13 @@
         "colinodell/json5": "^3.0",
         "composer/xdebug-handler": "^3.0",
         "fidry/cpu-core-counter": "^1.0",
-        "guzzlehttp/guzzle": "^7.10",
         "infection/abstract-testframework-adapter": "^0.5.0",
         "infection/extension-installer": "^0.1.0",
         "infection/include-interceptor": "^0.2.5",
         "infection/mutator": "^0.4",
         "justinrainbow/json-schema": "^6.0",
         "nikic/php-parser": "^5.6.2",
+        "nyholm/psr7": "^1.8",
         "ondram/ci-detector": "^4.1.0",
         "open-telemetry/api": "^1.9",
         "open-telemetry/exporter-otlp": "^1.4",
@@ -71,10 +71,10 @@
         "symfony/console": "^6.4 || ^7.0 || ^8.0",
         "symfony/filesystem": "^6.4 || ^7.0 || ^8.0",
         "symfony/finder": "^6.4 || ^7.0 || ^8.0",
+        "symfony/http-client": "^7.4",
         "symfony/polyfill-php85": "^1.33",
         "symfony/process": "^6.4 || ^7.0 || ^8.0",
         "symfony/var-dumper": "^6.4 || ^7.0 || ^8.0",
-        "symfony/var-exporter": "^7.4",
         "thecodingmachine/safe": "^v3.0",
         "webmozart/assert": "^1.11 || ^2.0"
     },
@@ -112,7 +112,7 @@
             "infection/extension-installer": true,
             "php-http/discovery": true,
             "phpstan/extension-installer": true,
-            "tbachert/spi": true
+            "tbachert/spi": false
         }
     },
     "autoload": {
