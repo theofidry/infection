@@ -78,7 +78,8 @@
     },
     "conflict": {
         "antecedent/patchwork": "<2.1.25",
-        "dg/bypass-finals": "<1.4.1"
+        "dg/bypass-finals": "<1.4.1",
+        "open-telemetry/sem-conv": "<1.36"
     },
     "require-dev": {
         "ext-simplexml": "*",
