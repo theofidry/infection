@@ -4,8 +4,13 @@ Infection can emit OpenTelemetry traces when standard `OTEL_*` environment
 variables request tracing. There is no Infection-specific telemetry config in
 `infection.json5` yet.
 
-Telemetry is disabled by default. This first slice only allows the OpenTelemetry
-console trace exporter:
+Telemetry is disabled by default. Enable it with Infection's telemetry flag:
+
+```bash
+INFECTION_TELEMETRY_ENABLED=true vendor/bin/infection --quiet
+```
+
+You can also request the OpenTelemetry console trace exporter directly:
 
 ```bash
 OTEL_TRACES_EXPORTER=console vendor/bin/infection --quiet
@@ -18,7 +23,7 @@ To inspect the OpenTelemetry tracer service created from the current
 environment, use:
 
 ```bash
-OTEL_TRACES_EXPORTER=console vendor/bin/infection debug:telemetry
+INFECTION_TELEMETRY_ENABLED=true vendor/bin/infection debug:telemetry
 ```
 
 Infection sets `OTEL_SERVICE_NAME=infection` when no service name is provided.
