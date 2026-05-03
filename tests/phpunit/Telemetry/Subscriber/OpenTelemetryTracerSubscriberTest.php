@@ -35,6 +35,8 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Telemetry\Subscriber;
 
+use function array_map;
+use function array_values;
 use Infection\Event\Events\Application\ApplicationExecutionWasFinished;
 use Infection\Event\Events\Application\ApplicationExecutionWasStarted;
 use Infection\Event\Events\ArtefactCollection\InitialStaticAnalysis\InitialStaticAnalysisRunWasFinished;
@@ -123,6 +125,18 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
         $this->subscriber->onMutationTestingWasFinished(new MutationTestingWasFinished());
         $this->subscriber->onApplicationExecutionWasFinished(new ApplicationExecutionWasFinished());
 
+        $this->assertSame(
+            [
+                'infection.initial_tests',
+                'infection.initial_static_analysis',
+                'infection.mutation_generation',
+                'infection.mutation_evaluation',
+                'infection.mutation_testing',
+                'infection.run',
+            ],
+            $this->getExportedSpanNames(),
+        );
+
         $run = $this->getSpanFromExporter('infection.run');
         $initialTests = $this->getSpanFromExporter('infection.initial_tests');
         $initialStaticAnalysis = $this->getSpanFromExporter('infection.initial_static_analysis');
@@ -148,6 +162,7 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
         $this->assertSame(0.123, $mutationEvaluation->getAttributes()->get('infection.mutation.runtime'));
 
         $this->assertAllSpansAreFinished();
+        $this->assertTracerProviderWasShutdown();
     }
 
     public function test_it_ends_open_spans_on_application_finish_even_if_the_finish_events_were_not_emitted(): void
@@ -161,6 +176,39 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
         $this->subscriber->onMutationTestingWasStarted(new MutationTestingWasStarted(IterableCounter::UNKNOWN_COUNT, $this->createStub(ProcessRunner::class)));
         $this->subscriber->onMutationEvaluationWasStarted(new MutationEvaluationWasStarted($mutation));
         $this->subscriber->onApplicationExecutionWasFinished(new ApplicationExecutionWasFinished());
+
+        $this->assertSame(
+            [
+                'infection.initial_tests',
+                'infection.initial_static_analysis',
+                'infection.mutation_generation',
+                'infection.mutation_evaluation',
+                'infection.mutation_testing',
+                'infection.run',
+            ],
+            $this->getExportedSpanNames(),
+        );
+
+        $this->assertAllSpansAreFinished();
+        $this->assertTracerProviderWasShutdown();
+    }
+
+    public function test_it_ends_open_mutation_evaluation_spans_on_mutation_testing_finish(): void
+    {
+        $mutation = MutationBuilder::withMinimalTestData()->build();
+
+        $this->subscriber->onApplicationExecutionWasStarted(new ApplicationExecutionWasStarted());
+        $this->subscriber->onMutationTestingWasStarted(new MutationTestingWasStarted(IterableCounter::UNKNOWN_COUNT, $this->createStub(ProcessRunner::class)));
+        $this->subscriber->onMutationEvaluationWasStarted(new MutationEvaluationWasStarted($mutation));
+        $this->subscriber->onMutationTestingWasFinished(new MutationTestingWasFinished());
+
+        $this->assertSame(
+            [
+                'infection.mutation_evaluation',
+                'infection.mutation_testing',
+            ],
+            $this->getExportedSpanNames(),
+        );
 
         $this->assertAllSpansAreFinished();
     }
@@ -182,6 +230,19 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
         );
     }
 
+    /**
+     * @return list<string>
+     */
+    private function getExportedSpanNames(): array
+    {
+        return array_values(
+            array_map(
+                static fn (SpanDataInterface $span): string => $span->getName(),
+                $this->exporter->getSpans(),
+            ),
+        );
+    }
+
     private function assertAllSpansAreFinished(): void
     {
         /** @var SpanDataInterface $span */
@@ -194,5 +255,10 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
                 ),
             );
         }
+    }
+
+    private function assertTracerProviderWasShutdown(): void
+    {
+        $this->assertFalse($this->tracerProvider->getTracer('infection')->isEnabled());
     }
 }

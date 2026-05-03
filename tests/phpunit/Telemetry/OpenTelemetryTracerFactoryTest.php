@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\Telemetry;
 
 use Exception;
+use function getenv;
 use Infection\Telemetry\OpenTelemetryTracer;
 use Infection\Telemetry\OpenTelemetryTracerFactory;
 use Infection\Tests\EnvVariableManipulation\BacksUpEnvironmentVariables;
@@ -176,6 +177,37 @@ final class OpenTelemetryTracerFactoryTest extends TestCase
             ],
             $expectNoTracer,
         ];
+    }
+
+    public function test_it_sets_the_default_service_name_when_creating_a_tracer(): void
+    {
+        $this->setEnvVariables([
+            Variables::OTEL_TRACES_EXPORTER => 'console',
+        ]);
+
+        $tracer = (new OpenTelemetryTracerFactory())->create();
+
+        $tracer?->shutdown();
+
+        $this->assertSame('infection', getenv(Variables::OTEL_SERVICE_NAME));
+        $this->assertSame('infection', $_SERVER[Variables::OTEL_SERVICE_NAME]);
+        $this->assertSame('infection', $_ENV[Variables::OTEL_SERVICE_NAME]);
+    }
+
+    public function test_it_keeps_the_existing_service_name_when_creating_a_tracer(): void
+    {
+        $this->setEnvVariables([
+            Variables::OTEL_TRACES_EXPORTER => 'console',
+            Variables::OTEL_SERVICE_NAME => 'custom-service',
+        ]);
+
+        $tracer = (new OpenTelemetryTracerFactory())->create();
+
+        $tracer?->shutdown();
+
+        $this->assertSame('custom-service', getenv(Variables::OTEL_SERVICE_NAME));
+        $this->assertSame('custom-service', $_SERVER[Variables::OTEL_SERVICE_NAME]);
+        $this->assertSame('custom-service', $_ENV[Variables::OTEL_SERVICE_NAME]);
     }
 
     /**
