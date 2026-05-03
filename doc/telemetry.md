@@ -8,7 +8,7 @@ Telemetry is disabled by default. This first slice only allows the OpenTelemetry
 console trace exporter:
 
 ```bash
-OTEL_TRACES_EXPORTER=console vendor/bin/infection
+OTEL_TRACES_EXPORTER=console vendor/bin/infection --quiet
 ```
 
 Other trace exporters, metrics exporters, and logs exporters are rejected for
