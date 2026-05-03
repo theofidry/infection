@@ -2803,6 +2803,18 @@ message = "Parameter `$installedExtensions` is never used."
 count = 1
 
 [[issues]]
+file = "src/Telemetry/SDK/FailingTracerProviderFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `RuntimeException` in `Infection\Telemetry\SDK\FailingTracerProviderFactory::createExporter`.'
+count = 1
+
+[[issues]]
+file = "src/Telemetry/Subscriber/OpenTelemetryTracerSubscriberFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `RuntimeException` in `Infection\Telemetry\Subscriber\OpenTelemetryTracerSubscriberFactory::create`.'
+count = 1
+
+[[issues]]
 file = "src/TestFramework/AbstractTestFrameworkAdapter.php"
 code = "unhandled-thrown-type"
 message = 'Potentially unhandled exception `Infection\AbstractTestFramework\InvalidVersion` in `Infection\TestFramework\AbstractTestFrameworkAdapter::buildInitialConfigFile`.'
@@ -11404,6 +11416,24 @@ count = 3
 file = "tests/phpunit/Telemetry/OpenTelemetryTracerFactoryTest.php"
 code = "imprecise-type"
 message = "Type `iterable` in return type of `tracerProvider` is imprecise, equivalent to `iterable<mixed, mixed>`."
+count = 1
+
+[[issues]]
+file = "tests/phpunit/Telemetry/OpenTelemetryTracerFactoryTest.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `RuntimeException` in `Infection\Tests\Telemetry\OpenTelemetryTracerFactoryTest::test_it_creates_a_tracer`.'
+count = 1
+
+[[issues]]
+file = "tests/phpunit/Telemetry/OpenTelemetryTracerFactoryTest.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `RuntimeException` in `Infection\Tests\Telemetry\OpenTelemetryTracerFactoryTest::test_it_keeps_the_existing_service_name_when_creating_a_tracer`.'
+count = 1
+
+[[issues]]
+file = "tests/phpunit/Telemetry/OpenTelemetryTracerFactoryTest.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `RuntimeException` in `Infection\Tests\Telemetry\OpenTelemetryTracerFactoryTest::test_it_sets_the_default_service_name_when_creating_a_tracer`.'
 count = 1
 
 [[issues]]
