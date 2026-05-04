@@ -228,7 +228,7 @@ final class TeamCityTest extends TestCase
             $nominalTest,
             $nominalExecutionResultBuilder
                 ->build(),
-            self::finishedTestLogs($expectedMessage, '3000'),
+            self::createFinishedTestLogs($expectedMessage, '3000'),
         ];
 
         $timedOutMessage = 'Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out';
@@ -239,7 +239,7 @@ final class TeamCityTest extends TestCase
             $nominalExecutionResultBuilder
                 ->withDetectionStatus(DetectionStatus::TIMED_OUT)
                 ->build(),
-            self::finishedTestLogs($timedOutMessage, '3000'),
+            self::createFinishedTestLogs($timedOutMessage, '3000'),
         ];
 
         yield 'timed-out with timeouts counting as escaped' => [
@@ -259,7 +259,7 @@ final class TeamCityTest extends TestCase
             $nominalExecutionResultBuilder
                 ->withProcessRuntime(5.772644996643066)
                 ->build(),
-            self::finishedTestLogs($expectedMessage, '5773'),
+            self::createFinishedTestLogs($expectedMessage, '5773'),
         ];
 
         yield 'with an evaluation process that took some time (round half to upper)' => [
@@ -268,7 +268,7 @@ final class TeamCityTest extends TestCase
             $nominalExecutionResultBuilder
                 ->withProcessRuntime(5.7725)
                 ->build(),
-            self::finishedTestLogs($expectedMessage, '5773'),
+            self::createFinishedTestLogs($expectedMessage, '5773'),
         ];
 
         yield 'with an evaluation process that did not take any time (e.g. killed by an heuristic)' => [
@@ -277,7 +277,7 @@ final class TeamCityTest extends TestCase
             $nominalExecutionResultBuilder
                 ->withProcessRuntime(0.)
                 ->build(),
-            self::finishedTestLogs($expectedMessage, '0'),
+            self::createFinishedTestLogs($expectedMessage, '0'),
         ];
 
         yield 'with an evaluation process that rounds down (fractional ms < 0.5)' => [
@@ -286,7 +286,7 @@ final class TeamCityTest extends TestCase
             $nominalExecutionResultBuilder
                 ->withProcessRuntime(5.7721)
                 ->build(),
-            self::finishedTestLogs($expectedMessage, '5772'),
+            self::createFinishedTestLogs($expectedMessage, '5772'),
         ];
 
         yield 'killed by static analysis' => [
@@ -296,7 +296,7 @@ final class TeamCityTest extends TestCase
                 ->withDetectionStatus(DetectionStatus::KILLED_BY_STATIC_ANALYSIS)
                 ->withProcessRuntime(3.)
                 ->build(),
-            self::finishedTestLogs(
+            self::createFinishedTestLogs(
                 'Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: killed by SA',
                 '3000',
             ),
@@ -309,7 +309,7 @@ final class TeamCityTest extends TestCase
                 ->withDetectionStatus(DetectionStatus::ERROR)
                 ->withProcessRuntime(3.)
                 ->build(),
-            self::finishedTestLogs(
+            self::createFinishedTestLogs(
                 'Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: error',
                 '3000',
             ),
@@ -322,7 +322,7 @@ final class TeamCityTest extends TestCase
                 ->withDetectionStatus(DetectionStatus::SYNTAX_ERROR)
                 ->withProcessRuntime(3.)
                 ->build(),
-            self::finishedTestLogs(
+            self::createFinishedTestLogs(
                 'Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: syntax error',
                 '3000',
             ),
@@ -380,7 +380,7 @@ final class TeamCityTest extends TestCase
     /**
      * @return list<string>
      */
-    private static function finishedTestLogs(string $message, string $duration): array
+    private static function createFinishedTestLogs(string $message, string $duration): array
     {
         return [
             "##teamcity[testStdOut name='Infection\\Mutator\\Boolean\\LogicalAnd (mutantHash)' out='{$message}']\n",
