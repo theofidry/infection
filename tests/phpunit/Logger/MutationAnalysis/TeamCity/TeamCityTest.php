@@ -170,6 +170,7 @@ final class TeamCityTest extends TestCase
                 locationHint: 'infection:///path/to/project/src/source.php:1-3',
                 nodeId: 'A1',
                 parentNodeId: 'A',
+                sourceFilePath: '/path/to/project/src/source.php',
             ),
             "##teamcity[testStarted name='MutatorName (49a5dfcd2f4a0b33d4a02e662812af55)' nodeId='A1' parentNodeId='A' metainfo='{\"mutationId\":\"49a5dfcd2f4a0b33d4a02e662812af55\"}' locationHint='infection:///path/to/project/src/source.php:1-3']\n",
         ];
@@ -200,6 +201,7 @@ final class TeamCityTest extends TestCase
             locationHint: 'infection:///path/to/project/src/source.php:1-3',
             nodeId: '1A',
             parentNodeId: 'A',
+            sourceFilePath: '/path/to/project/src/source.php',
         );
 
         $mutationDiff = <<<'PHP_DIFF'
@@ -227,7 +229,7 @@ final class TeamCityTest extends TestCase
             $nominalExecutionResultBuilder
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='3000' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -239,7 +241,7 @@ final class TeamCityTest extends TestCase
                 ->withDetectionStatus(DetectionStatus::TIMED_OUT)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' details='{$escapedMutationDiff}' duration='3000' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -251,7 +253,7 @@ final class TeamCityTest extends TestCase
                 ->withDetectionStatus(DetectionStatus::TIMED_OUT)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFailed name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' duration='3000' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
+                ##teamcity[testFailed name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: timed out' duration='3000' expectedFile='/path/to/project/src/source.php' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
 
                 TEAM_CITY,
         ];
@@ -263,7 +265,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(5.772644996643066)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5773']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5773' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -275,7 +277,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(5.7725)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5773']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5773' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -287,7 +289,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(0.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='0']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='0' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -299,7 +301,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(5.7721)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5772']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='{$expectedMessage}' details='{$escapedMutationDiff}' duration='5772' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -312,7 +314,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(3.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: killed by SA' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: killed by SA' details='{$escapedMutationDiff}' duration='3000' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -325,7 +327,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(3.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: error' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: error' details='{$escapedMutationDiff}' duration='3000' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -338,7 +340,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(3.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: syntax error' details='{$escapedMutationDiff}' duration='3000']
+                ##teamcity[testFinished name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: syntax error' details='{$escapedMutationDiff}' duration='3000' expectedFile='/path/to/project/src/source.php']
 
                 TEAM_CITY,
         ];
@@ -351,7 +353,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(3.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testFailed name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: escaped' duration='3000' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
+                ##teamcity[testFailed name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: escaped' duration='3000' expectedFile='/path/to/project/src/source.php' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
 
                 TEAM_CITY,
         ];
@@ -364,7 +366,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(3.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: skipped' duration='3000' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
+                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: skipped' duration='3000' expectedFile='/path/to/project/src/source.php' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
 
                 TEAM_CITY,
         ];
@@ -377,7 +379,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(3.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: not covered' duration='3000' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
+                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: not covered' duration='3000' expectedFile='/path/to/project/src/source.php' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
 
                 TEAM_CITY,
         ];
@@ -390,7 +392,7 @@ final class TeamCityTest extends TestCase
                 ->withProcessRuntime(3.)
                 ->build(),
             <<<TEAM_CITY
-                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: ignored' duration='3000' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
+                ##teamcity[testIgnored name='Infection\Mutator\Boolean\LogicalAnd (mutantHash)' nodeId='1A' message='Mutator: LogicalAnd|nMutation ID: mutantHash|nMutation result: ignored' duration='3000' expectedFile='/path/to/project/src/source.php' type='comparisonFailure' actual='<?php \$a = 1;' expected='<?php \$a = 2;']
 
                 TEAM_CITY,
         ];
