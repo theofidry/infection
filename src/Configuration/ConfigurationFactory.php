@@ -63,6 +63,7 @@ use Infection\Mutator\MutatorResolver;
 use Infection\Reporter\FileReporter;
 use Infection\Resource\Processor\CpuCoresCountProvider;
 use Infection\Source\Exception\NoSourceFound;
+use Infection\TestFramework\TestFrameworkExtraArgs;
 use Infection\TestFramework\TestFrameworkTypes;
 use function is_numeric;
 use function max;
@@ -70,6 +71,8 @@ use OndraM\CiDetector\CiDetector;
 use OndraM\CiDetector\CiDetectorInterface;
 use OndraM\CiDetector\Exception\CiNotDetectedException;
 use PhpParser\Node;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use function sprintf;
 use Symfony\Component\Filesystem\Path;
 use function sys_get_temp_dir;
@@ -94,6 +97,7 @@ class ConfigurationFactory
         private readonly CiDetectorInterface $ciDetector,
         private readonly Git $git,
         private readonly ProjectDirectoryProvider $projectDirectoryProvider,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -121,7 +125,10 @@ class ConfigurationFactory
         int $msiPrecision,
         string $mutatorsInput,
         ?string $testFramework,
+        bool $testFrameworkOptionsWasProvided,
         ?string $testFrameworkExtraOptions,
+        bool $testFrameworkExtraArgsWasProvided,
+        ?string $testFrameworkExtraArgs,
         ?string $staticAnalysisToolOptions,
         PlainFilter|IncompleteGitDiffFilter|null $sourceFilter,
         ?int $threadCount,
@@ -176,7 +183,14 @@ class ConfigurationFactory
             testFramework: $testFramework,
             bootstrap: $schema->bootstrap,
             initialTestsPhpOptions: $initialTestsPhpOptions ?? $schema->initialTestsPhpOptions,
-            testFrameworkExtraOptions: self::retrieveTestFrameworkExtraOptions($testFrameworkExtraOptions, $schema),
+            testFrameworkExtraOptions: $this->retrieveTestFrameworkExtraArgs(
+                $testFramework,
+                $testFrameworkOptionsWasProvided,
+                $testFrameworkExtraOptions,
+                $testFrameworkExtraArgsWasProvided,
+                $testFrameworkExtraArgs,
+                $schema,
+            ),
             staticAnalysisToolOptions: self::retrieveStaticAnalysisToolOptions($staticAnalysisToolOptions, $schema),
             coveragePath: $coverageBasePath,
             skipCoverage: $skipCoverage,
@@ -293,11 +307,52 @@ class ConfigurationFactory
         return sprintf('%s/%s', $configDir, $existingCoveragePath);
     }
 
-    private static function retrieveTestFrameworkExtraOptions(
+    private function retrieveTestFrameworkExtraArgs(
+        string $testFramework,
+        bool $testFrameworkOptionsWasProvided,
         ?string $testFrameworkExtraOptions,
+        bool $testFrameworkExtraArgsWasProvided,
+        ?string $testFrameworkExtraArgs,
         SchemaConfiguration $schema,
     ): string {
-        return $testFrameworkExtraOptions ?? $schema->testFrameworkExtraOptions ?? '';
+        $testFrameworkOptionsWasProvided = $testFrameworkOptionsWasProvided || $testFrameworkExtraOptions !== null;
+        $testFrameworkExtraArgsWasProvided = $testFrameworkExtraArgsWasProvided || $testFrameworkExtraArgs !== null;
+
+        if ($testFrameworkOptionsWasProvided && $testFrameworkExtraArgsWasProvided) {
+            throw new InvalidArgumentException('Cannot pass both `--test-framework-options` and `--test-framework-extra-args`: use only `--test-framework-extra-args`.');
+        }
+
+        if ($testFrameworkOptionsWasProvided || $schema->testFrameworkOptionsWasConfigured) {
+            $this->logger->notice('The `--test-framework-options` option and `testFrameworkOptions` configuration key are deprecated. Use `--test-framework-extra-args` or `testFrameworkExtraArgs` instead.');
+        }
+
+        if ($testFrameworkExtraArgsWasProvided) {
+            return $this->retrieveRawTestFrameworkExtraArgs($testFramework, $testFrameworkExtraArgs, true);
+        }
+
+        if ($testFrameworkOptionsWasProvided) {
+            return TestFrameworkExtraArgs::legacy($testFrameworkExtraOptions, true)->serializeForAdapter();
+        }
+
+        if ($schema->testFrameworkExtraArgsWasConfigured) {
+            return $this->retrieveRawTestFrameworkExtraArgs($testFramework, $schema->testFrameworkExtraArgs, true);
+        }
+
+        return TestFrameworkExtraArgs::legacy($schema->testFrameworkExtraOptions, $schema->testFrameworkOptionsWasConfigured)->serializeForAdapter();
+    }
+
+    private function retrieveRawTestFrameworkExtraArgs(
+        string $testFramework,
+        ?string $testFrameworkExtraArgs,
+        bool $isPresent,
+    ): string {
+        if ($testFramework !== TestFrameworkTypes::PHPUNIT) {
+            $this->logger->warning('`testFrameworkExtraArgs` / `--test-framework-extra-args` is only supported for PHPUnit for now; the provided value will be ignored. Continue using `testFrameworkOptions` / `--test-framework-options` for non-PHPUnit frameworks.');
+
+            return '';
+        }
+
+        return TestFrameworkExtraArgs::raw($testFrameworkExtraArgs, $isPresent)->serializeForAdapter();
     }
 
     private static function retrieveStaticAnalysisToolOptions(

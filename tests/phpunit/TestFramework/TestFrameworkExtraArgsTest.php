@@ -33,50 +33,39 @@
 
 declare(strict_types=1);
 
-namespace Infection\Command\Option;
+namespace Infection\Tests\TestFramework;
 
-use Infection\CannotBeInstantiated;
-use Infection\Console\IO;
-use Infection\Container\Container;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputOption;
-use function trim;
+use Infection\TestFramework\TestFrameworkExtraArgs;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 
-/**
- * @internal
- */
-final class TestFrameworkOptionsOption implements CommandOption
+#[CoversClass(TestFrameworkExtraArgs::class)]
+final class TestFrameworkExtraArgsTest extends TestCase
 {
-    use CannotBeInstantiated;
-
-    public const string NAME = 'test-framework-options';
-
-    /**
-     * @template T of Command
-     */
-    public static function addOption(Command $command): Command
+    public function test_it_parses_raw_args(): void
     {
-        return $command->addOption(
-            self::NAME,
-            null,
-            InputOption::VALUE_REQUIRED,
-            'Deprecated. Use --test-framework-extra-args instead.',
-            Container::DEFAULT_TEST_FRAMEWORK_EXTRA_OPTIONS,
+        $extraArgs = TestFrameworkExtraArgs::raw(' tests/FooTest.php --filter="a test" --colors=always ', true);
+
+        $this->assertSame(
+            ['tests/FooTest.php', '--filter=a test', '--colors=always'],
+            TestFrameworkExtraArgs::unserializeRawTokens($extraArgs->serializeForAdapter()),
         );
     }
 
-    /**
-     * @return non-empty-string|null
-     */
-    public static function get(IO $io): ?string
+    public function test_it_rejects_invalid_raw_args(): void
     {
-        $value = trim((string) $io->getInput()->getOption(self::NAME));
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot parse `testFrameworkExtraArgs` / `--test-framework-extra-args`: ');
 
-        return $value === '' ? null : $value;
+        TestFrameworkExtraArgs::raw('--filter="unfinished', true);
     }
 
-    public static function isProvided(IO $io): bool
+    public function test_legacy_args_keep_original_string(): void
     {
-        return $io->getInput()->hasParameterOption('--' . self::NAME);
+        $this->assertSame(
+            '--filter=FooTest',
+            TestFrameworkExtraArgs::legacy(' --filter=FooTest ', true)->serializeForAdapter(),
+        );
     }
 }

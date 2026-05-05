@@ -45,29 +45,23 @@ use function trim;
 /**
  * @internal
  */
-final class TestFrameworkOptionsOption implements CommandOption
+final class TestFrameworkExtraArgsOption implements CommandOption
 {
     use CannotBeInstantiated;
 
-    public const string NAME = 'test-framework-options';
+    public const string NAME = 'test-framework-extra-args';
 
-    /**
-     * @template T of Command
-     */
     public static function addOption(Command $command): Command
     {
         return $command->addOption(
             self::NAME,
             null,
             InputOption::VALUE_REQUIRED,
-            'Deprecated. Use --test-framework-extra-args instead.',
+            'Raw PHPUnit arguments to pass before Infection-generated arguments',
             Container::DEFAULT_TEST_FRAMEWORK_EXTRA_OPTIONS,
         );
     }
 
-    /**
-     * @return non-empty-string|null
-     */
     public static function get(IO $io): ?string
     {
         $value = trim((string) $io->getInput()->getOption(self::NAME));

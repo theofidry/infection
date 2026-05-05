@@ -42,6 +42,7 @@ use Infection\Command\Option\ConfigurationOption;
 use Infection\Command\Option\DebugOption;
 use Infection\Command\Option\MapSourceClassToTestOption;
 use Infection\Command\Option\SourceFilterOptions;
+use Infection\Command\Option\TestFrameworkExtraArgsOption;
 use Infection\Command\Option\TestFrameworkOption;
 use Infection\Command\Option\TestFrameworkOptionsOption;
 use Infection\Configuration\Schema\SchemaConfigurationLoader;
@@ -160,7 +161,9 @@ final class RunCommand extends BaseCommand
                 Container::DEFAULT_STATIC_ANALYSIS_TOOL,
             );
 
-        TestFrameworkOptionsOption::addOption($this)
+        TestFrameworkExtraArgsOption::addOption(
+            TestFrameworkOptionsOption::addOption($this),
+        )
             ->addOption(
                 self::OPTION_STATIC_ANALYSIS_TOOL_OPTIONS,
                 null,
@@ -469,7 +472,10 @@ final class RunCommand extends BaseCommand
             maxTimeouts: $commandHelper->getMaxTimeouts(),
             msiPrecision: $msiPrecision,
             testFramework: TestFrameworkOption::get($io),
+            testFrameworkOptionsWasProvided: TestFrameworkOptionsOption::isProvided($io),
             testFrameworkExtraOptions: TestFrameworkOptionsOption::get($io),
+            testFrameworkExtraArgsWasProvided: TestFrameworkExtraArgsOption::isProvided($io),
+            testFrameworkExtraArgs: TestFrameworkExtraArgsOption::get($io),
             staticAnalysisToolOptions: $commandHelper->getStringOption(self::OPTION_STATIC_ANALYSIS_TOOL_OPTIONS, Container::DEFAULT_STATIC_ANALYSIS_TOOL_OPTIONS),
             sourceFilter: SourceFilterOptions::get($io),
             threadCount: $commandHelper->getThreadCount(),
