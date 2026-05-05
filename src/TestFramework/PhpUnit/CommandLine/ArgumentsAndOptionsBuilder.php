@@ -43,6 +43,7 @@ use function implode;
 use function in_array;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\TestFramework\CommandLineArgumentsAndOptionsBuilder;
+use Infection\TestFramework\TestFrameworkExtraArgs;
 use function ltrim;
 use SplFileInfo;
 use function sprintf;
@@ -126,6 +127,10 @@ final readonly class ArgumentsAndOptionsBuilder implements CommandLineArgumentsA
         ];
 
         if ($extraOptions !== '') {
+            if (TestFrameworkExtraArgs::isSerializedRaw($extraOptions)) {
+                return array_merge($options, TestFrameworkExtraArgs::unserializeRawTokens($extraOptions));
+            }
+
             $options = array_merge(
                 $options,
                 array_map(

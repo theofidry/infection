@@ -38,6 +38,7 @@ namespace Infection\Configuration\Schema;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function property_exists;
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\Mago;
 use Infection\Configuration\Entry\PhpStan;
@@ -63,6 +64,10 @@ class SchemaConfigurationFactory
         /** @var stdClass $mago */
         $mago = $rawConfig->mago ?? new stdClass();
 
+        if (property_exists($rawConfig, 'testFrameworkOptions') && property_exists($rawConfig, 'testFrameworkExtraArgs')) {
+            throw new \InvalidArgumentException('Cannot configure both `testFrameworkOptions` and `testFrameworkExtraArgs`: use only `testFrameworkExtraArgs`.');
+        }
+
         return new SchemaConfiguration(
             pathname: $pathname,
             timeout: self::getTimeout($rawConfig),
@@ -81,7 +86,10 @@ class SchemaConfigurationFactory
             testFramework: self::getTestFramework($rawConfig),
             bootstrap: self::normalizeString($rawConfig->bootstrap ?? null),
             initialTestsPhpOptions: self::normalizeString($rawConfig->initialTestsPhpOptions ?? null),
+            testFrameworkOptionsWasConfigured: property_exists($rawConfig, 'testFrameworkOptions'),
             testFrameworkExtraOptions: self::normalizeString($rawConfig->testFrameworkOptions ?? null),
+            testFrameworkExtraArgsWasConfigured: property_exists($rawConfig, 'testFrameworkExtraArgs'),
+            testFrameworkExtraArgs: self::normalizeString($rawConfig->testFrameworkExtraArgs ?? null),
             staticAnalysisToolOptions: self::normalizeString($rawConfig->staticAnalysisToolOptions ?? null),
             threads: $rawConfig->threads ?? null,
             staticAnalysisTool: self::getStaticAnalysisTool($rawConfig),

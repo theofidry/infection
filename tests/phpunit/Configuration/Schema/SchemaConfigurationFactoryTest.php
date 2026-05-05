@@ -108,6 +108,25 @@ final class SchemaConfigurationFactoryTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
+    public function test_it_rejects_configuring_both_test_framework_option_names(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot configure both `testFrameworkOptions` and `testFrameworkExtraArgs`: use only `testFrameworkExtraArgs`.');
+
+        (new SchemaConfigurationFactory())->create(
+            '/path/to/config',
+            json_decode(<<<'JSON'
+                {
+                    "source": {
+                        "directories": ["src"]
+                    },
+                    "testFrameworkOptions": "",
+                    "testFrameworkExtraArgs": ""
+                }
+                JSON),
+        );
+    }
+
     public static function provideRawConfig(): iterable
     {
         // The schema is given as a JSON here to be closer to how the user configure the schema
@@ -1119,6 +1138,36 @@ final class SchemaConfigurationFactoryTest extends TestCase
             self::createConfig([
                 'source' => new Source(['src'], []),
                 'testFrameworkOptions' => '--debug',
+            ]),
+        ];
+
+        yield '[testFrameworkExtraArgs] nominal' => [
+            <<<'JSON'
+                {
+                    "source": {
+                        "directories": ["src"]
+                    },
+                    "testFrameworkExtraArgs": "tests/FooTest.php --filter=\"a test\""
+                }
+                JSON,
+            self::createConfig([
+                'source' => new Source(['src'], []),
+                'testFrameworkExtraArgs' => 'tests/FooTest.php --filter="a test"',
+            ]),
+        ];
+
+        yield '[testFrameworkExtraArgs] empty string' => [
+            <<<'JSON'
+                {
+                    "source": {
+                        "directories": ["src"]
+                    },
+                    "testFrameworkExtraArgs": ""
+                }
+                JSON,
+            self::createConfig([
+                'source' => new Source(['src'], []),
+                'testFrameworkExtraArgs' => null,
             ]),
         ];
 
@@ -2706,6 +2755,9 @@ final class SchemaConfigurationFactoryTest extends TestCase
      */
     private static function createConfig(array $args): SchemaConfiguration
     {
+        $testFrameworkOptionsWasConfigured = array_key_exists('testFrameworkOptions', $args);
+        $testFrameworkExtraArgsWasConfigured = array_key_exists('testFrameworkExtraArgs', $args);
+
         $defaultArgs = [
             'path' => '/path/to/config',
             'timeout' => null,
@@ -2724,7 +2776,10 @@ final class SchemaConfigurationFactoryTest extends TestCase
             'testFramework' => null,
             'bootstrap' => null,
             'initialTestsPhpOptions' => null,
+            'testFrameworkOptionsWasConfigured' => $testFrameworkOptionsWasConfigured,
             'testFrameworkOptions' => null,
+            'testFrameworkExtraArgsWasConfigured' => $testFrameworkExtraArgsWasConfigured,
+            'testFrameworkExtraArgs' => null,
             'staticAnalysisToolOptions' => null,
             'threadCount' => null,
             'staticAnalysisTool' => null,

@@ -41,6 +41,7 @@ use Closure;
 use function implode;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\TestFramework\PhpUnit\CommandLine\ArgumentsAndOptionsBuilder;
+use Infection\TestFramework\TestFrameworkExtraArgs;
 use Infection\TestFramework\PhpUnit\CommandLine\FilterBuilder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -50,6 +51,7 @@ use function sprintf;
 
 #[CoversClass(ArgumentsAndOptionsBuilder::class)]
 #[CoversClass(FilterBuilder::class)]
+#[CoversClass(TestFrameworkExtraArgs::class)]
 final class ArgumentsAndOptionsBuilderTest extends TestCase
 {
     public function test_it_can_build_the_command_without_extra_options(): void
@@ -79,6 +81,26 @@ final class ArgumentsAndOptionsBuilderTest extends TestCase
                 '--debug',
             ],
             $builder->buildForInitialTestsRun($configPath, '--verbose --debug'),
+        );
+    }
+
+    public function test_it_can_build_the_command_with_raw_extra_args(): void
+    {
+        $builder = new ArgumentsAndOptionsBuilder(false, [], null);
+        $configPath = '/config/path';
+
+        $this->assertSame(
+            [
+                '--configuration',
+                $configPath,
+                'tests/FooTest.php',
+                '--filter=a test',
+                '--colors=always',
+            ],
+            $builder->buildForInitialTestsRun(
+                $configPath,
+                TestFrameworkExtraArgs::raw('tests/FooTest.php --filter="a test" --colors=always', true)->serializeForAdapter(),
+            ),
         );
     }
 

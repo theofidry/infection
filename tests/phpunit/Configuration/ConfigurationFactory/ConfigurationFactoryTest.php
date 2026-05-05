@@ -68,6 +68,7 @@ use Infection\Testing\SingletonContainer;
 use Infection\Tests\Configuration\ConfigurationBuilder;
 use Infection\Tests\Configuration\Entry\LogsBuilder;
 use Infection\Tests\Configuration\Schema\SchemaConfigurationBuilder;
+use Psr\Log\NullLogger;
 use Infection\Tests\Fixtures\DummyCiDetector;
 use Infection\Tests\Fixtures\Mutator\CustomMutator;
 use InvalidArgumentException;
@@ -140,7 +141,10 @@ final class ConfigurationFactoryTest extends TestCase
             testFramework: TestFrameworkTypes::PHPUNIT,
             bootstrap: null,
             initialTestsPhpOptions: null,
+            testFrameworkOptionsWasConfigured: false,
             testFrameworkExtraOptions: null,
+            testFrameworkExtraArgsWasConfigured: false,
+            testFrameworkExtraArgs: null,
             staticAnalysisToolOptions: null,
             threads: null,
             staticAnalysisTool: StaticAnalysisToolTypes::PHPSTAN,
@@ -172,7 +176,10 @@ final class ConfigurationFactoryTest extends TestCase
                 msiPrecision: 2,
                 mutatorsInput: '',
                 testFramework: TestFrameworkTypes::PHPUNIT,
+                testFrameworkOptionsWasProvided: false,
                 testFrameworkExtraOptions: null,
+                testFrameworkExtraArgsWasProvided: false,
+                testFrameworkExtraArgs: null,
                 staticAnalysisToolOptions: null,
                 sourceFilter: null,
                 threadCount: 0,
@@ -216,7 +223,10 @@ final class ConfigurationFactoryTest extends TestCase
             testFramework: null,
             bootstrap: null,
             initialTestsPhpOptions: null,
+            testFrameworkOptionsWasConfigured: false,
             testFrameworkExtraOptions: null,
+            testFrameworkExtraArgsWasConfigured: false,
+            testFrameworkExtraArgs: null,
             staticAnalysisToolOptions: null,
             threads: null,
             staticAnalysisTool: null,
@@ -240,7 +250,10 @@ final class ConfigurationFactoryTest extends TestCase
             msiPrecision: 2,
             mutatorsInput: '',
             testFramework: null,
+            testFrameworkOptionsWasProvided: false,
             testFrameworkExtraOptions: null,
+            testFrameworkExtraArgsWasProvided: false,
+            testFrameworkExtraArgs: null,
             staticAnalysisToolOptions: null,
             sourceFilter: new IncompleteGitDiffFilter('AM', 'master'),
             threadCount: 1,
@@ -1259,7 +1272,10 @@ final class ConfigurationFactoryTest extends TestCase
                     msiPrecision: 2,
                     mutatorsInput: 'TrueValue',
                     testFramework: 'phpspec',
+                    testFrameworkOptionsWasProvided: true,
                     testFrameworkExtraOptions: '--stop-on-failure',
+                    testFrameworkExtraArgsWasProvided: false,
+                    testFrameworkExtraArgs: null,
                     staticAnalysisToolOptions: null,
                     sourceFilter: new PlainFilter([
                         'src/Foo.php',
@@ -1408,6 +1424,7 @@ final class ConfigurationFactoryTest extends TestCase
                 self::GIT_DEFAULT_BASE,
             ),
             $projectDirectoryProviderMock,
+            new NullLogger(),
         );
     }
 }
