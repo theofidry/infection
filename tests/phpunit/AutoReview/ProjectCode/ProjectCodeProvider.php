@@ -57,9 +57,16 @@ use Infection\Configuration\Schema\SchemaValidator;
 use Infection\Configuration\SourceFilter\FakeSourceFilter;
 use Infection\Configuration\SourceFilter\GitDiffFilter;
 use Infection\Configuration\SourceFilter\IncompleteGitDiffFilter;
+use Infection\Console\Application;
 use Infection\Console\XdebugHandler;
 use Infection\Differ\Tokens;
+use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasFinished;
+use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasStarted;
 use Infection\Event\Events\MutationAnalysis\MutationEvaluation\MutationEvaluationWasStarted;
+use Infection\Event\Events\Reporting\ReportingWasFinished;
+use Infection\Event\Events\Reporting\ReportingWasStarted;
+use Infection\Event\Events\SourceCollection\SourceCollectionWasFinished;
+use Infection\Event\Events\SourceCollection\SourceCollectionWasStarted;
 use Infection\Event\Subscriber\DispatchPcntlSignalSubscriber;
 use Infection\Event\Subscriber\NullSubscriber;
 use Infection\Event\Subscriber\StopInfectionOnSigintSignalSubscriber;
@@ -135,6 +142,8 @@ final class ProjectCodeProvider
      */
     public const array NON_TESTED_CONCRETE_CLASSES = [
         AdapterInstaller::class,
+        ArtefactCollectionWasStarted::class,
+        ArtefactCollectionWasFinished::class,
         BaseMutatorTestCase::class,
         BaseOption::class,
         ConcreteComposerExecutableFinder::class,
@@ -177,9 +186,13 @@ final class ProjectCodeProvider
         NullSubscriber::class,
         OpenTelemetryTracerSubscriberFactory::class,
         OperatingSystem::class,
+        ReportingWasFinished::class,
+        ReportingWasStarted::class,
         SchemaConfiguration::class,
         SingletonContainer::class,
         Source::class,
+        SourceCollectionWasStarted::class,
+        SourceCollectionWasFinished::class,
         SpanHandle::class,
         StopInfectionOnSigintSignalSubscriber::class,
         StrykerCurlClient::class,
