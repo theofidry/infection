@@ -57,7 +57,6 @@ use Infection\Configuration\Schema\SchemaValidator;
 use Infection\Configuration\SourceFilter\FakeSourceFilter;
 use Infection\Configuration\SourceFilter\GitDiffFilter;
 use Infection\Configuration\SourceFilter\IncompleteGitDiffFilter;
-use Infection\Console\Application;
 use Infection\Console\XdebugHandler;
 use Infection\Differ\Tokens;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasFinished;
