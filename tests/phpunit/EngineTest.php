@@ -92,6 +92,7 @@ final class EngineTest extends TestCase
 
         $eventDispatcher = $this->createEventDispatcherMock(
             ArtefactCollectionWasStarted::class,
+            ApplicationExecutionWasFinished::class,
         );
 
         $process = $this->createMock(Process::class);

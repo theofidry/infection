@@ -83,6 +83,7 @@ toolchain, and run-summary attributes that are useful for filtering dashboards:
 | `infection.test_framework.version`                   | Version reported by the configured test framework adapter.                                                                |
 | `infection.static_analysis_tool.name`                | Normalised configured static analysis tool name, for example `phpstan`; only emitted when static analysis is enabled.     |
 | `infection.static_analysis_tool.version`             | Version reported by the configured static analysis tool adapter; only emitted with `infection.static_analysis_tool.name`. |
+| `infection.run.status`                               | Run command status: `passed`, `failed`, or `errored`. This is emitted from the command outcome, not recalculated from mutation counts or thresholds. |
 | `infection.source_file.count`                        | Number of source files collected for the run.                                                                             |
 | `infection.mutation.count`                           | Number of generated mutations selected for mutation evaluation.                                                           |
 | `infection.mutation.suppressed.count`                | Number of generated mutations suppressed before mutant evaluation, including heuristic suppression.                       |

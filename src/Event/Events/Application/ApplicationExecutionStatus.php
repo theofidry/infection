@@ -38,10 +38,9 @@ namespace Infection\Event\Events\Application;
 /**
  * @internal
  */
-final readonly class ApplicationExecutionWasFinished
+enum ApplicationExecutionStatus: string
 {
-    public function __construct(
-        public ApplicationExecutionStatus $status,
-    ) {
-    }
+    case PASSED = 'passed';
+    case FAILED = 'failed';
+    case ERRORED = 'errored';
 }

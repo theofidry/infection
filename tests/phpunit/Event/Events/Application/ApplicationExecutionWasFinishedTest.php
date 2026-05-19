@@ -36,10 +36,12 @@ declare(strict_types=1);
 namespace Infection\Tests\Event\Events\Application;
 
 use Infection\Event\Events\Application\ApplicationExecutionWasFinished;
+use Infection\Event\Events\Application\ApplicationExecutionStatus;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ApplicationExecutionWasFinished::class)]
+#[CoversClass(ApplicationExecutionStatus::class)]
 final class ApplicationExecutionWasFinishedTest extends TestCase
 {
     /**
@@ -47,8 +49,9 @@ final class ApplicationExecutionWasFinishedTest extends TestCase
      */
     public function test_it_can_be_instantiated(): void
     {
-        $class = new ApplicationExecutionWasFinished();
+        $class = new ApplicationExecutionWasFinished(ApplicationExecutionStatus::PASSED);
 
         $this->assertInstanceOf(ApplicationExecutionWasFinished::class, $class);
+        $this->assertSame(ApplicationExecutionStatus::PASSED, $class->status);
     }
 }

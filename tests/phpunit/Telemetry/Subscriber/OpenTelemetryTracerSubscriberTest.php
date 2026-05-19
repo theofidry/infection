@@ -39,6 +39,7 @@ use function array_map;
 use function array_values;
 use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\Event\Events\Application\ApplicationExecutionWasFinished;
+use Infection\Event\Events\Application\ApplicationExecutionStatus;
 use Infection\Event\Events\Application\ApplicationExecutionWasStarted;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasFinished;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasStarted;
@@ -220,7 +221,7 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
         $this->subscriber->onReportingWasFinished(new ReportingWasFinished());
         $this->subscriber->onMutationEvaluationWasFinished(new MutationEvaluationWasFinished());
         $this->subscriber->onMutationAnalysisWasFinished(new MutationAnalysisWasFinished());
-        $this->subscriber->onApplicationExecutionWasFinished(new ApplicationExecutionWasFinished());
+        $this->subscriber->onApplicationExecutionWasFinished(new ApplicationExecutionWasFinished(ApplicationExecutionStatus::PASSED));
 
         $this->assertSame(
             [
@@ -290,6 +291,7 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
         $this->assertSame($run->getSpanId(), $reporting->getParentSpanId());
 
         $this->assertSame(1, $sourceCollection->getAttributes()->get('infection.source_file.count'));
+        $this->assertSame('passed', $run->getAttributes()->get('infection.run.status'));
         $this->assertSame(1, $run->getAttributes()->get('infection.source_file.count'));
         $this->assertSame(1, $run->getAttributes()->get('infection.mutation.count'));
         $this->assertSame(0, $run->getAttributes()->get('infection.mutation.suppressed.count'));
@@ -353,7 +355,7 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
         $this->subscriber->onMutationEvaluationWasStarted(new MutationEvaluationWasStarted(IterableCounter::UNKNOWN_COUNT, $this->createStub(ProcessRunner::class)));
         $this->subscriber->onMutationEvaluationForMutationWasStarted(new MutationEvaluationForMutationWasStarted($mutation));
         $this->subscriber->onReportingWasStarted(new ReportingWasStarted());
-        $this->subscriber->onApplicationExecutionWasFinished(new ApplicationExecutionWasFinished());
+        $this->subscriber->onApplicationExecutionWasFinished(new ApplicationExecutionWasFinished(ApplicationExecutionStatus::ERRORED));
 
         $this->assertSame(
             [
@@ -374,8 +376,23 @@ final class OpenTelemetryTracerSubscriberTest extends TestCase
             $this->getExportedSpanNames(),
         );
 
+        $this->assertSame(
+            'errored',
+            $this->getSpanFromExporter('infection.run')->getAttributes()->get('infection.run.status'),
+        );
         $this->assertAllSpansAreFinished();
         $this->assertTracerProviderWasShutdown();
+    }
+
+    public function test_it_exports_failed_run_status_on_the_run_span(): void
+    {
+        $this->subscriber->onApplicationExecutionWasStarted(new ApplicationExecutionWasStarted());
+        $this->subscriber->onApplicationExecutionWasFinished(new ApplicationExecutionWasFinished(ApplicationExecutionStatus::FAILED));
+
+        $this->assertSame(
+            'failed',
+            $this->getSpanFromExporter('infection.run')->getAttributes()->get('infection.run.status'),
+        );
     }
 
     public function test_it_ends_open_mutation_evaluation_for_mutation_spans_on_mutation_evaluation_finish(): void

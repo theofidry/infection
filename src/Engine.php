@@ -41,6 +41,7 @@ use Infection\Configuration\Configuration;
 use Infection\Console\ConsoleOutput;
 use Infection\Event\EventDispatcher\EventDispatcher;
 use Infection\Event\Events\Application\ApplicationExecutionWasFinished;
+use Infection\Event\Events\Application\ApplicationExecutionStatus;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasFinished;
 use Infection\Event\Events\ArtefactCollection\ArtefactCollectionWasStarted;
 use Infection\Event\Events\MutationAnalysis\MutationAnalysisWasFinished;
@@ -68,6 +69,7 @@ use Infection\TestFramework\Coverage\Locator\Throwable\TooManyReportsFound;
 use Infection\TestFramework\Coverage\XmlReport\InvalidCoverage;
 use Infection\TestFramework\ProvidesInitialRunOnlyOptions;
 use Infection\TestFramework\TestFrameworkExtraOptionsFilter;
+use Throwable;
 use Webmozart\Assert\Assert;
 
 /**
@@ -109,20 +111,21 @@ final readonly class Engine
      */
     public function execute(): void
     {
-        $initialTestSuiteOutput = $this->collectArtefacts();
-
-        /*
-         * Limit the memory used for the mutation processes based on the memory
-         * used for the initial test run.
-         * This is done AFTER static analysis to avoid restricting PHPStan's memory.
-         */
-        if ($initialTestSuiteOutput !== null) {
-            $this->memoryLimiter->limitMemory($initialTestSuiteOutput, $this->adapter);
-        }
-
-        $this->runMutationAnalysis();
+        $status = ApplicationExecutionStatus::ERRORED;
 
         try {
+            $initialTestSuiteOutput = $this->collectArtefacts();
+
+            /*
+             * Limit the memory used for the mutation processes based on the memory
+             * used for the initial test run.
+             * This is done AFTER static analysis to avoid restricting PHPStan's memory.
+             */
+            if ($initialTestSuiteOutput !== null) {
+                $this->memoryLimiter->limitMemory($initialTestSuiteOutput, $this->adapter);
+            }
+
+            $this->runMutationAnalysis();
             $this->maxTimeoutsChecker->checkTimeouts(
                 $this->metricsCalculator->getTimedOutCount(),
             );
@@ -133,8 +136,24 @@ final readonly class Engine
                 $this->metricsCalculator->getCoveredCodeMutationScoreIndicator(),
                 $this->consoleOutput,
             );
+
+            $status = ApplicationExecutionStatus::PASSED;
+        } catch (InitialTestsFailed|MinMsiCheckFailed|MaxTimeoutCountReached $exception) {
+            $status = ApplicationExecutionStatus::FAILED;
+
+            throw $exception;
+        } catch (NoSourceFound $exception) {
+            $status = $exception->isSourceFiltered
+                ? ApplicationExecutionStatus::PASSED
+                : ApplicationExecutionStatus::ERRORED;
+
+            throw $exception;
+        } catch (Throwable $exception) {
+            $status = ApplicationExecutionStatus::ERRORED;
+
+            throw $exception;
         } finally {
-            $this->eventDispatcher->dispatch(new ApplicationExecutionWasFinished());
+            $this->eventDispatcher->dispatch(new ApplicationExecutionWasFinished($status));
         }
     }
 

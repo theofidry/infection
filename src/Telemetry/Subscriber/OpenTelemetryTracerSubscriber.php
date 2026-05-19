@@ -558,11 +558,14 @@ final class OpenTelemetryTracerSubscriber implements ApplicationExecutionWasFini
         $this->end($this->reportingSpan);
         $this->end(
             $this->rootSpan,
-            $this->runSpanAttributesProvider->provideSummaryAttributes(
-                $this->sourceFileCount,
-                $this->mutationCount,
-                $this->evaluatedMutationCount,
-            ),
+            [
+                ...$this->runSpanAttributesProvider->provideSummaryAttributes(
+                    $this->sourceFileCount,
+                    $this->mutationCount,
+                    $this->evaluatedMutationCount,
+                ),
+                'infection.run.status' => $event->status->value,
+            ],
         );
         $this->telemetry->shutdown();
     }

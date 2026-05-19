@@ -37,6 +37,7 @@ namespace Infection\Tests\Resource\Listener;
 
 use Infection\Event\EventDispatcher\SyncEventDispatcher;
 use Infection\Event\Events\Application\ApplicationExecutionWasFinished;
+use Infection\Event\Events\Application\ApplicationExecutionStatus;
 use Infection\Event\Events\Application\ApplicationExecutionWasStarted;
 use Infection\Resource\Listener\PerformanceLoggerSubscriber;
 use Infection\Resource\Time\Stopwatch;
@@ -78,6 +79,6 @@ final class PerformanceLoggerSubscriberTest extends TestCase
         ));
 
         $dispatcher->dispatch(new ApplicationExecutionWasStarted());
-        $dispatcher->dispatch(new ApplicationExecutionWasFinished());
+        $dispatcher->dispatch(new ApplicationExecutionWasFinished(ApplicationExecutionStatus::PASSED));
     }
 }
