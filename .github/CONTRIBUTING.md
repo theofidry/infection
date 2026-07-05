@@ -23,6 +23,13 @@ granular tests, you can run `make` to see the available commands.
 To test `PhpParser` visitors check out [its dedicated documentation][visitor-documentation].
 
 
+### Architecture tests
+
+Architecture and convention rules live in `tests/Architecture/PHPat` and run through PHPStan
+as part of `make autoreview`. See [their dedicated documentation][phpat-architecture-documentation]
+for how the rules, selectors, and supporting utilities are organised.
+
+
 ### End-to-end tests
 
 Infection contains a few end-to-end tests that can be executed. Some of those are self-contained, in which
@@ -106,5 +113,6 @@ Read the [Benchmark documentation].
 
 [Benchmark documentation]: ../doc/benchmarking.md
 [docker]: https://www.docker.com/get-docker
+[phpat-architecture-documentation]: ../tests/Architecture/PHPat/README.md
 [readme]: /README.md
 [visitor-documentation]: ../tests/phpunit/PhpParser/Visitor/README.md
