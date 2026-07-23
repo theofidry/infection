@@ -54,7 +54,7 @@ final readonly class ConfigurationFactoryGit implements Git
         return $this->defaultBaseBranch;
     }
 
-    public function getChangedFileRelativePaths(
+    public function getChangedFilePaths(
         string $diffFilter,
         string $base,
         array $sourceDirectories,
@@ -62,7 +62,7 @@ final readonly class ConfigurationFactoryGit implements Git
         throw new DomainException('Not implemented.');
     }
 
-    public function getChangedLinesRangesByFileRelativePaths(
+    public function getChangedLinesRangesByFilePaths(
         string $diffFilter,
         string $base,
         array $sourceDirectories,

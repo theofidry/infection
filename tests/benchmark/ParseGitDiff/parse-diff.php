@@ -46,13 +46,19 @@ require_once __DIR__ . '/../../../vendor/autoload.php';
 $diff = file_get_contents(__DIR__ . '/diff');
 
 // @phpstan-ignore class.extendsFinalByPhpDoc
-$executorMock = new class($diff) extends ShellCommandLineExecutor {
-    public function __construct(private readonly string $diff)
-    {
+$executorMock = new class($diff, __DIR__) extends ShellCommandLineExecutor {
+    public function __construct(
+        private readonly string $diff,
+        private readonly string $projectDirectory,
+    ) {
     }
 
     public function execute(array $command): string
     {
+        if ($command === ['git', 'rev-parse', '--show-toplevel']) {
+            return $this->projectDirectory;
+        }
+
         return $this->diff;
     }
 };
@@ -63,4 +69,4 @@ $git = new CommandLineGit($executorMock);
 /**
  * @return Closure(): positive-int|0
  */
-return static fn (): int => count($git->getChangedLinesRangesByFileRelativePaths('AM', 'unknown', []));
+return static fn (): int => count($git->getChangedLinesRangesByFilePaths('AM', 'unknown', []));

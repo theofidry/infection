@@ -67,7 +67,11 @@ final readonly class GitDiffSourceCollector implements SourceCollector
                 $configurationPathname,
                 $sourceDirectories,
                 $excludedFilesOrDirectories,
-                self::convertToPlainFilter($git, $filter, $sourceDirectories),
+                self::convertToPlainFilter(
+                    $git,
+                    $filter,
+                    $sourceDirectories,
+                ),
             ),
         );
     }
@@ -88,7 +92,7 @@ final readonly class GitDiffSourceCollector implements SourceCollector
         array $sourceDirectories,
     ): PlainFilter {
         return new PlainFilter(
-            $git->getChangedFileRelativePaths(
+            $git->getChangedFilePaths(
                 $sourceFilter->value,
                 $sourceFilter->base,
                 $sourceDirectories,

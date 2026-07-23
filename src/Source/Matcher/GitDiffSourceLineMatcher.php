@@ -36,7 +36,6 @@ declare(strict_types=1);
 namespace Infection\Source\Matcher;
 
 use Infection\Differ\ChangedLinesRange;
-use Infection\FileSystem\FileSystem;
 use Infection\Git\Git;
 use Infection\Source\Exception\NoSourceFound;
 
@@ -55,7 +54,6 @@ final class GitDiffSourceLineMatcher implements SourceLineMatcher
      */
     public function __construct(
         private readonly Git $git,
-        private readonly FileSystem $filesystem,
         private readonly string $gitDiffBase,
         private readonly string $gitDiffFilter,
         private readonly array $sourceDirectories,
@@ -92,18 +90,10 @@ final class GitDiffSourceLineMatcher implements SourceLineMatcher
      */
     private function getFilesChangedLinesRanges(): array
     {
-        $changedLinesByRelativePaths = $this->git->getChangedLinesRangesByFileRelativePaths(
+        return $this->git->getChangedLinesRangesByFilePaths(
             $this->gitDiffFilter,
             $this->gitDiffBase,
             $this->sourceDirectories,
         );
-
-        $changedLinesByAbsolutePaths = [];
-
-        foreach ($changedLinesByRelativePaths as $relativeFilePath => $changedLines) {
-            $changedLinesByAbsolutePaths[$this->filesystem->realPath($relativeFilePath)] = $changedLines;
-        }
-
-        return $changedLinesByAbsolutePaths;
     }
 }

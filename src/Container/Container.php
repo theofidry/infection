@@ -616,7 +616,6 @@ final class Container extends DIContainer
                 return $sourceFilter instanceof GitDiffFilter
                     ? new GitDiffSourceLineMatcher(
                         $container->getGit(),
-                        $container->getFileSystem(),
                         $sourceFilter->base,
                         $sourceFilter->value,
                         $configuration->source->directories,
