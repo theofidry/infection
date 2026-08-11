@@ -35,9 +35,10 @@ declare(strict_types=1);
 
 namespace Infection\StaticAnalysis\PHPStan\Adapter;
 
+use Infection\AbstractTestFramework\TestFrameworkAdapter;
+use Infection\AbstractTestFramework\TestFrameworkAdapterFactory;
 use Infection\StaticAnalysis\PHPStan\Mutant\PHPStanMutantExecutionResultFactory;
 use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
-use Infection\StaticAnalysis\StaticAnalysisToolAdapterFactory;
 use Infection\TestFramework\CommandLineBuilder;
 use Infection\TestFramework\VersionParser;
 use Symfony\Component\Filesystem\Filesystem;
@@ -45,28 +46,41 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * @internal
  */
-final class PHPStanAdapterFactory implements StaticAnalysisToolAdapterFactory
+final class PHPStanAdapterFactory implements TestFrameworkAdapterFactory
 {
-    /**
-     * @param list<string> $staticAnalysisToolOptions
-     */
     public static function create(
-        string $staticAnalysisConfigPath,
-        string $staticAnalysisToolExecutable,
-        float $timeout,
+        string $testFrameworkExecutable,
         string $tmpDir,
-        array $staticAnalysisToolOptions,
-    ): StaticAnalysisToolAdapter {
+        string $testFrameworkConfigPath,
+        ?string $testFrameworkConfigDir,
+        string $jUnitFilePath,
+        string $projectDir,
+        array $sourceDirectories,
+        bool $skipCoverage,
+    ): TestFrameworkAdapter
+    {
         return new PHPStanAdapter(
-            new Filesystem(),
-            new PHPStanMutantExecutionResultFactory(),
-            $staticAnalysisConfigPath,
-            $staticAnalysisToolExecutable,
-            new CommandLineBuilder(),
-            new VersionParser(),
-            $timeout,
-            $tmpDir,
-            $staticAnalysisToolOptions,
+            fileSystem: new Filesystem(),
+            mutantExecutionResultFactory: new PHPStanMutantExecutionResultFactory(),
+            staticAnalysisConfigPath: $testFrameworkConfigPath,
+            staticAnalysisToolExecutable: $testFrameworkExecutable,
+            commandLineBuilder: new CommandLineBuilder(),
+            versionParser: new VersionParser(),
+            // TODO
+            timeout: 10, //$timeout, -> timeout?? Wouldn't we need it for PHPUnit or other too?
+            tmpDir: $tmpDir,
+            // TODO: check why we don't have options for PHPUnit...
+            staticAnalysisToolOptions: [], // $staticAnalysisToolOptions,
         );
+    }
+
+    public static function getAdapterName(): string
+    {
+        return 'PHPStan';
+    }
+
+    public static function getExecutableName(): string
+    {
+        return 'phpstan';
     }
 }
