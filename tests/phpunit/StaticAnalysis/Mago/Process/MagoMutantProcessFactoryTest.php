@@ -102,6 +102,7 @@ final class MagoMutantProcessFactoryTest extends TestCase
             ->method('build')
             ->with('/path/to/mago', [], [
                 '--colors=never',
+                '--threads=1',
                 'analyze',
                 '--reporting-format=short',
                 '--substitute',
@@ -183,6 +184,7 @@ final class MagoMutantProcessFactoryTest extends TestCase
             ->method('build')
             ->with('/path/to/mago', [], [
                 '--colors=never',
+                '--threads=1',
                 'analyze',
                 '--reporting-format=short',
                 '--substitute',
@@ -269,6 +271,7 @@ final class MagoMutantProcessFactoryTest extends TestCase
             ->method('build')
             ->with('/path/to/mago', [], [
                 '--colors=never',
+                '--threads=1',
                 'analyze',
                 '--reporting-format=short',
                 '--substitute',
