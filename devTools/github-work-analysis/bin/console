@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Infection\GitHubWorkAnalysis\Kernel;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+
+require_once sprintf('%s/vendor/autoload_runtime.php', dirname(__DIR__));
+
+return static function (array $context): Application {
+    $kernel = new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+
+    return new Application($kernel);
+};
