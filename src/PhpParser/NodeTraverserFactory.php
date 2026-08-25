@@ -35,9 +35,11 @@ declare(strict_types=1);
 
 namespace Infection\PhpParser;
 
+use Infection\Configuration\SourceSymbolSelector;
 use Infection\PhpParser\Visitor\AddTestsVisitor;
 use Infection\PhpParser\Visitor\ExcludeIgnoredNodesVisitor;
 use Infection\PhpParser\Visitor\ExcludeNonMutableCodeVisitor;
+use Infection\PhpParser\Visitor\ExcludeNonSelectedSourceNodesVisitor;
 use Infection\PhpParser\Visitor\ExcludeUnchangedLinesVisitor;
 use Infection\PhpParser\Visitor\ExcludeUntestedNodesVisitor;
 use Infection\PhpParser\Visitor\IgnoreNode\AbstractMethodIgnorer;
@@ -48,6 +50,7 @@ use Infection\PhpParser\Visitor\NextConnectingVisitor;
 use Infection\PhpParser\Visitor\ReflectionVisitor;
 use Infection\PhpParser\Visitor\SkipIgnoredNodesVisitor;
 use Infection\Source\Matcher\SourceLineMatcher;
+use Infection\Source\Matcher\SourceSymbolMatcher;
 use Infection\TestFramework\Tracing\Trace\LineRangeCalculator;
 use Infection\TestFramework\Tracing\Trace\Trace;
 use PhpParser\NodeTraverser;
@@ -75,6 +78,7 @@ readonly class NodeTraverserFactory
     public function createEnrichmentTraverser(
         SplFileInfo $sourceFile,
         Trace $trace,
+        ?SourceSymbolSelector $sourceSymbolSelector = null,
     ): NodeTraverserInterface {
         $nodeIgnorers = [
             new InterfaceIgnorer(),
@@ -94,11 +98,19 @@ readonly class NodeTraverserFactory
                 $this->sourceLineMatcher,
                 $sourceFile->getRealPath(),
             ),
-            new AddTestsVisitor(
-                $trace,
-                $this->lineRangeCalculator,
-            ),
         ];
+
+        if ($sourceSymbolSelector !== null) {
+            $visitors[] = new ExcludeNonSelectedSourceNodesVisitor(
+                new SourceSymbolMatcher(),
+                $sourceSymbolSelector,
+            );
+        }
+
+        $visitors[] = new AddTestsVisitor(
+            $trace,
+            $this->lineRangeCalculator,
+        );
 
         if ($this->onlyCovered) {
             $visitors[] = new ExcludeUntestedNodesVisitor();

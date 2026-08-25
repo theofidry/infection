@@ -11,6 +11,8 @@ this branch confirms that positional inputs can carry a typed source selector se
 from source and test paths, and that an enriched AST can match a class, method, and absolute
 source line.
 
+The working branch is `poc/source-symbol-targeting`.
+
 ## Proof-of-concept status
 
 Implemented:
@@ -25,14 +27,18 @@ Implemented:
   and method signatures.
 - `ExcludeNonSelectedSourceNodesVisitor` demonstrates how non-matching nodes can be made
   ineligible after name and parent enrichment.
+- `NodeTraverserFactory` can optionally install the selector visitor after name, parent,
+  reflection, mutability, and changed-line enrichment, and before `AddTestsVisitor`.
+- `debug:dump-ast --source-selector` exercises the parser, matcher, and real enrichment
+  traversal. It displays line numbers and eligibility so the selected scope can be inspected
+  without running mutation processes.
 
 Not yet wired:
 
 - selectors are not resolved to source files;
-- the exclusion visitor is not registered in `NodeTraverserFactory` or the container;
-- `run` and `debug:dump-ast` do not yet pass selectors into AST enrichment;
+- positional selectors are not passed through `run` or the container;
 - missing classes, methods, and out-of-class lines are not validated;
-- no command help, e2e scenario, or infection/site documentation has been added.
+- no positional `run` help, e2e scenario, or infection/site documentation has been added.
 
 Consequently, `make autoreview` currently reports `ClassifiedPaths::$sourceSelectors` as an
 unread property. This is the expected boundary of the proof of concept: production wiring
@@ -40,6 +46,47 @@ must consume the bucket. The finding is neither suppressed nor added to a baseli
 
 This boundary is deliberate. The active branch changes container and runner wiring, while
 the proof of concept can establish feasibility without colliding with those changes.
+
+## How to evaluate the proof of concept
+
+Install the locked dependencies and run the focused tests:
+
+```bash
+composer install
+make cs
+vendor/phpunit/phpunit/phpunit \
+    tests/phpunit/Configuration/SourceSymbolSelectorParser/SourceSymbolSelectorParserTest.php \
+    tests/phpunit/Configuration/PositionalPathsClassifier/PositionalPathsClassifierTest.php \
+    tests/phpunit/Source/Matcher/SourceSymbolMatcher/SourceSymbolMatcherTest.php \
+    tests/phpunit/PhpParser/Visitor/ExcludeNonSelectedSourceNodesVisitor/ExcludeNonSelectedSourceNodesVisitorTest.php \
+    tests/phpunit/PhpParser/NodeTraverserFactoryTest.php \
+    tests/phpunit/Command/Debug/DumpAstCommand/DumpAstCommandTest.php
+```
+
+At the time of the last update this passes with 69 tests and 97 assertions on PHP 8.4. To
+inspect the feature manually, target line 42 of the `greet` method in the command fixture:
+
+```bash
+./bin/infection debug:dump-ast \
+    tests/phpunit/Command/Debug/DumpAstCommand/EchoGreeter.php \
+    --configuration=tests/phpunit/Command/Debug/DumpAstCommand/infection.json5 \
+    '--source-selector=Infection\Tests\Command\Debug\DumpAstCommand\EchoGreeter::greet::42'
+```
+
+The dumped `Stmt_Echo`, its string expression, and the containing method are marked
+`eligible: true`; nodes outside that absolute line are marked `eligible: false`. Remove the
+line suffix to preview the whole method, or remove both the method and line suffixes to
+preview the whole class. The file remains an explicit argument because class-to-file
+resolution is intentionally the next slice.
+
+The production positional form is parsed and classified but is not yet consumed by `run`:
+
+```bash
+./bin/infection 'Vendor\Package\ClassName::method::32'
+```
+
+Do not use that command to evaluate mutation execution on this branch; until resolution and
+configuration wiring are added it will not constrain collected mutants.
 
 ## Grammar established by the proof of concept
 
@@ -97,11 +144,9 @@ so signature nodes are included and remain candidates for function-signature mut
    class/outside-source errors.
 2. Carry resolved selectors through run configuration and construct a matcher per source
    file. Keep this wiring isolated from the ongoing container rework.
-3. Register symbol exclusion after reflection and before `AddTestsVisitor`, then demonstrate
-   eligibility changes through `debug:dump-ast`.
-4. Validate absent methods and lines outside the selected class. An empty match must not
+3. Validate absent methods and lines outside the selected class. An empty match must not
    silently degrade to an empty mutation run.
-5. Add command/configuration coverage, one e2e scenario, CLI help, and infection/site
+4. Add command/configuration coverage, one e2e scenario, positional CLI help, and infection/site
    examples. A CLI-only first release requires no schema change.
 
 ## Risks and decisions still open
