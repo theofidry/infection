@@ -50,7 +50,7 @@ final class MutationEvaluationResultReducer
     {
         foreach ($attempts as $attempt) {
             if ($attempt->getOutcome() === EvaluationOutcome::DETECTED) {
-                return new MutationEvaluationResult($attempts, MutationOutcome::DETECTED, $attempt->getReason());
+                return new MutationEvaluationResult($attempts, MutationOutcome::COVERED, $attempt->getReason());
             }
         }
 
@@ -66,7 +66,7 @@ final class MutationEvaluationResultReducer
     private static function resolveOutcome(EvaluationAttempt $attempt): MutationOutcome
     {
         if ($attempt->getOutcome() === EvaluationOutcome::UNDETECTED) {
-            return MutationOutcome::ESCAPED;
+            return MutationOutcome::NOT_COVERED;
         }
 
         return match ($attempt->getReason()) {

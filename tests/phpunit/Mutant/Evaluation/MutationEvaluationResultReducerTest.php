@@ -68,7 +68,7 @@ final class MutationEvaluationResultReducerTest extends TestCase
         $result = MutationEvaluationResultReducer::reduce([$phpUnitAttempt, $phpStanAttempt]);
 
         $this->assertSame([$phpUnitAttempt, $phpStanAttempt], $result->attempts);
-        $this->assertSame(MutationOutcome::DETECTED, $result->outcome);
+        $this->assertSame(MutationOutcome::COVERED, $result->outcome);
         $this->assertSame(EvaluationReason::STATIC_ANALYSIS_FAILURE, $result->resolutionReason);
     }
 

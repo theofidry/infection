@@ -56,7 +56,7 @@ final readonly class MsiEligibilityPolicy
             return MsiEligibility::OVERALL_DENOMINATOR_ONLY;
         }
 
-        $inNumerator = $result->outcome === MutationOutcome::DETECTED
+        $inNumerator = $result->outcome === MutationOutcome::COVERED
             || $result->resolutionReason === EvaluationReason::PROCESS_ERROR
             || $result->resolutionReason === EvaluationReason::SYNTAX_ERROR;
 

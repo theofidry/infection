@@ -35,13 +35,38 @@ declare(strict_types=1);
 
 namespace Infection\Mutant\Evaluation;
 
-/** @internal */
+/**
+ * Classifies the result of evaluating a mutation across all attempts for reporting and mutation score calculation.
+ *
+ * @internal
+ */
 enum MutationOutcome
 {
-    case DETECTED;
-    case ESCAPED;
-    case SUSPICIOUS;
+    /**
+     * The test suite was executed against the mutant and terminated with an output or exit code that unambiguously
+     * indicates the mutation was detected.
+     */
+    case COVERED;
+
+    /**
+     * The test suite was executed against the mutant and terminated with an output or exit code that unambiguously
+     * indicates the mutation was not detected.
+     */
     case NOT_COVERED;
+
+    /**
+     * An unexpected outcome occurred during evaluation – for example, the process crashed, timed out, seg-faulted,
+     * or was terminated due to out-of-memory conditions.
+     */
+    case SUSPICIOUS;
+
+    /**
+     * The mutation was generated but not evaluated because it was predicted to be computationally prohibitive.
+     */
     case SKIPPED;
+
+    /**
+     * The mutation was generated but not evaluated because the user explicitly opted out.
+     */
     case IGNORED;
 }

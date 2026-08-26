@@ -58,12 +58,12 @@ final class MutationEvaluationResultTest extends TestCase
         );
         $result = new MutationEvaluationResult(
             [$attempt],
-            MutationOutcome::ESCAPED,
+            MutationOutcome::NOT_COVERED,
             EvaluationReason::PASSED,
         );
 
         $this->assertSame([$attempt], $result->attempts);
-        $this->assertSame(MutationOutcome::ESCAPED, $result->outcome);
+        $this->assertSame(MutationOutcome::NOT_COVERED, $result->outcome);
         $this->assertSame(EvaluationReason::PASSED, $result->resolutionReason);
     }
 }

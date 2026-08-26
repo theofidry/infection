@@ -198,7 +198,7 @@ final class MutantProcessContainerTest extends TestCase
             $evaluationResult->attempts[0]->getEvaluator(),
             $evaluationResult->attempts[1]->getEvaluator(),
         ]);
-        $this->assertSame(MutationOutcome::DETECTED, $evaluationResult->outcome);
+        $this->assertSame(MutationOutcome::COVERED, $evaluationResult->outcome);
         $this->assertSame(EvaluationReason::STATIC_ANALYSIS_FAILURE, $evaluationResult->resolutionReason);
         $this->assertSame(DetectionStatus::KILLED_BY_STATIC_ANALYSIS, $result->getDetectionStatus());
     }
