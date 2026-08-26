@@ -39,6 +39,7 @@ use function implode;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\Mutator\MutatorResolver;
 use Infection\PhpParser\MutatedNode;
+use Infection\PhpParser\Visitor\MarkNodesAsAridVisitor;
 use Infection\TestFramework\Tracing\TestTotalTimeCalculator;
 use function md5;
 use PhpParser\Node;
@@ -58,6 +59,8 @@ class Mutation
     private readonly array $attributes;
 
     private readonly bool $coveredByTests;
+
+    private readonly bool $arid;
 
     private ?float $nominalTimeToTest = null;
 
@@ -85,6 +88,7 @@ class Mutation
         Assert::true(MutatorResolver::isValidMutator($mutatorClass), sprintf('Unknown mutator "%s"', $mutatorClass));
 
         $this->mutatorClass = $mutatorClass;
+        $this->arid = MarkNodesAsAridVisitor::attributesAreArid($attributes);
         $this->attributes = MutationAttributeKeys::pluck($attributes);
         $this->coveredByTests = $tests !== [];
     }
@@ -162,6 +166,11 @@ class Mutation
     public function isCoveredByTest(): bool
     {
         return $this->coveredByTests;
+    }
+
+    public function isArid(): bool
+    {
+        return $this->arid;
     }
 
     /**

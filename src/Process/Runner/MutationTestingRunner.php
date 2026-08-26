@@ -47,8 +47,8 @@ use Infection\Mutant\Mutant;
 use Infection\Mutant\MutantExecutionResult;
 use Infection\Mutant\MutantFactory;
 use Infection\Mutation\Mutation;
-use Infection\Mutation\Selection\ExhaustiveMutationSelector;
 use Infection\Mutation\Selection\MutationEvaluationPlan;
+use Infection\Mutation\Selection\WeightedMutationSelector;
 use Infection\Process\Factory\MutantProcessContainerFactory;
 use Infection\Process\MutantProcessContainer;
 use function Pipeline\take;
@@ -60,7 +60,7 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class MutationTestingRunner
 {
-    private readonly ExhaustiveMutationSelector $mutationSelector;
+    private readonly WeightedMutationSelector $mutationSelector;
 
     /**
      * @param array<string, array<int, string>> $ignoreSourceCodeMutatorsMap
@@ -77,7 +77,7 @@ class MutationTestingRunner
         private readonly array $ignoreSourceCodeMutatorsMap,
         ?string $mutantId,
     ) {
-        $this->mutationSelector = new ExhaustiveMutationSelector($mutantId);
+        $this->mutationSelector = new WeightedMutationSelector($mutantId);
     }
 
     /**

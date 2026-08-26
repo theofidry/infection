@@ -45,12 +45,13 @@ final readonly class MutationEvaluationPlan
     public function __construct(
         public string $identity,
         public Mutation $mutation,
+        public MutationWeight $weight,
         public bool $contributesToFirstOrderMsi,
     ) {
     }
 
     public static function forFirstOrderMutation(Mutation $mutation): self
     {
-        return new self($mutation->getHash(), $mutation, true);
+        return new self($mutation->getHash(), $mutation, MutationWeight::forMutation($mutation), true);
     }
 }

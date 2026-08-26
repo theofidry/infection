@@ -38,27 +38,29 @@ namespace Infection\Mutation\Selection;
 use Infection\Mutation\Mutation;
 
 /**
+ * Experimental independent signals used by mutation selection policy.
+ *
  * @internal
  */
-final readonly class ExhaustiveMutationSelector
+final readonly class MutationWeight
 {
-    public function __construct(private ?string $mutationId)
-    {
+    private const int PRODUCTIVE_EXPECTED_VALUE = 1;
+
+    private const int ARID_EXPECTED_VALUE = 0;
+
+    public function __construct(
+        public int $expectedValue,
+        public ?int $noiseRisk,
+        public float $estimatedExecutionCost,
+    ) {
     }
 
-    /**
-     * @param iterable<Mutation> $candidates
-     *
-     * @return iterable<MutationEvaluationPlan>
-     */
-    public function select(iterable $candidates): iterable
+    public static function forMutation(Mutation $mutation): self
     {
-        foreach ($candidates as $candidate) {
-            if ($this->mutationId !== null && $candidate->getHash() !== $this->mutationId) {
-                continue;
-            }
-
-            yield MutationEvaluationPlan::forFirstOrderMutation($candidate);
-        }
+        return new self(
+            $mutation->isArid() ? self::ARID_EXPECTED_VALUE : self::PRODUCTIVE_EXPECTED_VALUE,
+            null,
+            $mutation->getNominalTestExecutionTime(),
+        );
     }
 }

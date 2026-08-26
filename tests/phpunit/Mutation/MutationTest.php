@@ -40,6 +40,7 @@ use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\Mutation\Mutation;
 use Infection\Mutator\Arithmetic\Plus;
 use Infection\PhpParser\MutatedNode;
+use Infection\PhpParser\Visitor\MarkNodesAsAridVisitor;
 use Infection\Testing\MutatorName;
 use function md5;
 use PhpParser\Node;
@@ -51,6 +52,19 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Mutation::class)]
 final class MutationTest extends TestCase
 {
+    public function test_arid_metadata_does_not_change_the_mutation_hash(): void
+    {
+        $mutation = MutationBuilder::withMinimalTestData()->build();
+        $aridMutation = MutationBuilder::withMinimalTestData()
+            ->withAttribute(MarkNodesAsAridVisitor::ARID, 1)
+            ->build()
+        ;
+
+        $this->assertFalse($mutation->isArid());
+        $this->assertTrue($aridMutation->isArid());
+        $this->assertSame($mutation->getHash(), $aridMutation->getHash());
+    }
+
     /**
      * @param Node[] $originalFileAst
      * @param array<string|int|float> $attributes

@@ -35,25 +35,41 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Mutation\Selection;
 
-use Infection\Mutation\Selection\MutationEvaluationPlan;
+use Infection\AbstractTestFramework\Coverage\TestLocation;
+use Infection\Mutation\Selection\MutationWeight;
+use Infection\PhpParser\Visitor\MarkNodesAsAridVisitor;
 use Infection\Tests\Mutation\MutationBuilder;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(MutationEvaluationPlan::class)]
-final class MutationEvaluationPlanTest extends TestCase
+#[CoversClass(MutationWeight::class)]
+final class MutationWeightTest extends TestCase
 {
-    public function test_it_describes_a_first_order_evaluation(): void
+    #[DataProvider('mutationProvider')]
+    public function test_it_keeps_value_noise_and_cost_as_independent_signals(
+        bool $arid,
+        int $expectedValue,
+    ): void {
+        $mutation = MutationBuilder::withMinimalTestData()
+            ->withAttribute(MarkNodesAsAridVisitor::ARID, $arid ? 1 : 0)
+            ->withTests([
+                new TestLocation('FooTest::test', '/tests/FooTest.php', 0.25),
+            ])
+            ->build()
+        ;
+
+        $weight = MutationWeight::forMutation($mutation);
+
+        $this->assertSame($expectedValue, $weight->expectedValue);
+        $this->assertNull($weight->noiseRisk);
+        $this->assertSame(0.25, $weight->estimatedExecutionCost);
+    }
+
+    public static function mutationProvider(): iterable
     {
-        $mutation = MutationBuilder::withMinimalTestData()->withHash('mutation-id')->build();
+        yield 'productive' => [false, 1];
 
-        $plan = MutationEvaluationPlan::forFirstOrderMutation($mutation);
-
-        $this->assertSame('mutation-id', $plan->identity);
-        $this->assertSame($mutation, $plan->mutation);
-        $this->assertSame(1, $plan->weight->expectedValue);
-        $this->assertNull($plan->weight->noiseRisk);
-        $this->assertSame(0.0, $plan->weight->estimatedExecutionCost);
-        $this->assertTrue($plan->contributesToFirstOrderMsi);
+        yield 'arid' => [true, 0];
     }
 }
