@@ -33,43 +33,45 @@
 
 declare(strict_types=1);
 
-namespace Infection\Framework\Iterable;
+namespace Infection\Mutation\Selection;
 
-use function count;
-use Infection\CannotBeInstantiated;
-use function is_array;
-use function iterator_to_array;
+use Webmozart\Assert\Assert;
 
 /**
  * @internal
  */
-final class IterableCounter
+final readonly class LimitMutationsPerLineSelector
 {
-    use CannotBeInstantiated;
-
-    // Follows the Symfony ProgressBar convention: 0 indicates an unknown number of steps.
-    public const int UNKNOWN_COUNT = 0;
+    /**
+     * @param positive-int $limit
+     */
+    public function __construct(private int $limit)
+    {
+        Assert::greaterThanEq($limit, 1);
+    }
 
     /**
-     * @template T
+     * @param iterable<MutationEvaluationPlan> $plans
      *
-     * @param iterable<T> $subjects
-     *
-     * @return positive-int|self::UNKNOWN_COUNT
+     * @return iterable<MutationEvaluationPlan>
      */
-    public static function bufferAndCountIfNeeded(iterable &$subjects, bool $runConcurrently): int
+    public function select(iterable $plans): iterable
     {
-        if ($runConcurrently) {
-            // This number is typically fed to ProgressFormatter/ProgressBar or variants.
-            return self::UNKNOWN_COUNT;
+        $selectedCounts = [];
+
+        foreach ($plans as $plan) {
+            $mutation = $plan->mutation;
+            $file = $mutation->getOriginalFilePath();
+            $line = $mutation->getOriginalStartingLine();
+            $selectedCount = $selectedCounts[$file][$line] ?? 0;
+
+            if ($selectedCount >= $this->limit) {
+                continue;
+            }
+
+            $selectedCounts[$file][$line] = $selectedCount + 1;
+
+            yield $plan;
         }
-
-        if (is_array($subjects)) {
-            return count($subjects);
-        }
-
-        $subjects = iterator_to_array($subjects, false);
-
-        return count($subjects);
     }
 }

@@ -110,6 +110,7 @@ final class MutationTestingRunnerTest extends TestCase
             false,
             self::TIMEOUT,
             [],
+            null,
         );
     }
 
@@ -142,6 +143,7 @@ final class MutationTestingRunnerTest extends TestCase
             $mutation1 = $this->createMutation(1, self::TIMEOUT - 1.0),
             $mutation2 = $this->createMutation(2, self::TIMEOUT),
             $mutation3 = $this->createMutation(3, coveredByTests: false),
+            $this->createMutation(0), // A second mutation on the same file and line is not selected.
         ];
         $testFrameworkExtraOptions = '--filter=acme/FooTest.php';
 
@@ -296,7 +298,7 @@ final class MutationTestingRunnerTest extends TestCase
 
         $this->assertAreSameEvents(
             [
-                new MutationTestingWasStarted(4, $this->processRunnerMock),
+                new MutationTestingWasStarted(1, $this->processRunnerMock),
                 new MutationEvaluationWasStarted($mutation0),
                 new MutantProcessWasFinished(
                     MutantExecutionResultBuilder::withMinimalTestData()->build(),
@@ -373,6 +375,7 @@ final class MutationTestingRunnerTest extends TestCase
             true,
             100.0,
             [],
+            null,
         );
 
         $this->runner->run($mutations, $testFrameworkExtraOptions);
@@ -439,6 +442,7 @@ final class MutationTestingRunnerTest extends TestCase
             [
                 'For_' => ['Assert::.*'],
             ],
+            null,
         );
 
         $this->runner->run($mutations, $testFrameworkExtraOptions);
@@ -538,6 +542,7 @@ final class MutationTestingRunnerTest extends TestCase
             [
                 'For_' => ['Assert::.*'],
             ],
+            null,
         );
 
         $mutation = $this->createMutation(0);
@@ -583,6 +588,7 @@ final class MutationTestingRunnerTest extends TestCase
             true,
             100.0,
             [],
+            null,
         );
 
         $this->runner->run($mutations, '');
