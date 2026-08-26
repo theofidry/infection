@@ -33,43 +33,43 @@
 
 declare(strict_types=1);
 
-namespace Infection\Framework\Iterable;
+namespace Infection\Tests\Mutation\Selection;
 
-use function count;
-use Infection\CannotBeInstantiated;
-use function is_array;
-use function iterator_to_array;
+use Infection\AbstractTestFramework\Coverage\TestLocation;
+use Infection\Mutation\Selection\MutationWeight;
+use Infection\PhpParser\Visitor\MarkNodesAsAridVisitor;
+use Infection\Tests\Mutation\MutationBuilder;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @internal
- */
-final class IterableCounter
+#[CoversClass(MutationWeight::class)]
+final class MutationWeightTest extends TestCase
 {
-    use CannotBeInstantiated;
+    #[DataProvider('mutationProvider')]
+    public function test_it_keeps_value_noise_and_cost_as_independent_signals(
+        bool $arid,
+        int $expectedValue,
+    ): void {
+        $mutation = MutationBuilder::withMinimalTestData()
+            ->withAttribute(MarkNodesAsAridVisitor::ARID, $arid ? 1 : 0)
+            ->withTests([
+                new TestLocation('FooTest::test', '/tests/FooTest.php', 0.25),
+            ])
+            ->build()
+        ;
 
-    // Follows the Symfony ProgressBar convention: 0 indicates an unknown number of steps.
-    public const int UNKNOWN_COUNT = 0;
+        $weight = MutationWeight::forMutation($mutation);
 
-    /**
-     * @template T
-     *
-     * @param iterable<T> $subjects
-     *
-     * @return positive-int|self::UNKNOWN_COUNT
-     */
-    public static function bufferAndCountIfNeeded(iterable &$subjects, bool $runConcurrently): int
+        $this->assertSame($expectedValue, $weight->expectedValue);
+        $this->assertNull($weight->noiseRisk);
+        $this->assertSame(0.25, $weight->estimatedExecutionCost);
+    }
+
+    public static function mutationProvider(): iterable
     {
-        if ($runConcurrently) {
-            // This number is typically fed to ProgressFormatter/ProgressBar or variants.
-            return self::UNKNOWN_COUNT;
-        }
+        yield 'productive' => [false, 1];
 
-        if (is_array($subjects)) {
-            return count($subjects);
-        }
-
-        $subjects = iterator_to_array($subjects, false);
-
-        return count($subjects);
+        yield 'arid' => [true, 0];
     }
 }

@@ -47,6 +47,8 @@ use Infection\Mutant\Mutant;
 use Infection\Mutant\MutantExecutionResult;
 use Infection\Mutant\MutantFactory;
 use Infection\Mutation\Mutation;
+use Infection\Mutation\Selection\MutationEvaluationPlan;
+use Infection\Mutation\Selection\WeightedMutationSelector;
 use Infection\Process\Factory\MutantProcessContainerFactory;
 use Infection\Process\MutantProcessContainer;
 use function Pipeline\take;
@@ -58,6 +60,8 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class MutationTestingRunner
 {
+    private readonly WeightedMutationSelector $mutationSelector;
+
     /**
      * @param array<string, array<int, string>> $ignoreSourceCodeMutatorsMap
      */
@@ -71,8 +75,9 @@ class MutationTestingRunner
         private readonly bool $runConcurrently,
         private readonly float $timeout,
         private readonly array $ignoreSourceCodeMutatorsMap,
-        private readonly ?string $mutantId = null,
+        ?string $mutantId,
     ) {
+        $this->mutationSelector = new WeightedMutationSelector($mutantId);
     }
 
     /**
@@ -83,11 +88,8 @@ class MutationTestingRunner
         $numberOfMutants = IterableCounter::bufferAndCountIfNeeded($mutations, $this->runConcurrently);
         $this->eventDispatcher->dispatch(new MutationTestingWasStarted($numberOfMutants, $this->processRunner));
 
-        $processContainers = take($mutations)
+        $processContainers = take($this->mutationSelector->select($mutations))
             ->stream()
-            ->filter($this->ignoredByMutantId(...))
-            // Emitting the start of the event must be done _after_ checking the mutant ID
-            // as the latter does not dispatch any finished event.
             ->tap($this->emitEvaluationStarted(...))
             ->cast($this->mutationToMutant(...))
             ->filter($this->ignoredByRegex(...))
@@ -104,25 +106,16 @@ class MutationTestingRunner
         $this->eventDispatcher->dispatch(new MutationTestingWasFinished());
     }
 
-    private function mutationToMutant(Mutation $mutation): Mutant
+    private function mutationToMutant(MutationEvaluationPlan $plan): Mutant
     {
-        return $this->mutantFactory->create($mutation);
+        return $this->mutantFactory->create($plan->mutation);
     }
 
-    private function emitEvaluationStarted(Mutation $mutation): void
+    private function emitEvaluationStarted(MutationEvaluationPlan $plan): void
     {
         $this->eventDispatcher->dispatch(
-            new MutationEvaluationWasStarted($mutation),
+            new MutationEvaluationWasStarted($plan->mutation),
         );
-    }
-
-    private function ignoredByMutantId(Mutation $mutation): bool
-    {
-        if ($this->mutantId === null) {
-            return true;
-        }
-
-        return $mutation->getHash() === $this->mutantId;
     }
 
     private function ignoredByRegex(Mutant $mutant): bool

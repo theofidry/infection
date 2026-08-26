@@ -33,43 +33,34 @@
 
 declare(strict_types=1);
 
-namespace Infection\Framework\Iterable;
+namespace Infection\Mutation\Selection;
 
-use function count;
-use Infection\CannotBeInstantiated;
-use function is_array;
-use function iterator_to_array;
+use Infection\Mutation\Mutation;
 
 /**
+ * Experimental independent signals used by mutation selection policy.
+ *
  * @internal
  */
-final class IterableCounter
+final readonly class MutationWeight
 {
-    use CannotBeInstantiated;
+    private const int PRODUCTIVE_EXPECTED_VALUE = 1;
 
-    // Follows the Symfony ProgressBar convention: 0 indicates an unknown number of steps.
-    public const int UNKNOWN_COUNT = 0;
+    private const int ARID_EXPECTED_VALUE = 0;
 
-    /**
-     * @template T
-     *
-     * @param iterable<T> $subjects
-     *
-     * @return positive-int|self::UNKNOWN_COUNT
-     */
-    public static function bufferAndCountIfNeeded(iterable &$subjects, bool $runConcurrently): int
+    public function __construct(
+        public int $expectedValue,
+        public ?int $noiseRisk,
+        public float $estimatedExecutionCost,
+    ) {
+    }
+
+    public static function forMutation(Mutation $mutation): self
     {
-        if ($runConcurrently) {
-            // This number is typically fed to ProgressFormatter/ProgressBar or variants.
-            return self::UNKNOWN_COUNT;
-        }
-
-        if (is_array($subjects)) {
-            return count($subjects);
-        }
-
-        $subjects = iterator_to_array($subjects, false);
-
-        return count($subjects);
+        return new self(
+            $mutation->isArid() ? self::ARID_EXPECTED_VALUE : self::PRODUCTIVE_EXPECTED_VALUE,
+            null,
+            $mutation->getNominalTestExecutionTime(),
+        );
     }
 }
