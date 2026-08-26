@@ -33,43 +33,32 @@
 
 declare(strict_types=1);
 
-namespace Infection\Framework\Iterable;
+namespace Infection\Mutation\Selection;
 
-use function count;
-use Infection\CannotBeInstantiated;
-use function is_array;
-use function iterator_to_array;
+use Infection\Mutation\Mutation;
 
 /**
  * @internal
  */
-final class IterableCounter
+final readonly class ExhaustiveMutationSelector
 {
-    use CannotBeInstantiated;
-
-    // Follows the Symfony ProgressBar convention: 0 indicates an unknown number of steps.
-    public const int UNKNOWN_COUNT = 0;
+    public function __construct(private ?string $mutationId)
+    {
+    }
 
     /**
-     * @template T
+     * @param iterable<Mutation> $candidates
      *
-     * @param iterable<T> $subjects
-     *
-     * @return positive-int|self::UNKNOWN_COUNT
+     * @return iterable<MutationEvaluationPlan>
      */
-    public static function bufferAndCountIfNeeded(iterable &$subjects, bool $runConcurrently): int
+    public function select(iterable $candidates): iterable
     {
-        if ($runConcurrently) {
-            // This number is typically fed to ProgressFormatter/ProgressBar or variants.
-            return self::UNKNOWN_COUNT;
+        foreach ($candidates as $candidate) {
+            if ($this->mutationId !== null && $candidate->getHash() !== $this->mutationId) {
+                continue;
+            }
+
+            yield MutationEvaluationPlan::forFirstOrderMutation($candidate);
         }
-
-        if (is_array($subjects)) {
-            return count($subjects);
-        }
-
-        $subjects = iterator_to_array($subjects, false);
-
-        return count($subjects);
     }
 }

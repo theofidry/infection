@@ -33,43 +33,24 @@
 
 declare(strict_types=1);
 
-namespace Infection\Framework\Iterable;
+namespace Infection\Tests\Mutation\Selection;
 
-use function count;
-use Infection\CannotBeInstantiated;
-use function is_array;
-use function iterator_to_array;
+use Infection\Mutation\Selection\MutationEvaluationPlan;
+use Infection\Tests\Mutation\MutationBuilder;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @internal
- */
-final class IterableCounter
+#[CoversClass(MutationEvaluationPlan::class)]
+final class MutationEvaluationPlanTest extends TestCase
 {
-    use CannotBeInstantiated;
-
-    // Follows the Symfony ProgressBar convention: 0 indicates an unknown number of steps.
-    public const int UNKNOWN_COUNT = 0;
-
-    /**
-     * @template T
-     *
-     * @param iterable<T> $subjects
-     *
-     * @return positive-int|self::UNKNOWN_COUNT
-     */
-    public static function bufferAndCountIfNeeded(iterable &$subjects, bool $runConcurrently): int
+    public function test_it_describes_a_first_order_evaluation(): void
     {
-        if ($runConcurrently) {
-            // This number is typically fed to ProgressFormatter/ProgressBar or variants.
-            return self::UNKNOWN_COUNT;
-        }
+        $mutation = MutationBuilder::withMinimalTestData()->withHash('mutation-id')->build();
 
-        if (is_array($subjects)) {
-            return count($subjects);
-        }
+        $plan = MutationEvaluationPlan::forFirstOrderMutation($mutation);
 
-        $subjects = iterator_to_array($subjects, false);
-
-        return count($subjects);
+        $this->assertSame('mutation-id', $plan->identity);
+        $this->assertSame($mutation, $plan->mutation);
+        $this->assertTrue($plan->contributesToFirstOrderMsi);
     }
 }
