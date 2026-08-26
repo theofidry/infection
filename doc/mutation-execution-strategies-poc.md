@@ -5,10 +5,11 @@ Related: [#88](https://github.com/infection/infection/issues/88) and
 
 ## Status and recommendation
 
-This branch is an intentionally small, behavior-preserving proof of concept based on
-`origin/master` at `03bac9f7b`. It demonstrates a streaming boundary between mutation
-generation and materialization. It does not propose that strategy implementation should be
-merged before the active test-framework evaluation contracts settle.
+This branch is an intentionally small proof of concept based on `origin/master` at
+`03bac9f7b`. It demonstrates a streaming boundary between mutation generation and
+materialization and exercises it with an experimental per-line limit. It does not propose
+that strategy implementation should be merged before the active test-framework evaluation
+contracts settle.
 
 The recommendation remains: design the boundary now, measure child bootstrap and test cost,
 and simulate strategies offline from existing traces. Grouped or higher-order mutants need a
@@ -48,6 +49,17 @@ the seam does not disturb the active container and evaluation rework. The runner
 responsible for the existing post-materialization decisions until those decisions have
 explicit result/reporting semantics.
 
+`LimitMutationsPerLineSelector` is composed after exhaustive/id selection. It keeps the first
+N plans for each original-file/start-line pair and preserves their generation order. A
+multi-line mutation belongs to its starting line. Counts are independent between files, and
+memory grows with the number of distinct file/line pairs observed rather than the number of
+mutations.
+
+For hands-on evaluation, the runner currently fixes N to one. This is deliberately not a new
+public configuration contract: naming, defaults, CLI/schema precedence and MSI presentation
+still need agreement. Because id filtering happens first, `--id` always emits the requested
+plan even when it was not among the first plans selected during a limited run.
+
 `ParallelProcessRunner`, `MutantCodeFactory`, `Mutation`, process containers, adapters,
 metrics and reporters are untouched. This is important: a selection strategy can now change
 which independent first-order evaluations are requested without becoming scheduling policy.
@@ -57,6 +69,9 @@ which independent first-order evaluations are requested without becoming schedul
 - Selection can happen before AST cloning, mutant printing, temporary-file writes and process
   construction.
 - The current exhaustive behavior and rerun id fit a lazy, order-preserving selector.
+- A per-line cap composes with exhaustive/id selection without changing materialization or
+  scheduling.
+- Progress totals count selected plans rather than pre-selection candidates.
 - The selector does not count, rewind or pre-consume its input.
 - `IterableCounter` now preserves the streamed value type through its by-reference buffering
   operation; runtime counting and buffering behavior is unchanged.
@@ -83,9 +98,10 @@ vendor/phpunit/phpunit/phpunit tests/phpunit/Mutation/Selection
 vendor/phpunit/phpunit/phpunit tests/phpunit/Process/Runner/MutationTestingRunnerTest.php
 ```
 
-The selector test demonstrates ordered single-pass consumption, empty input and deterministic
-`--id` selection. The runner test demonstrates that plans still produce the same events,
-mutants and process containers.
+The selector tests demonstrate ordered single-pass consumption, empty input, deterministic
+`--id` selection, same-line suppression, and independent counts across files and lines. The
+runner test demonstrates that selected plans still produce the same events, mutants and
+process containers.
 
 For a manual smoke test against a small project, run Infection normally and then rerun one
 reported mutation id:
@@ -95,9 +111,11 @@ reported mutation id:
 ./bin/infection --threads=1 --no-progress --id=<reported-mutant-id>
 ```
 
-The first command exercises the exhaustive selector. The second exercises selector-level id
-filtering. Both retain first-order materialization, whole existing test filtering, process
-isolation, static-analysis follow-ups and reporting behavior.
+The first command evaluates at most one generated mutation per original-file/start-line pair.
+Compare its evaluated-mutant total with `origin/master` on the same project to see the
+selection effect. The second command exercises selector-level id filtering and still reruns
+the requested mutant. Both retain first-order materialization, existing test filtering,
+process isolation and static-analysis follow-ups.
 
 Run wider project checks with:
 
@@ -109,19 +127,21 @@ make test-unit
 
 ### Verification on this branch
 
-On 2026-08-26 with PHP 8.4.22, the focused selector plus runner tests and
+On 2026-08-26 with PHP 8.4.22, the 20 focused selector plus runner tests and
 `make autoreview` pass. The latter includes CS checks, PHPStan/PHPat, Mago, Composer
 validation, the AutoReview suite, Rector, collision detection and zizmor.
 
 ## Deliberate limitations
 
-- There is no new CLI or schema option. The only wired strategy is current exhaustive
-  behavior, including `--id`.
+- There is no new CLI or schema option. The experimental cap is fixed to one in
+  `MutationTestingRunner`.
 - Ignore-regex checks currently require a materialized diff, and coverage and timeout skips
   already have reporter-visible results. This POC does not silently move them into selection.
 - `MutationEvaluationPlan` carries one mutation. Supporting several mutations requires a new
   materialization contract rather than changing this class to imply grouping already works.
-- The MSI intent is descriptive; existing calculators remain authoritative.
+- Existing calculators treat only evaluated mutations as outcomes. Consequently, the limited
+  run's score is not directly comparable with exhaustive MSI. Production work must name and
+  report the selected denominator rather than presenting it as ordinary exhaustive MSI.
 - No-coverage mode is not implemented. A capable adapter must define an unambiguous whole-suite
   fallback where absence of a filter means all tests, never no tests.
 - Sampling, prioritization, seeds, confidence and bounded buffering are not implemented.

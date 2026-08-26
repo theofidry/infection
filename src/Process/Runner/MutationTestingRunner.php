@@ -48,6 +48,7 @@ use Infection\Mutant\MutantExecutionResult;
 use Infection\Mutant\MutantFactory;
 use Infection\Mutation\Mutation;
 use Infection\Mutation\Selection\ExhaustiveMutationSelector;
+use Infection\Mutation\Selection\LimitMutationsPerLineSelector;
 use Infection\Mutation\Selection\MutationEvaluationPlan;
 use Infection\Process\Factory\MutantProcessContainerFactory;
 use Infection\Process\MutantProcessContainer;
@@ -60,7 +61,11 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class MutationTestingRunner
 {
+    private const int MAX_MUTATIONS_PER_LINE = 1;
+
     private readonly ExhaustiveMutationSelector $mutationSelector;
+
+    private readonly LimitMutationsPerLineSelector $lineLimitSelector;
 
     /**
      * @param array<string, array<int, string>> $ignoreSourceCodeMutatorsMap
@@ -78,6 +83,7 @@ class MutationTestingRunner
         ?string $mutantId,
     ) {
         $this->mutationSelector = new ExhaustiveMutationSelector($mutantId);
+        $this->lineLimitSelector = new LimitMutationsPerLineSelector(self::MAX_MUTATIONS_PER_LINE);
     }
 
     /**
@@ -85,10 +91,12 @@ class MutationTestingRunner
      */
     public function run(iterable $mutations, string $testFrameworkExtraOptions): void
     {
-        $numberOfMutants = IterableCounter::bufferAndCountIfNeeded($mutations, $this->runConcurrently);
+        $plans = $this->mutationSelector->select($mutations);
+        $plans = $this->lineLimitSelector->select($plans);
+        $numberOfMutants = IterableCounter::bufferAndCountIfNeeded($plans, $this->runConcurrently);
         $this->eventDispatcher->dispatch(new MutationTestingWasStarted($numberOfMutants, $this->processRunner));
 
-        $processContainers = take($this->mutationSelector->select($mutations))
+        $processContainers = take($plans)
             ->stream()
             ->tap($this->emitEvaluationStarted(...))
             ->cast($this->mutationToMutant(...))

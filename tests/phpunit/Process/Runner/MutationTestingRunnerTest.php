@@ -143,6 +143,7 @@ final class MutationTestingRunnerTest extends TestCase
             $mutation1 = $this->createMutation(1, self::TIMEOUT - 1.0),
             $mutation2 = $this->createMutation(2, self::TIMEOUT),
             $mutation3 = $this->createMutation(3, coveredByTests: false),
+            $this->createMutation(0), // A second mutation on the same file and line is not selected.
         ];
         $testFrameworkExtraOptions = '--filter=acme/FooTest.php';
 
@@ -297,7 +298,7 @@ final class MutationTestingRunnerTest extends TestCase
 
         $this->assertAreSameEvents(
             [
-                new MutationTestingWasStarted(4, $this->processRunnerMock),
+                new MutationTestingWasStarted(1, $this->processRunnerMock),
                 new MutationEvaluationWasStarted($mutation0),
                 new MutantProcessWasFinished(
                     MutantExecutionResultBuilder::withMinimalTestData()->build(),
