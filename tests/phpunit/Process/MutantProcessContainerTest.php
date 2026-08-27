@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Tests\Process;
 
 use Infection\Mutant\DetectionStatus;
+use Infection\Mutant\Evaluation\EvaluationReason;
+use Infection\Mutant\Evaluation\MutationOutcome;
 use Infection\Mutant\Mutant;
 use Infection\Process\Factory\LazyMutantProcessFactory;
 use Infection\Process\MutantProcess;
@@ -164,5 +166,40 @@ final class MutantProcessContainerTest extends TestCase
         $container->createNext();
 
         $this->assertSame($newMutantProcess, $container->getCurrent());
+    }
+
+    public function test_it_retains_attempts_from_the_complete_evaluator_chain(): void
+    {
+        $container = new MutantProcessContainer(
+            $this->phpUnitMutantProcess,
+            [$this->lazyMutantProcessCreator],
+        );
+        $phpStanMutantProcess = $this->createMock(MutantProcess::class);
+        $phpUnitResult = MutantExecutionResultBuilder::withMinimalTestData()
+            ->withDetectionStatus(DetectionStatus::ESCAPED)
+            ->build()
+            ->withEvaluationAttempt('phpunit');
+        $phpStanResult = MutantExecutionResultBuilder::withMinimalTestData()
+            ->withDetectionStatus(DetectionStatus::KILLED_BY_STATIC_ANALYSIS)
+            ->build()
+            ->withEvaluationAttempt('phpstan');
+
+        $this->phpUnitMutantProcess->method('getMutant')->willReturn($this->mutant);
+        $this->phpUnitMutantProcess->method('getMutantExecutionResult')->willReturn($phpUnitResult);
+        $this->lazyMutantProcessCreator->method('create')->with($this->mutant)->willReturn($phpStanMutantProcess);
+        $phpStanMutantProcess->method('getMutantExecutionResult')->willReturn($phpStanResult);
+
+        $container->createNext();
+        $result = $container->getMutantExecutionResult();
+        $evaluationResult = $result->getMutationEvaluationResult();
+
+        $this->assertNotNull($evaluationResult);
+        $this->assertSame(['phpunit', 'phpstan'], [
+            $evaluationResult->attempts[0]->getEvaluator(),
+            $evaluationResult->attempts[1]->getEvaluator(),
+        ]);
+        $this->assertSame(MutationOutcome::COVERED, $evaluationResult->outcome);
+        $this->assertSame(EvaluationReason::STATIC_ANALYSIS_FAILURE, $evaluationResult->resolutionReason);
+        $this->assertSame(DetectionStatus::KILLED_BY_STATIC_ANALYSIS, $result->getDetectionStatus());
     }
 }

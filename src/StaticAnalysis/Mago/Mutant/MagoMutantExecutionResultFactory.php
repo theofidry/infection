@@ -57,7 +57,7 @@ final class MagoMutantExecutionResultFactory implements MutantExecutionResultFac
         $mutant = $mutantProcess->getMutant();
         $mutation = $mutant->getMutation();
 
-        return new MutantExecutionResult(
+        return (new MutantExecutionResult(
             $process->getCommandLine(),
             $this->retrieveProcessOutput($process),
             $this->retrieveDetectionStatus($mutantProcess),
@@ -74,7 +74,7 @@ final class MagoMutantExecutionResultFactory implements MutantExecutionResultFac
             $mutant->getMutatedCode(),
             $mutant->getTests(),
             $mutantProcess->getFinishedAt() - $process->getStartTime(),
-        );
+        ))->withEvaluationAttempt('mago');
     }
 
     private function retrieveProcessOutput(Process $process): string

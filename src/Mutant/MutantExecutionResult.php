@@ -36,6 +36,11 @@ declare(strict_types=1);
 namespace Infection\Mutant;
 
 use Infection\AbstractTestFramework\Coverage\TestLocation;
+use Infection\Mutant\Evaluation\EvaluationAttempt;
+use Infection\Mutant\Evaluation\EvaluationOutcome;
+use Infection\Mutant\Evaluation\EvaluationReason;
+use Infection\Mutant\Evaluation\MutationEvaluationResult;
+use Infection\Mutant\Evaluation\MutationEvaluationResultReducer;
 use Infection\Mutator\MutatorResolver;
 use Later\Interfaces\Deferred;
 use RuntimeException;
@@ -51,6 +56,8 @@ use Webmozart\Assert\Assert;
 class MutantExecutionResult
 {
     private readonly string $mutatorClass;
+
+    private ?MutationEvaluationResult $mutationEvaluationResult = null;
 
     /**
      * @param Deferred<string> $mutantDiff
@@ -83,17 +90,49 @@ class MutantExecutionResult
 
     public static function createFromNonCoveredMutant(Mutant $mutant): self
     {
-        return self::createFromMutant($mutant, DetectionStatus::NOT_COVERED);
+        return self::createFromMutant($mutant, DetectionStatus::NOT_COVERED)
+            ->withEvaluationAttempt('infection');
     }
 
     public static function createFromTimeSkippedMutant(Mutant $mutant): self
     {
-        return self::createFromMutant($mutant, DetectionStatus::SKIPPED);
+        return self::createFromMutant($mutant, DetectionStatus::SKIPPED)
+            ->withEvaluationAttempt('infection');
     }
 
     public static function createFromIgnoredMutant(Mutant $mutant): self
     {
-        return self::createFromMutant($mutant, DetectionStatus::IGNORED);
+        return self::createFromMutant($mutant, DetectionStatus::IGNORED)
+            ->withEvaluationAttempt('infection');
+    }
+
+    public function withEvaluationAttempt(string $evaluator): self
+    {
+        $clone = clone $this;
+        $attempt = new EvaluationAttempt(
+            $evaluator,
+            self::toEvaluationOutcome($this->detectionStatus),
+            self::toEvaluationReason($this->detectionStatus),
+            $this->processCommandLine,
+            $this->processOutput,
+            $this->processRuntime,
+        );
+        $clone->mutationEvaluationResult = MutationEvaluationResultReducer::reduce([$attempt]);
+
+        return $clone;
+    }
+
+    public function withMutationEvaluationResult(MutationEvaluationResult $evaluationResult): self
+    {
+        $clone = clone $this;
+        $clone->mutationEvaluationResult = $evaluationResult;
+
+        return $clone;
+    }
+
+    public function getMutationEvaluationResult(): ?MutationEvaluationResult
+    {
+        return $this->mutationEvaluationResult;
     }
 
     public function getProcessCommandLine(): string
@@ -219,5 +258,35 @@ class MutantExecutionResult
             $mutant->getTests(),
             0.0,
         );
+    }
+
+    private static function toEvaluationOutcome(DetectionStatus $status): EvaluationOutcome
+    {
+        return match ($status) {
+            DetectionStatus::KILLED_BY_TESTS,
+            DetectionStatus::KILLED_BY_STATIC_ANALYSIS => EvaluationOutcome::DETECTED,
+            DetectionStatus::ESCAPED => EvaluationOutcome::UNDETECTED,
+            DetectionStatus::ERROR,
+            DetectionStatus::TIMED_OUT,
+            DetectionStatus::SYNTAX_ERROR => EvaluationOutcome::INCONCLUSIVE,
+            DetectionStatus::SKIPPED,
+            DetectionStatus::NOT_COVERED,
+            DetectionStatus::IGNORED => EvaluationOutcome::NOT_EVALUATED,
+        };
+    }
+
+    private static function toEvaluationReason(DetectionStatus $status): EvaluationReason
+    {
+        return match ($status) {
+            DetectionStatus::KILLED_BY_TESTS => EvaluationReason::TEST_FAILURE,
+            DetectionStatus::KILLED_BY_STATIC_ANALYSIS => EvaluationReason::STATIC_ANALYSIS_FAILURE,
+            DetectionStatus::ESCAPED => EvaluationReason::PASSED,
+            DetectionStatus::ERROR => EvaluationReason::PROCESS_ERROR,
+            DetectionStatus::TIMED_OUT => EvaluationReason::TIMEOUT,
+            DetectionStatus::SYNTAX_ERROR => EvaluationReason::SYNTAX_ERROR,
+            DetectionStatus::SKIPPED => EvaluationReason::TIME_BUDGET,
+            DetectionStatus::NOT_COVERED => EvaluationReason::NO_COVERING_TESTS,
+            DetectionStatus::IGNORED => EvaluationReason::IGNORED,
+        };
     }
 }
