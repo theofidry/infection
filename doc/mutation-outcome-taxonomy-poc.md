@@ -21,12 +21,37 @@ implementation. The TestFramework rework is changing the same boundary.
 a PHPStan detection loses the PHPUnit evidence. MSI rules are separately encoded in
 `MetricsCalculator` and `Calculator`.
 
+For example, the current execution chain may be:
+
+```text
+PHPUnit executes the mutant and passes
+    -> PHPStan executes the same mutant and reports an error
+```
+
+The final `MutantExecutionResult` says `KILLED_BY_STATIC_ANALYSIS`, but it does not retain
+that PHPUnit ran first and did not detect the mutation. The status also encodes both the
+evaluator (`STATIC_ANALYSIS`) and the outcome (`KILLED`) in one value. This makes it hard to
+explain the evaluation, add another evaluator, or define metrics independently of process
+status names.
+
 `not generated` is deliberately outside this POC: if no mutation exists there can be no
 mutation evaluation result. It belongs to selection diagnostics.
 
 ## Model exercised by this branch
 
-The POC introduces three concepts:
+The POC keeps `DetectionStatus` as a compatibility view and adds a more structured result
+alongside it:
+
+```text
+DetectionStatus from each process
+    -> EvaluationAttempt for each evaluator
+    -> ordered list of attempts
+    -> MutationEvaluationResultReducer
+    -> final MutationOutcome and EvaluationReason
+    -> MsiEligibilityPolicy
+```
+
+It introduces three concepts:
 
 1. `EvaluationAttempt` records an evaluator id, bounded outcome and reason, command,
    output and active duration.
@@ -44,6 +69,88 @@ result, reduces the ordered attempts after the evaluator chain finishes, and ret
 last legacy `MutantExecutionResult` enriched with the complete evaluation result. Existing
 reporters therefore continue to see their old status and process fields.
 
+### Attempt outcome and reason
+
+An attempt outcome deliberately answers only whether one evaluator detected the mutation:
+
+| Existing `DetectionStatus` | Attempt outcome | Attempt reason |
+| --- | --- | --- |
+| `KILLED_BY_TESTS` | `DETECTED` | `TEST_FAILURE` |
+| `KILLED_BY_STATIC_ANALYSIS` | `DETECTED` | `STATIC_ANALYSIS_FAILURE` |
+| `ESCAPED` | `UNDETECTED` | `PASSED` |
+| `ERROR` | `INCONCLUSIVE` | `PROCESS_ERROR` |
+| `TIMED_OUT` | `INCONCLUSIVE` | `TIMEOUT` |
+| `SYNTAX_ERROR` | `INCONCLUSIVE` | `SYNTAX_ERROR` |
+| `SKIPPED` | `NOT_EVALUATED` | `TIME_BUDGET` |
+| `NOT_COVERED` | `NOT_EVALUATED` | `NO_COVERING_TESTS` |
+| `IGNORED` | `NOT_EVALUATED` | `IGNORED` |
+
+The reason retains why that outcome occurred without adding evaluator-specific cases to the
+outcome enum. The evaluator id remains separate: both PHPUnit and a static analyser can
+produce `DETECTED`, but for different reasons.
+
+### Aggregation example
+
+For the PHPUnit then PHPStan chain above, the enriched result is conceptually:
+
+```text
+attempts:
+  1. phpunit / UNDETECTED / PASSED
+  2. phpstan / DETECTED / STATIC_ANALYSIS_FAILURE
+
+final outcome: COVERED
+resolution reason: STATIC_ANALYSIS_FAILURE
+legacy status: KILLED_BY_STATIC_ANALYSIS
+```
+
+The reducer currently gives precedence to the first `DETECTED` attempt. If no attempt
+detects the mutation, the last attempt determines the final result. This describes the
+current short-circuiting evaluator chain; it is not yet a general retry or consensus model.
+
+### MSI eligibility
+
+`MsiEligibilityPolicy` is intended to keep score calculation separate from evaluation. It
+classifies a result as one of:
+
+- excluded from the scores;
+- included only in the overall MSI denominator;
+- included in both the overall and covered-code denominators;
+- included in the numerator and both denominators.
+
+This also isolates the existing `timeoutsAsEscaped` option: a timeout remains a suspicious
+evaluation result, while the policy decides whether it contributes to the numerator. The
+policy is not connected to the production metrics calculators in this POC.
+
+## Known taxonomy problem
+
+The current final `MutationOutcome` vocabulary is not a viable recommendation yet.
+`COVERED` means that an evaluator detected the mutation, while `NOT_COVERED` currently
+combines two different situations:
+
+1. an evaluator ran but did not detect the mutation (`UNDETECTED` + `PASSED`, the legacy
+   `ESCAPED` case);
+2. no test covered the mutation, so it was not evaluated (`NOT_EVALUATED` +
+   `NO_COVERING_TESTS`).
+
+Those situations must remain distinguishable for both reporting and metrics. In mutation
+testing, a mutation can be covered by tests and still escape, so "covered" is not a synonym
+for "detected".
+
+The current reducer maps both situations to `MutationOutcome::NOT_COVERED`. The current MSI
+policy then puts every `NOT_COVERED` result only in the overall denominator. If connected to
+production as written, it would therefore omit an escaped but test-covered mutation from
+the covered-code MSI denominator. The tests do not currently exercise the
+`UNDETECTED` + `PASSED` policy case.
+
+This is useful evidence from the POC rather than a settled design. A production taxonomy
+needs distinct final states for, at minimum:
+
+- covered and detected;
+- covered and undetected (escaped);
+- not covered and therefore not evaluated;
+- inconclusive;
+- skipped or ignored.
+
 ## Deliberate limitations
 
 - The reducer only models the current short-circuiting chain: the first detection wins;
@@ -57,6 +164,8 @@ reporters therefore continue to see their old status and process fields.
 - The MSI policy is executable and tested, but the existing aggregate calculator is not
   replaced. Doing that honestly requires carrying final classifications through collectors
   and deciding output compatibility first.
+- The final `COVERED`/`NOT_COVERED` vocabulary and its MSI mapping are known to collapse an
+  escaped mutation with a mutation that has no covering tests, as described above.
 
 ## How to test the POC
 
