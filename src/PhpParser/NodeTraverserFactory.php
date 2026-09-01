@@ -65,11 +65,18 @@ use SplFileInfo;
  */
 readonly class NodeTraverserFactory
 {
+    private SourceSymbolMatcher $sourceSymbolMatcher;
+
+    /**
+     * @param list<SourceSymbolSelector> $sourceSymbolSelectors
+     */
     public function __construct(
         private SourceLineMatcher $sourceLineMatcher,
         private LineRangeCalculator $lineRangeCalculator,
         private bool $onlyCovered,
+        array $sourceSymbolSelectors,
     ) {
+        $this->sourceSymbolMatcher = new SourceSymbolMatcher($sourceSymbolSelectors);
     }
 
     /**
@@ -100,10 +107,13 @@ readonly class NodeTraverserFactory
             ),
         ];
 
-        if ($sourceSymbolSelector !== null) {
+        $sourceSymbolMatcher = $sourceSymbolSelector === null
+            ? $this->sourceSymbolMatcher
+            : new SourceSymbolMatcher([$sourceSymbolSelector]);
+
+        if ($sourceSymbolMatcher->hasSelectors()) {
             $visitors[] = new ExcludeNonSelectedSourceNodesVisitor(
-                new SourceSymbolMatcher(),
-                $sourceSymbolSelector,
+                $sourceSymbolMatcher,
             );
         }
 
@@ -125,5 +135,10 @@ readonly class NodeTraverserFactory
             new NodeVisitor\CloningVisitor(),
             $mutationVisitor,
         );
+    }
+
+    public function getSourceSymbolMatcher(): SourceSymbolMatcher
+    {
+        return $this->sourceSymbolMatcher;
     }
 }

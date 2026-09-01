@@ -213,10 +213,10 @@ final class PositionalPathsClassifierTest extends TestCase
                 ->withExpected(new ClassifiedPaths([], ['integration/SomeFolder'], [])),
         ];
 
-        yield 'symbolic source token' => [
+        yield 'short class selector' => [
             $baseScenario
                 ->withPaths(['Plus_'])
-                ->withExpected(new ClassifiedPaths(['Plus_'], [], [])),
+                ->withExpected(new ClassifiedPaths([], [], [new SourceSymbolSelector('Plus_', null, null)])),
         ];
 
         yield 'symbolic php source token' => [
@@ -315,18 +315,21 @@ final class PositionalPathsClassifierTest extends TestCase
                 ->withExpected(new ClassifiedPaths(['Mailer.php'], ['tests/Unit/Service/'], [])),
         ];
 
-        yield 'symbolic source and test folder' => [
+        yield 'short class selector and test folder' => [
             $baseScenario
                 ->withPaths(['Mailer', 'tests/Unit/Service/'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPaths(['Mailer'], ['tests/Unit/Service/'], [])),
+                ->withExpected(new ClassifiedPaths([], ['tests/Unit/Service/'], [new SourceSymbolSelector('Mailer', null, null)])),
         ];
 
-        yield 'multiple symbolic sources and test folder' => [
+        yield 'multiple short class selectors and test folder' => [
             $baseScenario
                 ->withPaths(['Mailer', 'Plus_', 'tests/Unit/Service/'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPaths(['Mailer', 'Plus_'], ['tests/Unit/Service/'], [])),
+                ->withExpected(new ClassifiedPaths([], ['tests/Unit/Service/'], [
+                    new SourceSymbolSelector('Mailer', null, null),
+                    new SourceSymbolSelector('Plus_', null, null),
+                ])),
         ];
 
         yield 'test folder and symbolic php source in reversed order' => [
@@ -336,18 +339,21 @@ final class PositionalPathsClassifierTest extends TestCase
                 ->withExpected(new ClassifiedPaths(['Mailer.php'], ['tests/Unit/Service/'], [])),
         ];
 
-        yield 'test folder and symbolic source in reversed order' => [
+        yield 'test folder and short class selector in reversed order' => [
             $baseScenario
                 ->withPaths(['tests/Unit/Service/', 'Mailer'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPaths(['Mailer'], ['tests/Unit/Service/'], [])),
+                ->withExpected(new ClassifiedPaths([], ['tests/Unit/Service/'], [new SourceSymbolSelector('Mailer', null, null)])),
         ];
 
-        yield 'test folder and multiple symbolic sources in reversed order' => [
+        yield 'test folder and multiple short class selectors in reversed order' => [
             $baseScenario
                 ->withPaths(['tests/Unit/Service/', 'Mailer', 'Plus_'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPaths(['Mailer', 'Plus_'], ['tests/Unit/Service/'], [])),
+                ->withExpected(new ClassifiedPaths([], ['tests/Unit/Service/'], [
+                    new SourceSymbolSelector('Mailer', null, null),
+                    new SourceSymbolSelector('Plus_', null, null),
+                ])),
         ];
 
         yield 'multiple source files and multiple test directories' => [

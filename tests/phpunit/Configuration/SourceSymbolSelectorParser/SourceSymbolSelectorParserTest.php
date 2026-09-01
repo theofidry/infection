@@ -60,11 +60,17 @@ final class SourceSymbolSelectorParserTest extends TestCase
 
         yield 'method' => ['App\Service\Mailer::__invoke', new SourceSymbolSelector('App\Service\Mailer', '__invoke', null)];
 
+        yield 'short class and method' => ['Mailer::send', new SourceSymbolSelector('Mailer', 'send', null)];
+
+        yield 'short class and absolute line' => ['Mailer::32', new SourceSymbolSelector('Mailer', null, 32)];
+
         yield 'absolute line' => ['App\Service\Mailer::32', new SourceSymbolSelector('App\Service\Mailer', null, 32)];
 
         yield 'method and absolute line' => ['App\Service\Mailer::send::32', new SourceSymbolSelector('App\Service\Mailer', 'send', 32)];
 
         yield 'bare file filter' => ['Mailer.php', null];
+
+        yield 'bare short class' => ['Mailer', new SourceSymbolSelector('Mailer', null, null)];
 
         yield 'Windows path' => ['C:\project\src\Mailer.php', null];
     }

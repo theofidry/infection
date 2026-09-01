@@ -42,7 +42,6 @@ use Infection\Tests\PhpParser\Visitor\VisitorTestCase\VisitorTestCase;
 use PhpParser\Node;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(SourceSymbolMatcher::class)]
@@ -61,14 +60,29 @@ final class SourceSymbolMatcherTest extends VisitorTestCase
             }
             PHP);
 
-        (new NodeTraverser(NameResolverFactory::create(), new ParentConnectingVisitor()))->traverse($nodes);
+        (new NodeTraverser(NameResolverFactory::create()))->traverse($nodes);
 
         $binaryOperation = (new NodeFinder())->findFirstInstanceOf($nodes, Node\Expr\BinaryOp::class);
+        $class = (new NodeFinder())->findFirstInstanceOf($nodes, Node\Stmt\ClassLike::class);
+        $method = (new NodeFinder())->findFirstInstanceOf($nodes, Node\Stmt\ClassMethod::class);
         $this->assertInstanceOf(Node\Expr\BinaryOp::class, $binaryOperation);
-        $matcher = new SourceSymbolMatcher();
+        $this->assertInstanceOf(Node\Stmt\ClassLike::class, $class);
+        $this->assertInstanceOf(Node\Stmt\ClassMethod::class, $method);
+        $matcher = new SourceSymbolMatcher([
+            new SourceSymbolSelector('App\Mailer', 'send', 6),
+            new SourceSymbolSelector('Mailer', 'send', 6),
+        ]);
 
-        $this->assertTrue($matcher->matches($binaryOperation, new SourceSymbolSelector('App\Mailer', 'send', 6)));
-        $this->assertFalse($matcher->matches($binaryOperation, new SourceSymbolSelector('App\Mailer', 'other', 6)));
-        $this->assertFalse($matcher->matches($binaryOperation, new SourceSymbolSelector('App\Other', 'send', 6)));
+        $this->assertTrue($matcher->matches($binaryOperation, $class, $method));
+        $this->assertSame([], $matcher->getUnmatchedSelectors());
+
+        $unmatchedSelectors = [
+            new SourceSymbolSelector('App\Mailer', 'other', 6),
+            new SourceSymbolSelector('App\Other', 'send', 6),
+        ];
+        $matcher = new SourceSymbolMatcher($unmatchedSelectors);
+
+        $this->assertFalse($matcher->matches($binaryOperation, $class, $method));
+        $this->assertEquals($unmatchedSelectors, $matcher->getUnmatchedSelectors());
     }
 }

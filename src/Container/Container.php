@@ -462,9 +462,9 @@ final class Container extends DIContainer
                 $container->getOutput(),
             ),
             NodeTraverserFactory::class => static fn (self $container) => new NodeTraverserFactory(
-                $container->getSourceLineMatcher(),
-                $container->getLineRangeCalculator(),
+                $container->getSourceLineMatcher(), $container->getLineRangeCalculator(),
                 $container->getConfiguration()->mutateOnlyCoveredCode(),
+                $container->getConfiguration()->sourceSymbolSelectors,
             ),
             FileReporterFactory::class => static function (self $container): FileReporterFactory {
                 $config = $container->getConfiguration();
@@ -580,7 +580,7 @@ final class Container extends DIContainer
                     $container->getSourceCollector(),
                     $config->mutators,
                     $container->getEventDispatcher(),
-                    $container->getFileMutationGenerator(),
+                    $container->getFileMutationGenerator(), $container->getNodeTraverserFactory()->getSourceSymbolMatcher(),
                 );
             },
             MutationTestingRunner::class => static function (self $container): MutationTestingRunner {

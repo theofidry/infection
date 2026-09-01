@@ -50,7 +50,7 @@ use Webmozart\Assert\Assert;
  */
 final class SourceSymbolSelectorParser
 {
-    private const string CLASS_NAME = '[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*(?:\\\\[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*)+';
+    private const string CLASS_NAME = '[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*(?:\\\\[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*)*';
 
     private const string METHOD_NAME = '[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*';
 
@@ -60,6 +60,8 @@ final class SourceSymbolSelectorParser
         // C:\project\src\Foo.php are not confused with source symbols.
         $candidate = str_starts_with($value, '\\') ? substr($value, 1) : $value;
 
+        $matches = [];
+
         if (preg_match(sprintf('/^(?<class>%s)(?:::(?<coordinate>%s|[1-9][0-9]*))?(?:::(?<line>[1-9][0-9]*))?$/D', self::CLASS_NAME, self::METHOD_NAME), $candidate, $matches) !== 1) {
             if (str_starts_with($value, '\\') || str_contains($value, '::')) {
                 throw self::invalidSelector($value);
@@ -68,6 +70,7 @@ final class SourceSymbolSelectorParser
             return null;
         }
 
+        Assert::isArray($matches);
         $coordinate = $matches['coordinate'] ?? '';
         $line = $matches['line'] ?? '';
         Assert::keyExists($matches, 'class');

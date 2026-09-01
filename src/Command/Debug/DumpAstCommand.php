@@ -224,7 +224,7 @@ final class DumpAstCommand extends BaseCommand
 
     private static function getSourceSymbolSelector(IO $io): ?SourceSymbolSelector
     {
-        $value = $io->getInput()->getOption(self::SOURCE_SELECTOR);
+        $value = self::asOptionalString($io->getInput()->getOption(self::SOURCE_SELECTOR));
 
         if ($value === null) {
             return null;
@@ -236,6 +236,13 @@ final class DumpAstCommand extends BaseCommand
         Assert::notNull($selector, sprintf('Expected "%s" to be a source selector.', $value));
 
         return $selector;
+    }
+
+    private static function asOptionalString(mixed $value): ?string
+    {
+        Assert::nullOrString($value);
+
+        return $value;
     }
 
     /**

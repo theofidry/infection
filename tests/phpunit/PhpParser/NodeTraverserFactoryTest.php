@@ -138,11 +138,17 @@ final class NodeTraverserFactoryTest extends TestCase
     public function test_it_places_source_selection_after_enrichment_and_before_tests(): void
     {
         $sourceFile = new MockSplFileInfo(realPath: '/path/to/virtual-test-file.php');
-        $traverser = self::createTraverserFactory(false)->createEnrichmentTraverser(
+        $traverser = (new NodeTraverserFactory(
+            sourceLineMatcher: new NullSourceLineMatcher(),
+            lineRangeCalculator: new LineRangeCalculator(),
+            onlyCovered: false,
+            sourceSymbolSelectors: [new SourceSymbolSelector('Vendor\\Package\\ClassName', 'method', 42)],
+        ))->createEnrichmentTraverser(
             $sourceFile,
             new EmptyTrace($sourceFile),
-            new SourceSymbolSelector('Vendor\\Package\\ClassName', 'method', 42),
         );
+
+        $this->assertInstanceOf(NodeTraverser::class, $traverser);
 
         $visitors = self::getVisitorClassNames($traverser);
 
@@ -198,6 +204,7 @@ final class NodeTraverserFactoryTest extends TestCase
             sourceLineMatcher: new NullSourceLineMatcher(),
             lineRangeCalculator: new LineRangeCalculator(),
             onlyCovered: $onlyCovered,
+            sourceSymbolSelectors: [],
         );
     }
 }

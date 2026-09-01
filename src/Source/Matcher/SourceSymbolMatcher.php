@@ -37,8 +37,8 @@ namespace Infection\Source\Matcher;
 
 use Infection\Configuration\SourceSymbolSelector;
 use Infection\PhpParser\Visitor\FullyQualifiedClassNameManipulator;
-use Infection\PhpParser\Visitor\ParentConnector;
 use PhpParser\Node;
+use function str_contains;
 use function strcasecmp;
 
 /**
@@ -48,24 +48,86 @@ use function strcasecmp;
  */
 final class SourceSymbolMatcher
 {
-    public function matches(Node $node, SourceSymbolSelector $selector): bool
-    {
-        $class = self::findAncestor($node, Node\Stmt\ClassLike::class);
+    /** @var array<int, true> */
+    private array $matchedSelectors = [];
 
-        if (!$class instanceof Node\Stmt\ClassLike) {
+    /**
+     * @param list<SourceSymbolSelector> $selectors
+     */
+    public function __construct(
+        private readonly array $selectors,
+    ) {
+    }
+
+    public function matches(
+        Node $node,
+        ?Node\Stmt\ClassLike $class,
+        ?Node\Stmt\ClassMethod $method,
+    ): bool {
+        $matches = false;
+
+        foreach ($this->selectors as $index => $selector) {
+            if (!$this->matchesSelector($node, $class, $method, $selector)) {
+                continue;
+            }
+
+            $this->matchedSelectors[$index] = true;
+            $matches = true;
+        }
+
+        return $matches;
+    }
+
+    public function hasSelectors(): bool
+    {
+        return $this->selectors !== [];
+    }
+
+    /**
+     * @return list<SourceSymbolSelector>
+     */
+    public function getUnmatchedSelectors(): array
+    {
+        $unmatched = [];
+
+        foreach ($this->selectors as $index => $selector) {
+            if (!isset($this->matchedSelectors[$index])) {
+                $unmatched[] = $selector;
+            }
+        }
+
+        return $unmatched;
+    }
+
+    public function reset(): void
+    {
+        $this->matchedSelectors = [];
+    }
+
+    private function matchesSelector(
+        Node $node,
+        ?Node\Stmt\ClassLike $class,
+        ?Node\Stmt\ClassMethod $method,
+        SourceSymbolSelector $selector,
+    ): bool {
+        if ($class === null) {
+            return false;
+        }
+
+        $shortClassName = $class->name;
+
+        if ($shortClassName === null) {
             return false;
         }
 
         $className = FullyQualifiedClassNameManipulator::getFqcn($class);
 
-        if ($className === null || strcasecmp($className->toString(), $selector->className) !== 0) {
+        if ($className === null || !$this->classMatches($shortClassName, $className, $selector)) {
             return false;
         }
 
         if ($selector->methodName !== null) {
-            $method = self::findAncestor($node, Node\Stmt\ClassMethod::class);
-
-            if (!$method instanceof Node\Stmt\ClassMethod || strcasecmp($method->name->toString(), $selector->methodName) !== 0) {
+            if ($method === null || strcasecmp($method->name->toString(), $selector->methodName) !== 0) {
                 return false;
             }
         }
@@ -78,19 +140,15 @@ final class SourceSymbolMatcher
             && $node->getEndLine() >= $selector->line;
     }
 
-    /**
-     * @param class-string<Node> $type
-     */
-    private static function findAncestor(Node $node, string $type): ?Node
-    {
-        do {
-            if ($node instanceof $type) {
-                return $node;
-            }
+    private function classMatches(
+        Node\Identifier $shortClassName,
+        Node\Name $className,
+        SourceSymbolSelector $selector,
+    ): bool {
+        if (str_contains($selector->className, '\\')) {
+            return strcasecmp($className->toString(), $selector->className) === 0;
+        }
 
-            $node = ParentConnector::findParent($node);
-        } while ($node !== null);
-
-        return null;
+        return strcasecmp($shortClassName->toString(), $selector->className) === 0;
     }
 }

@@ -35,7 +35,8 @@ declare(strict_types=1);
 
 namespace Infection\PhpParser\Visitor;
 
-use Infection\Configuration\SourceSymbolSelector;
+use function array_key_last;
+use function array_pop;
 use Infection\Source\Matcher\SourceSymbolMatcher;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
@@ -45,18 +46,80 @@ use PhpParser\NodeVisitorAbstract;
  */
 final class ExcludeNonSelectedSourceNodesVisitor extends NodeVisitorAbstract
 {
+    /** @var list<Node\Stmt\ClassLike> */
+    private array $classStack = [];
+
+    /** @var list<Node\Stmt\ClassMethod> */
+    private array $methodStack = [];
+
     public function __construct(
         private readonly SourceSymbolMatcher $matcher,
-        private readonly SourceSymbolSelector $selector,
     ) {
+    }
+
+    public function beforeTraverse(array $nodes): null
+    {
+        $this->classStack = [];
+        $this->methodStack = [];
+
+        return null;
     }
 
     public function enterNode(Node $node): null
     {
-        if (LabelNodesAsEligibleVisitor::isEligible($node) && !$this->matcher->matches($node, $this->selector)) {
+        if ($node instanceof Node\Stmt\ClassLike) {
+            $this->classStack[] = $node;
+        }
+
+        if ($node instanceof Node\Stmt\ClassMethod) {
+            $this->methodStack[] = $node;
+        }
+
+        $matches = $this->matches($node);
+
+        if (LabelNodesAsEligibleVisitor::isEligible($node) && !$matches) {
             LabelNodesAsEligibleVisitor::markAsIneligible($node);
         }
 
         return null;
+    }
+
+    public function leaveNode(Node $node): null
+    {
+        if ($node instanceof Node\Stmt\ClassMethod) {
+            array_pop($this->methodStack);
+        }
+
+        if ($node instanceof Node\Stmt\ClassLike) {
+            array_pop($this->classStack);
+        }
+
+        return null;
+    }
+
+    /**
+     * @template T of Node
+     *
+     * @param list<T> $nodes
+     *
+     * @return T|null
+     */
+    private static function findCurrent(array $nodes): ?Node
+    {
+        $key = array_key_last($nodes);
+
+        if ($key === null) {
+            return null;
+        }
+
+        return $nodes[$key];
+    }
+
+    private function matches(Node $node): bool
+    {
+        $class = self::findCurrent($this->classStack);
+        $method = self::findCurrent($this->methodStack);
+
+        return $this->matcher->matches($node, $class, $method);
     }
 }
