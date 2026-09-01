@@ -47,6 +47,7 @@ use Infection\Configuration\Entry\Source;
 use Infection\Configuration\Entry\StrykerConfig;
 use Infection\Configuration\SourceFilter\PlainFilter;
 use Infection\Configuration\SourceFilter\SourceFilter;
+use Infection\Configuration\SourceSymbolSelector;
 use Infection\Mutator\IgnoreConfig;
 use Infection\Mutator\IgnoreMutator;
 use Infection\Mutator\Mutator;
@@ -61,6 +62,7 @@ final class ConfigurationBuilder
     /**
      * @param array<string, Mutator<Node>> $mutators
      * @param array<string, array<int, string>> $ignoreSourceCodeMutatorsMap
+     * @param list<SourceSymbolSelector> $sourceSymbolSelectors
      * @param positive-int|'max' $dotsPerRow
      * @param non-empty-string $configPathname
      * @param non-empty-string $projectDirectory
@@ -69,6 +71,7 @@ final class ConfigurationBuilder
         private float $timeout,
         private Source $source,
         private ?SourceFilter $sourceFilter,
+        private array $sourceSymbolSelectors,
         private Logs $logs,
         private string $logVerbosity,
         private string $tmpDir,
@@ -114,6 +117,7 @@ final class ConfigurationBuilder
             timeout: $configuration->processTimeout,
             source: $configuration->source,
             sourceFilter: $configuration->sourceFilter,
+            sourceSymbolSelectors: $configuration->sourceSymbolSelectors,
             logs: $configuration->logs,
             logVerbosity: $configuration->logVerbosity,
             tmpDir: $configuration->tmpDir,
@@ -161,6 +165,7 @@ final class ConfigurationBuilder
             timeout: 10.0,
             source: new Source(),
             sourceFilter: null,
+            sourceSymbolSelectors: [],
             logs: Logs::createEmpty(),
             logVerbosity: 'none',
             tmpDir: '/tmp/infection',
@@ -212,6 +217,7 @@ final class ConfigurationBuilder
                 'src/Foo.php',
                 'src/Bar.php',
             ]),
+            sourceSymbolSelectors: [],
             logs: new Logs(
                 textLogFilePath: 'text.log',
                 htmlLogFilePath: 'report.html',
@@ -317,6 +323,14 @@ final class ConfigurationBuilder
     {
         $clone = clone $this;
         $clone->sourceFilter = $sourceFilter;
+
+        return $clone;
+    }
+
+    public function withSourceSymbolSelectors(SourceSymbolSelector ...$sourceSymbolSelectors): self
+    {
+        $clone = clone $this;
+        $clone->sourceSymbolSelectors = array_values($sourceSymbolSelectors);
 
         return $clone;
     }
@@ -630,6 +644,7 @@ final class ConfigurationBuilder
             processTimeout: $this->timeout,
             source: $this->source,
             sourceFilter: $this->sourceFilter,
+            sourceSymbolSelectors: $this->sourceSymbolSelectors,
             logs: $this->logs,
             logVerbosity: $this->logVerbosity,
             tmpDir: $this->tmpDir,

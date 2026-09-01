@@ -173,7 +173,7 @@ class ConfigurationFactory
         $mutators = $this->mutatorFactory->create($resolvedMutatorsArray, $useNoopMutators);
         $ignoreSourceCodeMutatorsMap = $this->retrieveIgnoreSourceCodeMutatorsMap($resolvedMutatorsArray);
 
-        [$sourceFilter, $testFrameworkExtraArgs] = $this->refineFilterIfNecessary(
+        [$sourceFilter, $testFrameworkExtraArgs, $sourceSymbolSelectors] = $this->refineFilterIfNecessary(
             $sourceFilter,
             $schema,
             $testFrameworkExtraArgs,
@@ -183,6 +183,7 @@ class ConfigurationFactory
             processTimeout: $schema->timeout ?? self::DEFAULT_TIMEOUT,
             source: $schema->source,
             sourceFilter: $sourceFilter,
+            sourceSymbolSelectors: $sourceSymbolSelectors,
             logs: $this->retrieveLogs($schema->logs, $configDir, $useGitHubLogger, $gitlabLogFilePath, $htmlLogFilePath, $textLogFilePath, $summaryJsonLogFilePath),
             logVerbosity: $logVerbosity,
             tmpDir: $namespacedTmpDir,
@@ -427,7 +428,7 @@ class ConfigurationFactory
     }
 
     /**
-     * @return array{0: PlainFilter|null, 1: string|null}
+     * @return array{0: PlainFilter|null, 1: string|null, 2: list<SourceSymbolSelector>}
      */
     private function resolvePositionalPathsFilter(
         PositionalPathsFilter $sourceFilter,
@@ -453,19 +454,21 @@ class ConfigurationFactory
             $testFrameworkExtraArgs = implode(' ', $classified->testPaths);
         }
 
-        return [$resolvedFilter, $testFrameworkExtraArgs];
+        return [$resolvedFilter, $testFrameworkExtraArgs, $classified->sourceSelectors];
     }
 
     /**
-     * @return array{0: SourceFilter|null, 1: string|null}
+     * @return array{0: SourceFilter|null, 1: string|null, 2: list<SourceSymbolSelector>}
      */
     private function refineFilterIfNecessary(
         PlainFilter|IncompleteGitDiffFilter|PositionalPathsFilter|null $sourceFilter,
         SchemaConfiguration $schema,
         ?string $testFrameworkExtraArgs,
     ): array {
+        $sourceSymbolSelectors = [];
+
         if ($sourceFilter instanceof PositionalPathsFilter) {
-            [$sourceFilter, $testFrameworkExtraArgs] = $this->resolvePositionalPathsFilter(
+            [$sourceFilter, $testFrameworkExtraArgs, $sourceSymbolSelectors] = $this->resolvePositionalPathsFilter(
                 $sourceFilter,
                 $schema,
                 $testFrameworkExtraArgs,
@@ -479,7 +482,7 @@ class ConfigurationFactory
             );
         }
 
-        return [$sourceFilter, $testFrameworkExtraArgs];
+        return [$sourceFilter, $testFrameworkExtraArgs, $sourceSymbolSelectors];
     }
 
     private function retrieveLogs(Logs $logs, string $configDir, ?bool $useGitHubLogger, ?string $gitlabLogFilePath, ?string $htmlLogFilePath, ?string $textLogFilePath, ?string $summaryJsonLogFilePath): Logs

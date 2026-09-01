@@ -66,6 +66,7 @@ readonly class Configuration
     /**
      * @param array<string, Mutator<Node>> $mutators
      * @param array<string, array<int, string>> $ignoreSourceCodeMutatorsMap
+     * @param list<SourceSymbolSelector> $sourceSymbolSelectors
      * @param positive-int|'max' $dotsPerRow
      * @param non-empty-string $configurationPathname
      * @param non-empty-string $projectDirectory Absolute path.
@@ -74,6 +75,7 @@ readonly class Configuration
         public float $processTimeout,
         public Source $source,
         public ?SourceFilter $sourceFilter,
+        public array $sourceSymbolSelectors,
         public Logs $logs,
         public string $logVerbosity,
         public string $tmpDir,

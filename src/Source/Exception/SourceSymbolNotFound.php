@@ -33,23 +33,42 @@
 
 declare(strict_types=1);
 
-namespace Infection\Configuration;
+namespace Infection\Source\Exception;
+
+use function array_map;
+use function implode;
+use Infection\Configuration\SourceSymbolSelector;
+use RuntimeException;
+use function sprintf;
 
 /**
- * Result of positional path classification: source paths (equivalent to --filter)
- * and test paths (equivalent to --test-framework-extra-args, space-joined).
- *
  * @internal
  */
-final readonly class ClassifiedPaths
+final class SourceSymbolNotFound extends RuntimeException
 {
-    public function __construct(
-        /** @var list<non-empty-string> */
-        public array $sourcePaths,
-        /** @var list<non-empty-string> */
-        public array $testPaths,
-        /** @var list<SourceSymbolSelector> */
-        public array $sourceSelectors,
-    ) {
+    /**
+     * @param non-empty-list<SourceSymbolSelector> $selectors
+     */
+    public static function forSelectors(array $selectors): self
+    {
+        return new self(sprintf(
+            'The following source selectors did not match any source symbol: %s.',
+            implode(', ', array_map(self::formatSelector(...), $selectors)),
+        ));
+    }
+
+    private static function formatSelector(SourceSymbolSelector $selector): string
+    {
+        $value = $selector->className;
+
+        if ($selector->methodName !== null) {
+            $value .= '::' . $selector->methodName;
+        }
+
+        if ($selector->line !== null) {
+            $value .= '::' . $selector->line;
+        }
+
+        return sprintf('"%s"', $value);
     }
 }

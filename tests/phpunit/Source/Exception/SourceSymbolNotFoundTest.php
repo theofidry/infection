@@ -33,23 +33,26 @@
 
 declare(strict_types=1);
 
-namespace Infection\Configuration;
+namespace Infection\Tests\Source\Exception;
 
-/**
- * Result of positional path classification: source paths (equivalent to --filter)
- * and test paths (equivalent to --test-framework-extra-args, space-joined).
- *
- * @internal
- */
-final readonly class ClassifiedPaths
+use Infection\Configuration\SourceSymbolSelector;
+use Infection\Source\Exception\SourceSymbolNotFound;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+
+#[CoversClass(SourceSymbolNotFound::class)]
+final class SourceSymbolNotFoundTest extends TestCase
 {
-    public function __construct(
-        /** @var list<non-empty-string> */
-        public array $sourcePaths,
-        /** @var list<non-empty-string> */
-        public array $testPaths,
-        /** @var list<SourceSymbolSelector> */
-        public array $sourceSelectors,
-    ) {
+    public function test_it_lists_every_unmatched_selector(): void
+    {
+        $throwable = SourceSymbolNotFound::forSelectors([
+            new SourceSymbolSelector('Differ', null, null),
+            new SourceSymbolSelector('App\\Mailer', 'send', 42),
+        ]);
+
+        $this->assertSame(
+            'The following source selectors did not match any source symbol: "Differ", "App\\Mailer::send::42".',
+            $throwable->getMessage(),
+        );
     }
 }

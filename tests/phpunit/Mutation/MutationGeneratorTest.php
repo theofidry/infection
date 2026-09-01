@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Mutation;
 
+use Infection\Configuration\SourceSymbolSelector;
 use Infection\Event\EventDispatcher\EventDispatcher;
 use Infection\Event\Events\MutationAnalysis\MutationGeneration\MutableFileWasProcessed;
 use Infection\Event\Events\MutationAnalysis\MutationGeneration\MutationGenerationWasFinished;
@@ -45,10 +46,13 @@ use Infection\Mutation\MutationGenerator;
 use Infection\Mutator\IgnoreConfig;
 use Infection\Mutator\IgnoreMutator;
 use Infection\Source\Collector\FixedSourceCollector;
+use Infection\Source\Exception\SourceSymbolNotFound;
+use Infection\Source\Matcher\SourceSymbolMatcher;
 use Infection\Testing\FileSystem\MockSplFileInfo;
 use Infection\Tests\Fixtures\Mutator\FakeMutator;
 use Infection\Tests\WithConsecutive;
 use function iterator_to_array;
+use PhpParser\Node;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -102,6 +106,7 @@ final class MutationGeneratorTest extends TestCase
             $mutators,
             $eventDispatcherMock,
             $fileMutationGenerator,
+            new SourceSymbolMatcher([]),
         );
 
         $mutations = iterator_to_array(
@@ -150,10 +155,44 @@ final class MutationGeneratorTest extends TestCase
             [],
             $eventDispatcherMock,
             $fileMutationGeneratorMock,
+            new SourceSymbolMatcher([]),
         );
 
         foreach ($mutationGenerator->generate(false) as $_) {
             // We just want to iterate here to trigger the generator
         }
+    }
+
+    public function test_it_rejects_unmatched_source_selectors_after_processing_every_source(): void
+    {
+        $selector = new SourceSymbolSelector('Differ', 'missing', null);
+        $sourceSymbolMatcher = new SourceSymbolMatcher([$selector]);
+        $method = new Node\Stmt\ClassMethod('missing');
+        $class = new Node\Stmt\Class_('Differ', [
+            'stmts' => [$method],
+        ]);
+        $class->namespacedName = new Node\Name('Differ');
+        $this->assertTrue($sourceSymbolMatcher->matches($method, $class, $method));
+        $fileMutationGenerator = $this->createMock(FileMutationGenerator::class);
+        $fileMutationGenerator
+            ->expects($this->exactly(2))
+            ->method('generate')
+            ->willReturn([])
+        ;
+        $mutationGenerator = new MutationGenerator(
+            new FixedSourceCollector([
+                new MockSplFileInfo(realPath: 'path/to/fileA'),
+                new MockSplFileInfo(realPath: 'path/to/fileB'),
+            ]),
+            [],
+            $this->createStub(EventDispatcher::class),
+            $fileMutationGenerator,
+            $sourceSymbolMatcher,
+        );
+
+        $this->expectException(SourceSymbolNotFound::class);
+        $this->expectExceptionMessage('The following source selectors did not match any source symbol: "Differ::missing".');
+
+        iterator_to_array($mutationGenerator->generate(false));
     }
 }

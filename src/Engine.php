@@ -55,6 +55,7 @@ use Infection\Process\Runner\InitialTestsRunner;
 use Infection\Process\Runner\MutationTestingRunner;
 use Infection\Resource\Memory\MemoryLimiter;
 use Infection\Source\Exception\NoSourceFound;
+use Infection\Source\Exception\SourceSymbolNotFound;
 use Infection\Source\PreloadedSourceChecker;
 use Infection\TestFramework\Coverage\CoverageChecker;
 use Infection\TestFramework\Coverage\JUnit\TestNotFound;
@@ -97,6 +98,7 @@ final readonly class Engine
      * @throws UnparsableFile
      * @throws InvalidCoverage
      * @throws NoSourceFound
+     * @throws SourceSymbolNotFound
      * @throws NoReportFound
      * @throws TooManyReportsFound
      * @throws ReportLocationThrowable
@@ -175,6 +177,7 @@ final readonly class Engine
      * @throws UnparsableFile
      * @throws InvalidCoverage
      * @throws NoSourceFound
+     * @throws SourceSymbolNotFound
      * @throws NoReportFound
      * @throws TooManyReportsFound
      * @throws ReportLocationThrowable
