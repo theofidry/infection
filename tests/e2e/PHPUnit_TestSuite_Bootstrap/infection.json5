@@ -10,5 +10,8 @@
     "logs": {
         "summary": "var/infection.log"
     },
+    "mutators": {
+        "Plus": true
+    },
     "tmpDir": "var/infection-tmp"
 }

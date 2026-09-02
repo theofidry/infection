@@ -188,9 +188,22 @@ class MutationConfigBuilder extends ConfigBuilder
      */
     private function setFilteredTestsToRun(array $tests, SafeDOMXPath $xPath): void
     {
+        // Replacing the original test suites would discard their bootstraps. Keep the suites intact and rely on
+        // PHPUnit's --filter option so that each selected test still runs with the bootstrap of its original suite.
+        if ($this->hasTestSuiteBootstrap($xPath)) {
+            return;
+        }
+
         $this->removeExistingTestSuite($xPath);
 
         $this->addTestSuiteWithFilteredTestFiles($tests, $xPath);
+    }
+
+    private function hasTestSuiteBootstrap(SafeDOMXPath $xPath): bool
+    {
+        return $xPath->queryList(
+            '/phpunit/testsuites/testsuite/@bootstrap|/phpunit/testsuite/@bootstrap',
+        )->length > 0;
     }
 
     private function removeExistingTestSuite(SafeDOMXPath $xPath): void

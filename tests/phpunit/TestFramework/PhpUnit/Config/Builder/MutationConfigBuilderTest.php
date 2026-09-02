@@ -429,6 +429,54 @@ final class MutationConfigBuilderTest extends TestCase
         $this->assertSame(1, $testSuite->length);
     }
 
+    public function test_it_preserves_test_suites_with_bootstraps(): void
+    {
+        $builder = $this->createConfigBuilder(self::FIXTURES . '/phpunit_with_test_suite_bootstrap.xml');
+
+        $configurationPath = $builder->build(
+            [],
+            self::MUTATED_FILE_PATH,
+            self::HASH,
+            self::ORIGINAL_FILE_PATH,
+            '12.5',
+        );
+
+        $testSuites = $this->queryXpath(
+            $this->filesystem->readFile($configurationPath),
+            '/phpunit/testsuites/testsuite[@name="Application Test Suite"]/@bootstrap',
+        );
+
+        $this->assertSame(1, $testSuites->length);
+        $this->assertSame(
+            $this->projectPath . '/tests/bootstrap.php',
+            $testSuites[0]->nodeValue,
+        );
+    }
+
+    public function test_it_preserves_a_root_test_suite_with_a_bootstrap(): void
+    {
+        $builder = $this->createConfigBuilder(self::FIXTURES . '/phpunit_with_root_test_suite_bootstrap.xml');
+
+        $configurationPath = $builder->build(
+            [],
+            self::MUTATED_FILE_PATH,
+            self::HASH,
+            self::ORIGINAL_FILE_PATH,
+            '12.5',
+        );
+
+        $testSuites = $this->queryXpath(
+            $this->filesystem->readFile($configurationPath),
+            '/phpunit/testsuite[@name="Application Test Suite"]/@bootstrap',
+        );
+
+        $this->assertSame(1, $testSuites->length);
+        $this->assertSame(
+            $this->projectPath . '/tests/bootstrap.php',
+            $testSuites[0]->nodeValue,
+        );
+    }
+
     public function test_it_removes_original_loggers(): void
     {
         $xml = $this->filesystem->readFile(
