@@ -35,10 +35,10 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Logger\ArtefactCollection;
 
+use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\Framework\Str;
 use Infection\Logger\ArtefactCollection\ConsoleNoProgressLogger;
 use Infection\Logger\ArtefactCollection\InitialTestsExecution\InitialTestsExecutionLogger;
-use Infection\TestFramework\AbstractTestFrameworkAdapter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -49,14 +49,14 @@ final class ConsoleNoProgressLoggerTest extends TestCase
 {
     private BufferedOutput $output;
 
-    private MockObject&AbstractTestFrameworkAdapter $testFrameworkMock;
+    private MockObject&TestFrameworkAdapter $testFrameworkMock;
 
     private InitialTestsExecutionLogger $logger;
 
     protected function setUp(): void
     {
         $this->output = new BufferedOutput();
-        $this->testFrameworkMock = $this->createMock(AbstractTestFrameworkAdapter::class);
+        $this->testFrameworkMock = $this->createMock(TestFrameworkAdapter::class);
 
         $this->logger = new ConsoleNoProgressLogger(
             $this->testFrameworkMock,
@@ -69,12 +69,14 @@ final class ConsoleNoProgressLoggerTest extends TestCase
         $this->testFrameworkMock
             ->expects($this->once())
             ->method('getVersion')
-            ->willReturn('6.5.4');
+            ->willReturn('6.5.4')
+        ;
 
         $this->testFrameworkMock
             ->expects($this->once())
             ->method('getName')
-            ->willReturn('PHPUnit');
+            ->willReturn('PHPUnit')
+        ;
 
         $expected = <<<'EOF'
 

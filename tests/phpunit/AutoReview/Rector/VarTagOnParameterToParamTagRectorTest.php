@@ -33,12 +33,31 @@
 
 declare(strict_types=1);
 
-namespace Infection\TestFramework\Config;
+namespace Infection\Tests\AutoReview\Rector;
 
-/**
- * @internal
- */
-interface InitialConfigBuilder
+use Iterator;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use Rector\Testing\PHPUnit\AbstractRectorTestCase;
+
+#[CoversClass(VarTagOnParameterToParamTagRector::class)]
+#[Group('integration')]
+final class VarTagOnParameterToParamTagRectorTest extends AbstractRectorTestCase
 {
-    public function build(string $version): string;
+    #[DataProvider('provideFixtures')]
+    public function test_it_moves_var_tags_to_the_method(string $fixture): void
+    {
+        $this->doTestFile($fixture);
+    }
+
+    public static function provideFixtures(): Iterator
+    {
+        return self::yieldFilesFromDirectory(__DIR__ . '/Fixture');
+    }
+
+    public function provideConfigFilePath(): string
+    {
+        return __DIR__ . '/config/configured_rule.php';
+    }
 }
