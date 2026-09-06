@@ -6,6 +6,7 @@
     - [Implementation Map](#implementation-map)
 - Index
     - [A](#a)
+        - [Actionable Mutation][actionable-mutation]
         - [Arid Node][arid-node]
         - [Artefact Collection][artefact-collection]
         - [AST][ast]
@@ -26,6 +27,8 @@
         - [Mutation Analysis][mutation-analysis]
         - [Mutation Generation][mutation-generation]
         - [Mutator][mutator]
+    - [P](#p)
+        - [Productive Mutation][productive-mutation]
     - [R](#r)
         - [Reporting][reporting]
     - [S](#s)
@@ -133,6 +136,16 @@ The following table maps the execution phases to the main implementation entry p
 
 ## A
 
+### Actionable Mutation
+
+A [mutation][mutation] whose analysis identifies a specific, justified improvement to the test suite or the
+[subject][subject], such as adding or strengthening a test or correcting a defect. It remains actionable whether or
+not the affected developer considers the improvement [productive][productive-mutation]. Actionability depends on
+context; it is not an intrinsic property of the [mutator][mutator]. [\[1\]][ref-1] [\[4\]][ref-4]
+
+In this context, "actionable mutant" and "actionable mutation" are interchangeable.
+
+
 ### Arid Node
 
 An [AST][ast] node that, if mutated, would create unproductive [mutants][mutant]. Examples include
@@ -235,6 +248,18 @@ A definition of a possible transformation which, when applied to the [AST][ast] 
 In the mutation testing literature, mutators are also known as "mutant operator", "mutagenic operator", "mutagen", and "mutation rule".
 
 
+## P
+
+### Productive Mutation
+
+An [actionable mutation][actionable-mutation] whose identified improvement the affected developer considers
+worthwhile in the [subject's][subject] context. Productivity does not depend on whether the improvement is
+implemented. Implementation is influenced by capacity, priority, ownership, and timing, so it is not used to assess
+the mutation or [mutator][mutator]. [\[1\]][ref-1] [\[4\]][ref-4]
+
+In this context, "productive mutant" and "productive mutation" are interchangeable.
+
+
 ## R
 
 ### Reporting
@@ -275,10 +300,12 @@ _Note: These references indicate where a term is used or defined, not necessaril
 1. Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Practical Mutation Testing at Scale: A view from Google," _IEEE Trans. Softw. Eng._, vol. 48, no. 10, pp. 3900–3912, Oct. 2022, doi: [10.1109/TSE.2021.3107634](https://doi.org/10.1109/TSE.2021.3107634).
 2. Yue Jia and Mark Harman, "An Analysis and Survey of the Development of Mutation Testing," _IEEE Trans. Softw. Eng._, vol. 37, no. 5, pp. 649–678, Sep. 2011, doi: [10.1109/TSE.2010.62](https://doi.org/10.1109/TSE.2010.62).
 3. Richard A. DeMillo, Richard J. Lipton, and Frederick G. Sayward, "Hints on Test Data Selection: Help for the Practicing Programmer," _Computer_, vol. 11, no. 4, pp. 34–41, Apr. 1978, doi: [10.1109/C-M.1978.218136](https://doi.org/10.1109/C-M.1978.218136).
+4. Goran Petrović and Marko Ivanković, "State of Mutation Testing at Google," in _Proceedings of the 40th International Conference on Software Engineering: Software Engineering in Practice_, pp. 163–171, May 2018, doi: [10.1145/3183519.3183521](https://doi.org/10.1145/3183519.3183521).
 
 
 <hr />
 
+[actionable-mutation]: #actionable-mutation
 [arid-node]: #arid-node
 [artefact-collection]: #artefact-collection
 [ast]: #ast
@@ -296,10 +323,12 @@ _Note: These references indicate where a term is used or defined, not necessaril
 [mutation]: #mutation
 [mutation-analysis]: #mutation-analysis
 [mutator]: #mutator
+[productive-mutation]: #productive-mutation
 [ast-parsing]: #ast-parsing
 [ref-1]: #references
 [ref-2]: #references
 [ref-3]: #references
+[ref-4]: #references
 [reporting]: #reporting
 [source-collection]: #source-collection
 [subject]: #subject
