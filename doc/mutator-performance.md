@@ -287,30 +287,29 @@ The benchmark does not measure mutant evaluation or actionability.
 #### Evaluation Workload
 
 ```math
-\sum_{m \in M} \operatorname{tests}(m)
+\sum_{m \in M} n_m
 ```
 
-Here, $M$ is the set of evaluated mutations, and $\operatorname{tests}(m)$ is the number of tests selected for
-mutation $m$. The report also contains the number of generated and evaluated mutations and the expected duration of
-each selected test set when run against the original code.
+Here, $M$ is the set of evaluated mutations, and $n_m$ is the number of tests selected for mutation $m$. The report
+also contains the number of generated and evaluated mutations and the expected duration of each selected test set
+when run against the original code.
 
 These counts describe the workload that produces the measured time. They do not measure mutator quality.
 
 #### Evaluation-Time Overhead
 
 ```math
-\operatorname{timeOverhead}(m)
-= \operatorname{mutantTime}(m) - \operatorname{baselineTime}(m)
+\Delta T_m = T_m - T_m^{(0)}
 ```
 
 ```math
-\operatorname{timeAmplification}(m)
-= \frac{\operatorname{mutantTime}(m)}{\operatorname{baselineTime}(m)}
+A_m^T = \frac{T_m}{T_m^{(0)}}
 ```
 
-The baseline is the wall time for the same selected tests running against the original code. The absolute overhead
-expresses the additional time, while amplification allows comparison between mutations with differently sized test
-selections. An amplification near 1 means that mutant evaluation took approximately the baseline time.
+Here, $T_m$ is the wall time for mutation $m$, and $T_m^{(0)}$ is the wall time for the same selected tests running
+against the original code. The absolute overhead $\Delta T_m$ expresses the additional time, while the amplification
+$A_m^T$ allows comparison between mutations with differently sized test selections. An amplification near 1 means
+that mutant evaluation took approximately the baseline time.
 
 The report contains the absolute mutant and baseline times, together with the median and p95 overhead and
 amplification, stratified by native `DetectionStatus`. Baselines close to zero and timed-out evaluations are reported
@@ -319,27 +318,25 @@ separately.
 #### Peak-Memory Overhead
 
 ```math
-\operatorname{memoryOverhead}(m)
-= \operatorname{mutantPeakRss}(m) - \operatorname{baselinePeakRss}(m)
+\Delta R_m = R_m - R_m^{(0)}
 ```
 
 ```math
-\operatorname{memoryAmplification}(m)
-= \frac{\operatorname{mutantPeakRss}(m)}{\operatorname{baselinePeakRss}(m)}
+A_m^R = \frac{R_m}{R_m^{(0)}}
 ```
 
-The baseline is the peak resident set size of the same selected tests running against the original code under the
-same process configuration. The report contains the median and p95 per-mutation overhead and amplification. A
-positive overhead indicates that the mutant process reached a higher peak memory usage than its baseline.
+Here, $R_m$ is the peak resident set size for mutation $m$, and $R_m^{(0)}$ is the peak resident set size of the same
+selected tests running against the original code under the same process configuration. The report contains the
+median and p95 per-mutation overhead $\Delta R_m$ and amplification $A_m^R$. A positive overhead indicates that the
+mutant process reached a higher peak memory usage than its baseline.
 
 #### End-to-End Latency and Total Resource Cost
 
 The aggregate evaluation-time amplification is:
 
 ```math
-\operatorname{totalTimeAmplification}
-= \frac{\sum_{m \in M} \operatorname{mutantTime}(m)}
-        {\sum_{m \in M} \operatorname{baselineTime}(m)}
+A^T = \frac{\sum_{m \in M} T_m}
+           {\sum_{m \in M} T_m^{(0)}}
 ```
 
 This metric compares the total mutant-process work with the expected work of running the corresponding selected tests
