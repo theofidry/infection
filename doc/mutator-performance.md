@@ -139,9 +139,9 @@ TODO: Confirm what happens when PHP-Parser cannot print a mutation.
 
 The literature describes mutations which cannot be compiled as _invalid_, _uncompilable_, or _stillborn_. Google's
 practical mutation-testing criteria require mutants to be syntactically valid because compiler detection does not
-provide useful test feedback [1]. Tool evaluations likewise report compilation errors separately from killed and
-surviving mutants [6]. This guide uses _syntactic validity rate_ as an operational term; it is not an established
-term in the literature.
+provide useful test feedback [\[1\]](#ref-1). Tool evaluations likewise report compilation errors separately from
+killed and surviving mutants [\[6\]](#ref-6). This guide uses _syntactic validity rate_ as an operational term; it is
+not an established term in the literature.
 
 </details>
 
@@ -187,10 +187,11 @@ suppression, or transformation may require reconsideration.
 <summary>Research basis and terminology</summary>
 
 Industrial mutation-testing research distinguishes a mutation that leads to a concrete test improvement from the
-affected developer's subsequent judgement that the improvement is productive [1, 2, 3]. This guide measures only the
+affected developer's subsequent judgement that the improvement is productive [\[1\]](#ref-1),
+[\[2\]](#ref-2), and [\[3\]](#ref-3). This guide measures only the
 first concept and uses _actionable mutation_ as defined in Infection's [nomenclature][Nomenclature].
 
-Equivalent-mutant detection is undecidable in general and commonly requires manual analysis [4]. Manual
+Equivalent-mutant detection is undecidable in general and commonly requires manual analysis [\[4\]](#ref-4). Manual
 classification can therefore be uncertain and reviewer-dependent. Random sampling, explicit categories, retained
 unknowns, independent review, and uncertainty intervals make those limitations visible instead of converting them
 silently into favourable results.
@@ -224,20 +225,22 @@ mutation faster are different improvements and can have different effects on act
 <summary>Research basis and terminology</summary>
 
 Pizzoleto et al.'s systematic review covers 153 primary studies and identifies 18 metrics used to measure mutation
-testing costs [4]. The three most common are the number of mutants executed, used by 66 studies; mutant execution
-speed-up, used by 36; and the number of tests required, used by 25. The review also identifies separate speed-up
-metrics for mutant generation, compilation, execution, and complete mutation analysis. This evidence supports
+testing costs [\[4\]](#ref-4). The three most common are the number of mutants executed, used by 66 studies; mutant
+execution speed-up, used by 36; and the number of tests required, used by 25. The review also identifies separate
+speed-up metrics for mutant generation, compilation, execution, and complete mutation analysis. This evidence supports
 measuring workload and execution time separately and comparing execution time with a baseline rather than
 interpreting an isolated duration.
 
 Test-prioritisation research demonstrates that test selection and ordering affect mutant execution costs because a
-test that kills a mutant can end its evaluation early [9]. Studies of regression and parallel mutation testing
-report actual time saved, analysis overhead, total execution time, and speed-up for fixed execution configurations
-[4]. These results support recording the selected tests, termination status, end-to-end time, and worker count.
+test that kills a mutant can end its evaluation early [\[9\]](#ref-9). Studies of regression and parallel mutation
+testing report actual time saved, analysis overhead, total execution time, and speed-up for fixed execution
+configurations [\[4\]](#ref-4). These results support recording the selected tests, termination status, end-to-end
+time, and worker count.
 
 Memory is not among the recurring cost metrics identified by the systematic review. However, Performance Mutation
 Testing treats execution time and memory as observable non-functional properties, establishes timing baselines by
-repeatedly running the original program, and proposes profiling memory deviations against the original program [10].
+repeatedly running the original program, and proposes profiling memory deviations against the original program
+[\[10\]](#ref-10).
 That study evaluates performance-mutant behaviour rather than mutation-tool overhead. It therefore supports the
 baseline principle, although the memory measurements below remain specific to this methodology.
 
@@ -369,8 +372,8 @@ noise. It does not, by itself, show that the mutator is unreliable.
 
 Flaky test outcomes and non-deterministic coverage can change mutation-testing results. Shi, Bell, and Marinov found
 non-deterministic coverage even for tests whose pass/fail outcome appeared stable, and showed that score differences
-can be smaller than variation caused by flakiness [5]. Repeated baseline and mutant runs are therefore needed to
-quantify experimental noise.
+can be smaller than variation caused by flakiness [\[5\]](#ref-5). Repeated baseline and mutant runs are therefore
+needed to quantify experimental noise.
 
 </details>
 
@@ -391,10 +394,11 @@ coverage, but a mutator is not considered better merely because it produces more
 <details>
 <summary>Research basis and terminology</summary>
 
-The conventional mutation score is the proportion of non-equivalent mutants that a test suite kills [4, 7]. Its
+The conventional mutation score is the proportion of non-equivalent mutants that a test suite kills
+[\[4\]](#ref-4), [\[7\]](#ref-7). Its
 denominator and interpretation concern test effectiveness. Research on selective mutation also shows why mutation
 count alone is insufficient: reducing the mutant set is useful only when the reduced set preserves the relevant
-testing information [4, 8].
+testing information [\[4\]](#ref-4), [\[8\]](#ref-8).
 
 </details>
 
@@ -447,34 +451,44 @@ rule recorded before the study.
 
 ## References
 
-1. Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Practical Mutation Testing at Scale: A View
+1. <a id="ref-1"></a>Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Practical Mutation Testing at
+   Scale: A View
    from Google," _IEEE Transactions on Software Engineering_, vol. 48, no. 10, pp. 3900–3912, 2022,
    doi: [10.1109/TSE.2021.3107634][PracticalMutationTesting].
-2. Goran Petrović and Marko Ivanković, "State of Mutation Testing at Google," _Proceedings of the 40th
+2. <a id="ref-2"></a>Goran Petrović and Marko Ivanković, "State of Mutation Testing at Google," _Proceedings of the
+   40th
    International Conference on Software Engineering: Software Engineering in Practice_, pp. 163–171, 2018,
    doi: [10.1145/3183519.3183521][StateOfMutationTesting].
-3. Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Does Mutation Testing Improve Testing
+3. <a id="ref-3"></a>Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Does Mutation Testing Improve
+   Testing
    Practices?", _Proceedings of the 43rd International Conference on Software Engineering_, pp. 910–920, 2021,
    doi: [10.1109/ICSE43902.2021.00087][MutationTestingPractices].
-4. Alessandro Viola Pizzoleto, Fabiano Cutigi Ferrari, Jeff Offutt, Leo Fernandes, and Márcio Ribeiro, "A Systematic
+4. <a id="ref-4"></a>Alessandro Viola Pizzoleto, Fabiano Cutigi Ferrari, Jeff Offutt, Leo Fernandes, and Márcio
+   Ribeiro, "A Systematic
    Literature Review of Techniques and Metrics to Reduce the Cost of Mutation Testing," _Journal of Systems and
    Software_, vol. 157, 2019, doi: [10.1016/j.jss.2019.07.100][MutationCostReview].
-5. August Shi, Jonathan Bell, and Darko Marinov, "Mitigating the Effects of Flaky Tests on Mutation Testing,"
+5. <a id="ref-5"></a>August Shi, Jonathan Bell, and Darko Marinov, "Mitigating the Effects of Flaky Tests on Mutation
+   Testing,"
    _Proceedings of the 28th ACM SIGSOFT International Symposium on Software Testing and Analysis_, pp. 112–122,
    2019, doi: [10.1145/3293882.3330568][FlakyTests].
-6. Y. Ivanova and A. Khritankov, "RegularMutator: A Mutation Testing Tool for Solidity Smart Contracts,"
+6. <a id="ref-6"></a>Y. Ivanova and A. Khritankov, "RegularMutator: A Mutation Testing Tool for Solidity Smart
+   Contracts,"
    _Procedia Computer Science_, vol. 178, pp. 75–83, 2020,
    doi: [10.1016/j.procs.2020.11.009][RegularMutator].
-7. Yue Jia and Mark Harman, "An Analysis and Survey of the Development of Mutation Testing," _IEEE Transactions
+7. <a id="ref-7"></a>Yue Jia and Mark Harman, "An Analysis and Survey of the Development of Mutation Testing,"
+   _IEEE Transactions
    on Software Engineering_, vol. 37, no. 5, pp. 649–678, 2011,
    doi: [10.1109/TSE.2010.62][MutationSurvey].
-8. Lingming Zhang, Milos Gligoric, Darko Marinov, and Sarfraz Khurshid, "Operator-Based and Random Mutant
+8. <a id="ref-8"></a>Lingming Zhang, Milos Gligoric, Darko Marinov, and Sarfraz Khurshid, "Operator-Based and Random
+   Mutant
    Selection: Better Together," _Proceedings of the 28th IEEE/ACM International Conference on Automated Software
    Engineering_, pp. 92–102, 2013, doi: [10.1109/ASE.2013.6693070][MutantSelection].
-9. Lingming Zhang, Darko Marinov, and Sarfraz Khurshid, "Faster Mutation Testing Inspired by Test Prioritization
+9. <a id="ref-9"></a>Lingming Zhang, Darko Marinov, and Sarfraz Khurshid, "Faster Mutation Testing Inspired by Test
+   Prioritization
    and Reduction," _Proceedings of the 2013 International Symposium on Software Testing and Analysis_, 2013,
    doi: [10.1145/2483760.2483782][FasterMutationTesting].
-10. Pedro Delgado-Pérez, Ana Belén Sánchez, Sergio Segura, and Inmaculada Medina-Bulo, "Performance Mutation
+10. <a id="ref-10"></a>Pedro Delgado-Pérez, Ana Belén Sánchez, Sergio Segura, and Inmaculada Medina-Bulo,
+    "Performance Mutation
     Testing," _Software Testing, Verification and Reliability_, vol. 30, no. 5, 2020,
     doi: [10.1002/stvr.1728][PerformanceMutationTesting].
 
