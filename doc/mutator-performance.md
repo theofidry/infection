@@ -1,397 +1,454 @@
 # Evaluating Mutator Performance
 
-The performance of a mutator has four independent dimensions:
+This guide describes how to evaluate an Infection [mutator][Nomenclature]. It is intended for contributors who are
+deciding whether to add, change, retain, or remove a mutator.
 
-1. **Technical quality:** does it generate and evaluate its intended transformations without unacceptable tool
-   failures?
-2. **Actionability:** do its mutations identify specific, justified improvements?
-3. **Productivity:** do affected developers consider those improvements worthwhile in their context?
-4. **Cost:** how much machine time and developer attention does it consume?
+The evaluation has three independent dimensions:
 
-These dimensions must remain separate. A fast mutator which produces noise is not useful, while an insightful
-mutator may be too expensive to run routinely. Consider the dimensions together rather than reducing them to a
-single composite score.
+1. **Validity:** does the mutator generate syntactically valid transformations on real projects?
+2. **Actionability:** how often does the transformation identify a specific, justified improvement?
+3. **Cost:** how much machine time and memory does the mutator consume?
 
-The terms _actionable mutation_ and _productive mutation_ have the meanings defined in
-[the nomenclature][Nomenclature]. Neither is an intrinsic property of a mutator. They depend on the subject, its
-tests, and the developer's context.
+These dimensions are reported separately because a single score would obscure trade-offs: an inexpensive mutator
+can generate mostly non-actionable mutations, while a highly actionable mutator can still be too expensive to enable
+routinely.
 
-## Scope, Audience, and Limitations
+## Scope
 
-This process is for Infection contributors and maintainers deciding whether to add, change, retain, or remove a
-mutator. It asks whether that mutator produces enough productive findings to justify its computational cost, review
-cost, and risk.
-It does not rank a collection of mutators, evaluate the quality of a project's test suite, or attempt to establish
-an optimal mutation-operator set.
+The unit under evaluation is the mutator, not the subject's test suite or development team. The evaluation ends once
+a mutation has been classified as actionable or non-actionable. It does not consider whether the affected developer
+regards an actionable improvement as [productive][Nomenclature], has the capacity to implement it, or chooses to do
+so.
 
-Productivity is assessed from Infection's perspective. A mutation is productive when the affected developer
-considers its specific, justified improvement worthwhile in the subject's context. Whether the team implements that
-improvement is irrelevant: implementation also depends on capacity, priority, ownership, and timing, none of which
-establish the quality of the mutator.
+The results are conditional on the selected subjects, revisions, tests, PHP versions, and execution environment.
+They support a decision about the mutator for a declared population, but do not establish a universal property of
+the transformation.
 
-This deliberately limited process does not independently estimate equivalent-mutation rates, construct dynamic
-subsumption relations, compare controlled test-suite variants, or establish coupling with real faults. Equivalent,
-redundant, irrelevant, and arid mutations remain relevant as possible explanations for an unproductive finding, but
-they do not require separate population metrics. This reduces the strength of the conclusions in exchange for an
-assessment which can realistically be performed for one mutator.
-
-Results remain conditional on the selected projects, revisions, test suites, mutations, reviewers, and affected
-developers. They support an engineering decision about the mutator; they do not establish universal
-properties of the transformation or predict its value for every Infection user.
+There is no universal acceptance threshold. The threshold or decision rule is established before collecting
+results. If Infection adopts stable project-wide thresholds, that policy is a candidate for an
+[Architecture Decision Record](../adr/README.md).
 
 ## Evaluation Process
 
-Use the following stages in order. A candidate which fails an early stage should normally be revised or rejected
-before investing in a corpus study.
+### 1. Evaluation Claim
 
-### 1. State the Claim and Decision
+The evaluation claim describes:
 
-Describe the transformation, the defect or testing weakness it is intended to expose, and the contexts in which it
-should and should not apply. Give concrete positive, negative, and boundary examples. For an existing mutator,
-describe the proposed decision: retain it, change its applicability or transformation, enable it by default, or
-remove it.
+- the transformation and the testing weakness or defect it is intended to expose;
+- the contexts in which it does and does not apply;
+- positive, negative, and boundary examples;
+- the population of PHP projects covered by the conclusion;
+- the decision being considered and the evidence required to make it.
 
-Before collecting results, record:
+For a change to an existing mutator, the claim includes the expected effect. For example, a new guard may be
+intended to remove equivalent mutations without removing actionable ones.
 
-- the population to which the conclusion is intended to apply;
-- the evidence required to support the decision;
-- which outcomes count as reported findings;
-- the validity criteria;
-- the sampling and rerun procedures;
-- the acceptable computational and review cost.
+### 2. Transformation Review
 
-Do not derive acceptance thresholds after seeing the results. There is no universal threshold at which a mutator
-becomes good: the acceptable trade-off is a project policy, while the measurements below are evidence for applying
-that policy.
-
-### 2. Review the Transformation
-
-Check the mutator's `canMutate()` and `mutate()` behaviour with representative examples. A suitable transformation:
+The review of `canMutate()` and `mutate()` precedes the corpus study and establishes whether the mutator:
 
 - changes behaviour which a developer could reasonably want a test or static analyser to detect;
-- does not deliberately generate syntax errors, guaranteed fatal errors, or infinite loops;
-- avoids known equivalent, redundant, irrelevant, and arid mutations where this can be decided cheaply and safely;
-- preserves the source node attributes required to materialise the mutant;
+- does not deliberately produce syntax errors, guaranteed fatal errors, or infinite loops;
+- avoids known equivalent, redundant, irrelevant, and arid mutations when they can be suppressed cheaply and
+  safely;
+- preserves the node attributes needed to materialise the mutant;
 - does not unintentionally duplicate another enabled mutator.
 
-This review catches faults that aggregate measurements can hide. Record uncertain cases instead of adding a complex
-suppression heuristic without evidence: every heuristic has its own correctness and generation cost.
+The canonical mutator test covers the accepted, rejected, and boundary examples. Passing it shows that the
+implementation matches the declared transformation; it does not establish actionability on real projects.
 
-The canonical mutator test should exercise the accepted, rejected, and boundary examples. Passing that test proves
-that the implementation matches its declared transformation; it does not prove that the transformation is useful.
+### 3. Pilot
 
-### 3. Run a Pilot
+A pilot runs only the candidate mutator on a few heterogeneous subjects. When the pilot is sufficiently small, every
+mutation is inspected. The pilot identifies implementation faults, refines the classification rules, estimates the
+runtime, and informs the sample size for the main study.
 
-Run the mutator by itself on a few heterogeneous subjects. Inspect every generated mutation and result if the pilot
-is small enough. Use the pilot to find implementation faults, refine the data-collection procedure, estimate the
-population and runtime, and calculate the sample size for the main study. Do not include pilot observations in the
-confirmatory results when the transformation or protocol changed in response to them.
+Pilot observations are excluded from the main result if the mutator or protocol changed in response to them.
 
-### 4. Evaluate a Representative Corpus
+### 4. Representative Corpus Evaluation
 
-Apply the experimental design below to a corpus representative of the declared population. Collect objective result
-and cost data for every generated mutation, then assess a representative sample of reported findings for
-actionability and productivity.
+The candidate runs against pinned revisions of subjects representative of the declared population. Validity,
+execution status, and cost data are collected for every generated mutation. Either every generated mutation or a
+random sample is classified for actionability.
 
-When evaluating a change to an existing mutator, run the old and new implementations on the same revisions and
-environment. Compare paired project-level results as well as totals. Report mutations added, removed, and shared by
-the two implementations; an aggregate mutation score can conceal a large change in the findings presented to users.
+The actionability sample is selected independently of coverage and execution status. Selecting only escaped or
+uncovered mutations would measure the feedback produced by those particular test suites rather than the quality of the
+mutator's transformations.
 
-### 5. Make and Record the Decision
+When two implementations are compared, both are run on the same revisions and environment. The comparison reports
+mutations added, removed, and shared, together with paired project-level results. Otherwise, aggregate totals can
+hide a regression in one project behind a larger project.
 
-Report the measurements, raw counts, uncertainty, protocol deviations, and important negative examples. Discuss
-each dimension separately before giving the decision and its rationale. A weakness in one dimension must not be
-hidden by a composite score.
+### 5. Evidence and Decision
 
-When evidence is incomplete, narrow the claim or run another study. Do not treat absence of observed problems as
-evidence that the mutator is universally safe or useful.
+The evaluation report contains raw counts, proportions, uncertainty intervals, cost distributions, protocol
+deviations, and significant negative examples. It discusses validity, actionability, and cost separately before
+presenting the decision and its rationale.
 
-## What Is Being Measured
+## Study Populations and Records
 
-The quantitative assessment starts with the `Mutation` objects generated by the mutator. For every generated
-mutation, the study records its execution result and cost using the taxonomy supported by that Infection version.
+The following populations are used consistently:
 
-Only reported findings are candidates for human review. A study will commonly include `escaped` mutations and,
-when evaluating coverage feedback, `not covered` mutations. Declare the included statuses before collecting data
-and assess a representative sample of those findings for actionability and productivity.
+- **generated mutation:** a `Mutation` produced by the candidate mutator;
+- **validity-checked mutation:** a generated mutation whose materialised code was checked for syntactic validity;
+- **evaluated mutation:** a generated mutation for which mutant evaluation was attempted;
+- **reviewed mutation:** a generated mutation submitted for actionability classification;
+- **classified mutation:** a reviewed mutation conclusively classified as actionable or non-actionable;
+- **actionable mutation:** a classified mutation which identifies a specific, justified improvement to the tests or
+  subject.
 
-```text
-Candidate mutator
-  └─ Generated mutations
-      ├─ Objective data collected for every mutation
-      │   ├─ Execution result
-      │   └─ Execution cost
-      └─ Reported findings sampled for human review
-          ├─ Actionability
-          └─ Productivity
-```
+A mutation may belong to several populations. For example, a `not covered` mutation is generated but not evaluated
+because Infection does not start a mutant process for it. Each metric identifies its denominator, avoiding the
+ambiguous term _all mutations_.
 
-For the execution result, record the exact `DetectionStatus` produced by the executing Infection version. Reports
-must identify that version and must not merge statuses for collection. Any grouping used during analysis must be
-defined in the report.
+Each observation is identified by its mutation ID, while the subject and revision are recorded separately. An ID
+identifies a particular generated mutation, not the same semantic change across revisions. The record contains at
+least:
 
-The generated mutations are not the whole assessment. Also review the mutator's applicability rules, but keep this
-design review separate from the quantitative metrics above. Nodes rejected by `Mutator::canMutate()` do not produce
-mutations and therefore cannot be included in metrics over generated mutations. Use representative positive, negative,
-and boundary examples to determine whether the mutator accepts and rejects the intended cases.
+- Infection version, mutator name, mutation ID, subject, and revision;
+- source location and mutation diff;
+- validity result and native `DetectionStatus`;
+- actionability classification and rationale, when reviewed;
+- mutant and matched-baseline wall time and peak resident memory where available;
+- selected test count, timeout, worker count, and whether evaluation stopped early.
 
 ## Metrics
 
-### Technical Quality
+### Validity
 
 #### Syntactic Validity Rate
 
 ```math
-\frac{\text{generated mutations} - \text{mutations with SYNTAX_ERROR}}{\text{generated mutations}}
+\frac{\text{validity-checked mutations without a syntax error}}
+     {\text{validity-checked mutations}}
 ```
 
-Use Infection's `DetectionStatus::SYNTAX_ERROR` as the operational definition of an invalid mutation. Mutators are
-required to produce replacements which PHP-Parser accepts and Infection can materialise. A generated mutation which
-is not executable is therefore expected to be reported as `SYNTAX_ERROR` during mutant evaluation.
+Each generated mutation is materialised and parsed or linted independently of coverage. When this is impractical,
+Infection's `DetectionStatus::SYNTAX_ERROR` provides the operational signal and the denominator is limited to
+mutations for which Infection attempted mutant evaluation. The report states which procedure was used.
 
-The literature commonly describes such mutations as invalid, uncompilable, or stillborn. Google states the
-underlying validity principle explicitly: a mutant should be syntactically valid because a compiler detecting it does
-not provide useful test feedback [1][PracticalMutationTesting]. Empirical tool evaluations also report compilation
-errors as a result category; RegularMutator, for example, reports them separately from killed and survived mutants
-[6][RegularMutator]. _Syntactic validity rate_ is the name used by this methodology for the complement of that
-reported error proportion; it is not presented as an established term from the literature.
+A value of 1 means that no syntactically invalid transformation was observed. A syntax error normally indicates a
+mutator defect: a parser detecting the mutation provides no information about the subject's tests. The `error` and
+`timed out` statuses are not syntax errors because they can be legitimate consequences of a valid behavioural
+change. They are reported separately.
 
-Do not classify other `DetectionStatus` values as invalid. Runtime failures and timeouts may be legitimate
-consequences of a valid behavioural change. Keep the complete native status distribution beside the validity rate so
-that this metric does not conceal other tool failures.
+TODO: Confirm what happens when PHP-Parser cannot print a mutation.
 
-### Actionability and Productivity
+<details>
+<summary>Research basis and terminology</summary>
 
-#### Actionability Precision
+The literature describes mutations which cannot be compiled as _invalid_, _uncompilable_, or _stillborn_. Google's
+practical mutation-testing criteria require mutants to be syntactically valid because compiler detection does not
+provide useful test feedback [1]. Tool evaluations likewise report compilation errors separately from killed and
+surviving mutants [6]. This guide uses _syntactic validity rate_ as an operational term; it is not an established
+term in the literature.
+
+</details>
+
+### Actionability
+
+#### Actionability Rate
 
 ```math
-\frac{\text{actionable findings}}{\text{reviewed reported mutations}}
+\frac{\text{actionable mutations}}{\text{classified mutations}}
 ```
 
-This describes the quality of the feedback presented to developers. A finding is actionable only when its analysis
-identifies a specific, justified improvement to the tests or subject.
+This metric estimates how often the mutator's generated transformations identify a specific, justified improvement.
+When the complete generated population is classified, the result is the population proportion rather than an
+estimate.
 
-#### Actionable Yield
+Each reviewed mutation receives one of the following classifications:
+
+- **actionable — tests:** add or strengthen a test.
+- **actionable — subject:** correct a defect in the subject.
+- **non-actionable — equivalent:** the mutant and subject have the same observable behaviour.
+- **non-actionable — redundant:** the same testing requirement is already represented by another mutation.
+- **non-actionable — irrelevant or arid:** detecting the change would not exercise a meaningful requirement.
+- **cannot determine:** the available evidence is insufficient.
+
+`Cannot determine` represents a missing classification rather than a third actionability outcome. Additional context
+or another reviewer may resolve it. Unresolved cases are excluded from the formula, but their count and proportion
+of reviewed mutations are reported separately. A high unresolved proportion weakens the result and cannot improve
+the apparent actionability rate.
+
+The report retains one row per reviewed mutation:
+
+| Mutation ID | Subject and revision | Classification | Proposed improvement or rationale | Reviewer |
+|-------------|----------------------|----------------|-----------------------------------|----------|
+| `…`         | `vendor/project@…`   | Actionable — tests | Add a boundary assertion for `…` | `…`      |
+| `…`         | `vendor/project@…`   | Non-actionable — equivalent | Both forms return `…` | `…` |
+| `…`         | `vendor/project@…`   | Cannot determine | Domain contract is unavailable | `…` |
+
+The report includes the raw counts underlying the rate and a confidence interval appropriate to the sampling design.
+It also includes the non-actionable subcategories, which indicate whether the applicability guards, duplicate
+suppression, or transformation may require reconsideration.
+
+<details>
+<summary>Research basis and terminology</summary>
+
+Industrial mutation-testing research distinguishes a mutation that leads to a concrete test improvement from the
+affected developer's subsequent judgement that the improvement is productive [1, 2, 3]. This guide measures only the
+first concept and uses _actionable mutation_ as defined in Infection's [nomenclature][Nomenclature].
+
+Equivalent-mutant detection is undecidable in general and commonly requires manual analysis [4]. Manual
+classification can therefore be uncertain and reviewer-dependent. Random sampling, explicit categories, retained
+unknowns, independent review, and uncertainty intervals make those limitations visible instead of converting them
+silently into favourable results.
+
+This guide uses _actionability rate_ as an operational term; it is not an established metric in the literature.
+
+</details>
+
+#### Reviewer Agreement
+
+For a validation subset reviewed independently by at least two reviewers, agreement is calculated as:
 
 ```math
-\frac{\text{estimated actionable findings}}{\text{all evaluated mutations}}
+\frac{\text{mutations given the same classification by all reviewers}}
+     {\text{mutations in the validation subset}}
 ```
 
-This describes how much useful feedback a mutator produces overall. Report actionability precision and actionable
-yield together: precision alone ignores how rarely a mutator reports findings, while yield alone can hide a large
-review burden.
+The report includes the raw agreement and full disagreement table. A chance-corrected statistic such as
+[Cohen's kappa][CohensKappa] may be added when its assumptions fit the number of reviewers and categories, but it
+does not replace the raw data.
 
-#### Productivity Rate
-
-```math
-\frac{\text{productive findings}}{\text{actionable findings assessed by the affected developers}}
-```
-
-This records whether affected developers consider a justified improvement worthwhile in their own context. It
-distinguishes an expert assessment that a mutation is actionable from the developer's assessment of its productivity.
-Capture it explicitly rather than inferring it from implementation, which is influenced by capacity, priority,
-ownership, and timing.
-
-Also report the overall productive yield:
-
-```math
-\frac{\text{productive findings}}{\text{all findings presented}}
-```
-
-Use a fixed response scale and ask for the reason behind the rating. At minimum, distinguish `productive`,
-`not productive`, and `cannot assess`. If an ordinal scale is used, publish its full distribution instead of only its
-mean. Whether or when the improvement is implemented is outside this assessment.
-
-#### Review Effort
-
-Report the median and tail review time per finding, per actionable finding, and per productive finding. This captures
-the cognitive cost which machine-runtime measurements omit. Industrial evidence about how developers respond to
-mutation findings provides a basis for evaluating these downstream outcomes
-[3][MutationTestingPractices].
+Low agreement indicates that the classification rule or available context is insufficiently reproducible. In that case,
+the protocol is refined and the classification repeated; incompatible judgements are not averaged.
 
 ### Computational Cost
 
-Instrument these phases separately:
+Mutation generation is measured separately from mutant evaluation. Generating fewer mutations and evaluating each
+mutation faster are different improvements and can have different effects on actionability.
 
-- mutation generation;
-- mutant materialisation and process startup;
-- test execution;
-- static-analysis follow-up;
-- reporting.
+<details>
+<summary>Research basis and terminology</summary>
 
-Cost-reduction research uses several non-interchangeable measures, so retain both the work avoided and the quality
-preserved by an optimisation [4][MutationCostReview].
+Pizzoleto et al.'s systematic review covers 153 primary studies and identifies 18 metrics used to measure mutation
+testing costs [4]. The three most common are the number of mutants executed, used by 66 studies; mutant execution
+speed-up, used by 36; and the number of tests required, used by 25. The review also identifies separate speed-up
+metrics for mutant generation, compilation, execution, and complete mutation analysis. This evidence supports
+measuring workload and execution time separately and comparing execution time with a baseline rather than
+interpreting an isolated duration.
 
-For each mutation, record at least:
+Test-prioritisation research demonstrates that test selection and ordering affect mutant execution costs because a
+test that kills a mutant can end its evaluation early [9]. Studies of regression and parallel mutation testing
+report actual time saved, analysis overhead, total execution time, and speed-up for fixed execution configurations
+[4]. These results support recording the selected tests, termination status, end-to-end time, and worker count.
 
-- mutator and mutation identifiers;
-- project and revision;
-- outcome;
-- selected test count and their baseline duration;
-- wall time and, where available, CPU time;
-- peak resident memory;
-- whether evaluation terminated early;
-- timeout limit;
-- worker count and worker utilisation.
+Memory is not among the recurring cost metrics identified by the systematic review. However, Performance Mutation
+Testing treats execution time and memory as observable non-functional properties, establishes timing baselines by
+repeatedly running the original program, and proposes profiling memory deviations against the original program [10].
+That study evaluates performance-mutant behaviour rather than mutation-tool overhead. It therefore supports the
+baseline principle, although the memory measurements below remain specific to this methodology.
 
-#### Evaluation CPU Cost
+</details>
 
-```math
-\frac{\text{sum of mutant-process CPU time}}{\text{evaluated mutations}}
-```
+<details>
+<summary>Why the baseline and aggregation matter</summary>
 
-This measures consumed machine resources independently of parallelism.
+An absolute mutant duration primarily reflects its selected tests. A mutation that takes ten seconds when its tests
+normally take nine seconds has a different cost profile from one that takes five seconds when its tests normally take
+one second. The matched baseline reveals this difference.
 
-#### End-to-End Latency
+The most reliable baseline runs the same selected tests against the original code through the same child-process path,
+bootstrap, environment, and timeout. Infection's nominal test time can be used as an estimate when that control run
+is unavailable, although it excludes process startup and may not reproduce the cost of running the tests
+together.
 
-Measure wall time from the start of mutation generation until reporting completes. This is the user-visible
-performance measure. Report CPU-seconds and wall time together: throughput can improve while total resource
-consumption increases.
+Detection status remains relevant to the interpretation. A killed mutant may stop at the first failing test, whereas an
+escaped mutant normally runs every selected test. Time distributions are therefore separated by status. Timeouts are
+reported as censored observations rather than ordinary durations.
 
-#### Evaluation Overhead Ratio
+Time is additive, whereas peak memory is not. Summing the peak memory of sequential mutant processes does not describe
+the memory required by the run. Per-mutant memory is compared with its matched baseline; run-level memory is the
+maximum combined resident memory of the concurrently active processes.
 
-```math
-\frac{\text{mutant evaluation time}}{\text{baseline duration of the selected tests}}
-```
+A mutation may legitimately make the subject slower or increase its memory consumption. This remains part of its
+evaluation cost, but does not by itself indicate an Infection performance defect.
 
-This normalises execution cost for mutations whose covering tests have very different durations.
+</details>
 
-Stratify all runtime results by outcome. Mutations with the current `killed by tests` status may terminate after the
-first failing test, while mutations with the current `escaped` status normally execute every selected test. Comparing
-their unstratified runtime introduces outcome bias.
+#### Mutation-Generation Cost
 
-Use medians and p90 or p95 latency with confidence intervals to describe skewed runtimes. Retain means for resource
-accounting because total CPU cost is additive. Minima and maxima alone do not reliably characterise a distribution.
-
-#### Cost Effectiveness
-
-```math
-\begin{aligned}
-&\frac{\text{total CPU-hours or wall time}}{\text{estimated actionable findings}} \\
-&\frac{\text{total CPU-hours or wall time}}{\text{productive findings}} \\
-&\frac{\text{review minutes}}{\text{actionable findings}} \\
-&\frac{\text{review minutes}}{\text{productive findings}}
-\end{aligned}
-```
-
-These metrics connect cost to useful outcomes. They should only be calculated when actionability and productivity
-come from a representative sample or complete population.
-
-### Reliability
-
-#### Outcome Instability
+For a fixed corpus, the reported measurements are generation wall time, peak memory, and generation throughput:
 
 ```math
-\frac{\text{mutations whose outcome changes}}{\text{mutations evaluated repeatedly}}
+\frac{\text{generated mutations}}{\text{generation wall time}}
 ```
 
-This detects flaky tests and environmental sensitivity. Flaky outcomes and coverage can materially alter mutation
-scores [5][FlakyTests]. Record transitions using the native result taxonomy implemented by the executing version.
+Throughput is useful for comparing implementations that generate the same mutation set. When the set changes, the
+count and actionability result accompany it. Higher throughput caused only by omitting intended mutations is not an
+improvement in mutator quality.
 
-Use a fixed rerun schedule which does not depend on the initial mutation outcome. Repeat the unmutated suite under
-the same conditions, and record the failing test and failure signature for each run. Report instability associated
-with failures also observed in baseline runs separately from instability observed only with a mutation. This
-distinction is evidence about the likely source of instability, not proof: a mutation may legitimately expose
-nondeterministic subject behaviour.
+The `make benchmark_mutation_generator` command provides a controlled generation benchmark, while
+`make profile_mutation_generator` identifies hotspots. The [benchmarking guide][Benchmarking] describes their use.
+The benchmark does not measure mutant evaluation or actionability.
 
-Report runtime dispersion across identical repetitions. High dispersion weakens comparisons even when the median is
-stable.
+#### Evaluation Workload
 
-## Actionability Assessment Protocol
+```math
+\sum_{m \in M} \operatorname{tests}(m)
+```
 
-Actionability is contextual and cannot be made wholly objective. Make its assessment reproducible as follows:
+Here, $M$ is the set of evaluated mutations, and $\operatorname{tests}(m)$ is the number of tests selected for
+mutation $m$. The report also contains the number of generated and evaluated mutations and the expected duration of
+each selected test set when run against the original code.
 
-1. Randomly sample the statuses declared to be findings, normally `escaped` and, when coverage feedback is in scope,
-   `not covered`. Stratify the sample by project and status.
-2. Show reviewers the mutation diff, relevant source, tests, and normal Infection diagnostics.
-3. Hide the mutator identity where practical.
-4. Require one classification:
-    - actionable: add or strengthen a test;
-    - actionable: fix the subject;
-    - non-actionable: equivalent;
-    - non-actionable: redundant or already represented;
-    - non-actionable: irrelevant or arid;
-    - cannot determine.
-5. Require a concrete proposed improvement for every actionable classification.
-6. Use two independent reviewers on a validation subset.
-7. Report raw agreement and an agreement statistic such as Cohen's kappa.
-8. Retain disagreements and `cannot determine` results instead of resolving them silently.
-9. Weight results back to the population when sampling rates differ between strata.
-10. Report sample sizes and uncertainty intervals appropriate to the sampling design and clustering structure.
+These counts describe the workload that produces the measured time. They do not measure mutator quality.
 
-After the actionability assessment, ask an affected developer to rate the productivity of the proposed improvement
-using a fixed scale and provide a reason. Do not ask the expert reviewer to predict the developer's rating, and do not
-infer it from implementation activity. Report the response rate and retain non-response and `cannot assess` as
-missing evidence rather than negative assessments.
+#### Evaluation-Time Overhead
+
+```math
+\operatorname{timeOverhead}(m)
+= \operatorname{mutantTime}(m) - \operatorname{baselineTime}(m)
+```
+
+```math
+\operatorname{timeAmplification}(m)
+= \frac{\operatorname{mutantTime}(m)}{\operatorname{baselineTime}(m)}
+```
+
+The baseline is the wall time for the same selected tests running against the original code. The absolute overhead
+expresses the additional time, while amplification allows comparison between mutations with differently sized test
+selections. An amplification near 1 means that mutant evaluation took approximately the baseline time.
+
+The report contains the absolute mutant and baseline times, together with the median and p95 overhead and
+amplification, stratified by native `DetectionStatus`. Baselines close to zero and timed-out evaluations are reported
+separately.
+
+#### Peak-Memory Overhead
+
+```math
+\operatorname{memoryOverhead}(m)
+= \operatorname{mutantPeakRss}(m) - \operatorname{baselinePeakRss}(m)
+```
+
+```math
+\operatorname{memoryAmplification}(m)
+= \frac{\operatorname{mutantPeakRss}(m)}{\operatorname{baselinePeakRss}(m)}
+```
+
+The baseline is the peak resident set size of the same selected tests running against the original code under the
+same process configuration. The report contains the median and p95 per-mutation overhead and amplification. A
+positive overhead indicates that the mutant process reached a higher peak memory usage than its baseline.
+
+#### End-to-End Latency and Total Resource Cost
+
+The aggregate evaluation-time amplification is:
+
+```math
+\operatorname{totalTimeAmplification}
+= \frac{\sum_{m \in M} \operatorname{mutantTime}(m)}
+        {\sum_{m \in M} \operatorname{baselineTime}(m)}
+```
+
+This metric compares the total mutant-process work with the expected work of running the corresponding selected tests
+against the original code. End-to-end wall time, measured from mutation generation through reporting, remains a
+separate user-visible measurement because parallel scheduling affects it.
+
+At the run level, memory is reported as the maximum combined resident set size of the active Infection and mutant
+processes. Absolute values and paired absolute and relative differences are reported per subject. The worker count
+remains fixed between comparisons.
+
+### Reliability Check
+
+Outcome instability is a validity check on the experiment, not a quality metric for the mutator:
+
+```math
+\frac{\text{mutations whose native status changes across identical runs}}
+     {\text{mutations evaluated repeatedly}}
+```
+
+The rerun schedule is fixed before the first result is observed. The unmutated test suite is repeated under the same
+conditions. The resulting record includes status transitions, failing tests, failure signatures, and runtime
+dispersion. Instability associated with baseline failures is reported separately from instability observed only
+under mutation.
+
+High instability indicates that observed differences in status and timing may result from test or environmental
+noise. It does not, by itself, show that the mutator is unreliable.
+
+<details>
+<summary>Research basis and terminology</summary>
+
+Flaky test outcomes and non-deterministic coverage can change mutation-testing results. Shi, Bell, and Marinov found
+non-deterministic coverage even for tests whose pass/fail outcome appeared stable, and showed that score differences
+can be smaller than variation caused by flakiness [5]. Repeated baseline and mutant runs are therefore needed to
+quantify experimental noise.
+
+</details>
+
+## Metrics Which Do Not Evaluate the Mutator
+
+Infection's complete native `DetectionStatus` distribution is retained as diagnostic context. Statuses remain
+separate during collection; any grouping is defined during analysis and identifies the Infection version.
+
+Mutation score is not a mutator-performance metric. It primarily describes how a particular test suite detects a
+particular mutation set. A high killed proportion can mean that a mutator creates obvious or redundant mutations; a
+low proportion can mean weak tests, equivalent mutations, or subtle actionable gaps. Coverage rate is similarly a
+property of the selected subjects, tests, tracer, and mutation locations. Neither provides sufficient evidence on
+its own to accept or reject a mutator.
+
+The number of generated mutations is workload, not quality. It is reported to explain total cost and corpus
+coverage, but a mutator is not considered better merely because it produces more or fewer mutations.
+
+<details>
+<summary>Research basis and terminology</summary>
+
+The conventional mutation score is the proportion of non-equivalent mutants that a test suite kills [4, 7]. Its
+denominator and interpretation concern test effectiveness. Research on selective mutation also shows why mutation
+count alone is insufficient: reducing the mutant set is useful only when the reduced set preserves the relevant
+testing information [4, 8].
+
+</details>
 
 ## Experimental Design
 
-Use a corpus which represents Infection's users instead of evaluating only Infection itself. Include:
+A representative corpus extends beyond Infection itself and includes, as appropriate:
 
 - small, medium, and large PHP projects;
 - different supported PHP and PHPUnit versions;
-- unit-heavy and integration-heavy suites;
+- unit-heavy and integration-heavy test suites;
 - frameworks and libraries;
-- multiple revisions where practical.
+- multiple revisions of a project.
 
-For reliable comparisons:
+Before data collection, the study protocol establishes:
 
-- pin PHP, dependencies, extensions, CPU allocation, worker count, and timeout policy;
-- repeat the original test suite to establish baseline noise;
-- randomise mutator and run order;
-- measure warm-cache and cold-cache experiments separately;
-- repeat executions and publish their dispersion;
-- analyse projects as separate subjects so a large project cannot dominate the conclusion;
-- publish per-project results and a cross-project estimate with confidence intervals.
+- pinned versions of PHP, dependencies, and extensions;
+- fixed CPU allocation, worker count, timeout policy, and Infection configuration;
+- the sampling frame, randomisation procedure, classifications, rerun count, and exclusions;
+- the actionability sample size required to achieve the desired precision;
+- the weighting applied to projects;
+- separate cold-cache and warm-cache measurements.
 
-Determine human-review sample sizes from the required confidence interval. Use stratified random sampling rather
-than selecting mutations which look interesting.
+Mutations within the same file, revision, and project share source code and tests, so they are not independent.
+Per-project results are published, and cross-project estimates account for clustering. The report states the unit of
+analysis and includes confidence intervals rather than only point estimates.
 
-### Infection's Existing Benchmarks
+Comparisons use a randomised or alternating run order and paired observations from the same project revisions. They
+report absolute and relative effect sizes. Statistical significance alone does not establish practical importance.
 
-Use `make benchmark_mutation_generator` to detect a change in mutation-generation time and peak memory on
-Infection's fixed benchmark corpus. Use `make profile_mutation_generator` to locate generation hotspots. Follow the
-measurement guidance in [the benchmarking guide][Benchmarking] when comparing revisions.
+## Recommended Report
 
-This benchmark covers mutation generation, not mutant evaluation or human review. It is useful regression evidence,
-but it cannot establish end-to-end cost, actionability, productivity, or value across projects. Add a focused
-benchmark only when the existing corpus does not exercise the relevant generation path; do not add a benchmark merely
-to restate a correctness test.
+The recommended report for each mutator contains:
 
-### Statistical Analysis
+1. the declared transformation, target population, decision rule, corpus, and environment;
+2. syntactic validity rate;
+3. the actionability-classification table, raw category counts, actionability rate, unresolved proportion, reviewer
+   agreement, and uncertainty intervals;
+4. generated and evaluated mutation counts plus the native status distribution;
+5. generation wall time, throughput, and peak memory;
+6. selected-test workload, mutant and matched-baseline evaluation times, and their overhead and amplification,
+   stratified by status;
+7. mutant and matched-baseline peak memory, their overhead and amplification, and maximum combined run-level memory;
+8. end-to-end wall time and aggregate evaluation-time amplification;
+9. outcome and runtime instability;
+10. per-project results, aggregate method, protocol deviations, and the final decision with its rationale.
 
-Mutations from the same file, revision, or project share code, tests, and development practices, so they are not
-independent observations. State whether a result describes mutations in the sampled corpus or is intended to
-generalise across projects. A large project with many mutations may otherwise dominate a pooled result, while giving
-every project equal weight answers a different question.
+No individual metric determines the decision. The evidence supports a mutator when its implementation is valid, its
+mutations are sufficiently actionable for the declared population, and its computational cost satisfies the decision
+rule recorded before the study.
 
-Report per-project results and use consistent revisions and execution environments. Account for clustering when
-producing a cross-project estimate. Possible approaches
-include resampling whole projects or project-revision pairs and using hierarchical models; neither is suitable for
-every corpus, and the chosen method and unit of analysis must be declared.
-
-Report absolute and relative effect sizes with uncertainty intervals rather than relying on statistical significance
-alone. Determine sample size using the unit which supports the claim, such as projects for cross-project
-generalisation or developers for productivity, rather than using the raw number of mutations in every case.
-
-## Recommended Summary
-
-The primary summary for each mutator should contain:
-
-1. actionability precision and actionable yield with confidence intervals;
-2. productivity rate and productive yield with confidence intervals;
-3. native result-status distribution and syntactic validity rate;
-4. median and p95 mutant-evaluation cost, and total end-to-end latency;
-5. CPU-hours and review minutes per estimated actionable and productive finding;
-6. outcome instability, sample size, and number of represented projects.
-
-A mutator is a strong candidate for inclusion when it produces sufficiently many productive mutations at an
-acceptable computational and review cost. The acceptable balance and strength of evidence remain policy decisions.
-
-If the project adopts thresholds as stable gates for adding, retaining, or removing mutators, record that decision
-in an Architecture Decision Record.
-
-## Research Basis
+## References
 
 1. Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Practical Mutation Testing at Scale: A View
    from Google," _IEEE Transactions on Software Engineering_, vol. 48, no. 10, pp. 3900–3912, 2022,
@@ -400,23 +457,40 @@ in an Architecture Decision Record.
    International Conference on Software Engineering: Software Engineering in Practice_, pp. 163–171, 2018,
    doi: [10.1145/3183519.3183521][StateOfMutationTesting].
 3. Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Does Mutation Testing Improve Testing
-   Practices?", _Proceedings of the 43rd International Conference on Software Engineering_, 2021,
+   Practices?", _Proceedings of the 43rd International Conference on Software Engineering_, pp. 910–920, 2021,
    doi: [10.1109/ICSE43902.2021.00087][MutationTestingPractices].
 4. Alessandro Viola Pizzoleto, Fabiano Cutigi Ferrari, Jeff Offutt, Leo Fernandes, and Márcio Ribeiro, "A Systematic
    Literature Review of Techniques and Metrics to Reduce the Cost of Mutation Testing," _Journal of Systems and
    Software_, vol. 157, 2019, doi: [10.1016/j.jss.2019.07.100][MutationCostReview].
 5. August Shi, Jonathan Bell, and Darko Marinov, "Mitigating the Effects of Flaky Tests on Mutation Testing,"
-   _Proceedings of the 28th ACM SIGSOFT International Symposium on Software Testing and Analysis_, pp. 112–122, 2019,
-   doi: [10.1145/3293882.3330568][FlakyTests].
+   _Proceedings of the 28th ACM SIGSOFT International Symposium on Software Testing and Analysis_, pp. 112–122,
+   2019, doi: [10.1145/3293882.3330568][FlakyTests].
 6. Y. Ivanova and A. Khritankov, "RegularMutator: A Mutation Testing Tool for Solidity Smart Contracts,"
    _Procedia Computer Science_, vol. 178, pp. 75–83, 2020,
    doi: [10.1016/j.procs.2020.11.009][RegularMutator].
+7. Yue Jia and Mark Harman, "An Analysis and Survey of the Development of Mutation Testing," _IEEE Transactions
+   on Software Engineering_, vol. 37, no. 5, pp. 649–678, 2011,
+   doi: [10.1109/TSE.2010.62][MutationSurvey].
+8. Lingming Zhang, Milos Gligoric, Darko Marinov, and Sarfraz Khurshid, "Operator-Based and Random Mutant
+   Selection: Better Together," _Proceedings of the 28th IEEE/ACM International Conference on Automated Software
+   Engineering_, pp. 92–102, 2013, doi: [10.1109/ASE.2013.6693070][MutantSelection].
+9. Lingming Zhang, Darko Marinov, and Sarfraz Khurshid, "Faster Mutation Testing Inspired by Test Prioritization
+   and Reduction," _Proceedings of the 2013 International Symposium on Software Testing and Analysis_, 2013,
+   doi: [10.1145/2483760.2483782][FasterMutationTesting].
+10. Pedro Delgado-Pérez, Ana Belén Sánchez, Sergio Segura, and Inmaculada Medina-Bulo, "Performance Mutation
+    Testing," _Software Testing, Verification and Reliability_, vol. 30, no. 5, 2020,
+    doi: [10.1002/stvr.1728][PerformanceMutationTesting].
 
 [Benchmarking]: benchmarking.md
+[CohensKappa]: https://doi.org/10.1177/001316446002000104
+[FasterMutationTesting]: https://doi.org/10.1145/2483760.2483782
 [FlakyTests]: https://doi.org/10.1145/3293882.3330568
+[MutantSelection]: https://doi.org/10.1109/ASE.2013.6693070
 [MutationCostReview]: https://doi.org/10.1016/j.jss.2019.07.100
+[MutationSurvey]: https://doi.org/10.1109/TSE.2010.62
 [MutationTestingPractices]: https://doi.org/10.1109/ICSE43902.2021.00087
 [Nomenclature]: nomenclature.md
+[PerformanceMutationTesting]: https://doi.org/10.1002/stvr.1728
 [PracticalMutationTesting]: https://doi.org/10.1109/TSE.2021.3107634
 [RegularMutator]: https://doi.org/10.1016/j.procs.2020.11.009
 [StateOfMutationTesting]: https://doi.org/10.1145/3183519.3183521
