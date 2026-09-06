@@ -140,9 +140,8 @@ The following table maps the execution phases to the main implementation entry p
 
 A [mutation][mutation] whose analysis identifies a specific, justified improvement to the test suite or the
 [subject][subject], such as adding or strengthening a test or correcting a defect. It remains actionable whether or
-not the improvement is implemented. If implemented successfully, the mutation is
-[productive][productive-mutation]. Actionability depends on context; it is not an intrinsic property of the
-[mutator][mutator]. [\[1\]][ref-1] [\[4\]][ref-4]
+not the affected developer considers the improvement [productive][productive-mutation]. Actionability depends on
+context; it is not an intrinsic property of the [mutator][mutator]. [\[1\]][ref-1] [\[4\]][ref-4]
 
 In this context, "actionable mutant" and "actionable mutation" are interchangeable.
 
@@ -253,11 +252,10 @@ In the mutation testing literature, mutators are also known as "mutant operator"
 
 ### Productive Mutation
 
-An [actionable mutation][actionable-mutation] whose identified improvement is implemented successfully. Examples
-include adding or strengthening a test or correcting a defect in the [subject][subject]. Whereas actionability
-describes an opportunity for improvement, productivity records its realisation. Productivity is therefore an
-observed outcome of presenting and analysing the mutation, not an intrinsic property of the [mutator][mutator].
-[\[1\]][ref-1] [\[4\]][ref-4]
+An [actionable mutation][actionable-mutation] whose identified improvement the affected developer considers
+worthwhile in the [subject's][subject] context. Productivity does not depend on whether the improvement is
+implemented. Implementation is influenced by capacity, priority, ownership, and timing, so it is not used to assess
+the mutation or [mutator][mutator]. [\[1\]][ref-1] [\[4\]][ref-4]
 
 In this context, "productive mutant" and "productive mutation" are interchangeable.
 
