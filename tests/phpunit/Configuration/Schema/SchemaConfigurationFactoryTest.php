@@ -52,6 +52,7 @@ use Infection\Configuration\Schema\SchemaConfiguration;
 use Infection\Configuration\Schema\SchemaConfigurationFactory;
 use Infection\Mutator\ProfileList;
 use Infection\TestFramework\TestFrameworkTypes;
+use Infection\Tests\Configuration\Entry\LogsBuilder;
 use InvalidArgumentException;
 use JsonSchema\Validator;
 use const PHP_EOL;
@@ -564,6 +565,25 @@ final class SchemaConfigurationFactoryTest extends TestCase
                     null,
                     'summary.json',
                 ),
+            ]),
+        ];
+
+        yield '[logs][mutatorPerformance] nominal' => [
+            <<<'JSON'
+                {
+                    "source": {
+                        "directories": ["src"]
+                    },
+                    "logs": {
+                        "mutatorPerformance": "mutator-performance.jsonl"
+                    }
+                }
+                JSON,
+            self::createConfig([
+                'source' => new Source(['src'], []),
+                'logs' => LogsBuilder::withMinimalTestData()
+                    ->withMutatorPerformanceFilePath('mutator-performance.jsonl')
+                    ->build(),
             ]),
         ];
 

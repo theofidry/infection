@@ -51,6 +51,7 @@ final class LogsBuilder
         private bool $useGitHubAnnotationsLogger,
         private ?StrykerConfig $strykerConfig,
         private ?string $summaryJsonLogFilePath,
+        private ?string $mutatorPerformanceFilePath,
     ) {
     }
 
@@ -67,6 +68,7 @@ final class LogsBuilder
             $logs->getUseGitHubAnnotationsLogger(),
             $logs->getStrykerConfig(),
             $logs->getSummaryJsonLogFilePath(),
+            $logs->getMutatorPerformanceFilePath(),
         );
     }
 
@@ -83,6 +85,7 @@ final class LogsBuilder
             useGitHubAnnotationsLogger: false,
             strykerConfig: null,
             summaryJsonLogFilePath: null,
+            mutatorPerformanceFilePath: null,
         );
     }
 
@@ -99,6 +102,7 @@ final class LogsBuilder
             useGitHubAnnotationsLogger: true,
             strykerConfig: StrykerConfig::forFullReport('master'),
             summaryJsonLogFilePath: '/var/log/infection/summary.json',
+            mutatorPerformanceFilePath: null,
         );
     }
 
@@ -182,9 +186,17 @@ final class LogsBuilder
         return $clone;
     }
 
+    public function withMutatorPerformanceFilePath(?string $mutatorPerformanceFilePath): self
+    {
+        $clone = clone $this;
+        $clone->mutatorPerformanceFilePath = $mutatorPerformanceFilePath;
+
+        return $clone;
+    }
+
     public function build(): Logs
     {
-        return new Logs(
+        $logs = new Logs(
             $this->textLogFilePath,
             $this->htmlLogFilePath,
             $this->summaryLogFilePath,
@@ -196,5 +208,9 @@ final class LogsBuilder
             $this->strykerConfig,
             $this->summaryJsonLogFilePath,
         );
+
+        $logs->setMutatorPerformanceFilePath($this->mutatorPerformanceFilePath);
+
+        return $logs;
     }
 }

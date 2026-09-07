@@ -314,6 +314,7 @@ parameters:
     level: 8
     paths:
         - ../src
+        - mutator-performance-workbook/src
         - ../tests/Architecture
         - ../tests/phpunit
         - ../tests/benchmark

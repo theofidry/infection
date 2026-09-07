@@ -101,6 +101,12 @@ class TargetDetectionStatusesProvider
             return;
         }
 
+        if ($this->logConfig->getMutatorPerformanceFilePath() !== null) {
+            yield from DetectionStatus::getIndexedCases();
+
+            return;
+        }
+
         // This one stops all file logging.
         if ($this->logVerbosity === LogVerbosity::NONE) {
             return;

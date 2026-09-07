@@ -13,6 +13,7 @@ paths = [
 ]
 includes = [
     "vendor",
+    "devTools/mutator-performance-workbook/src",
     "src/FileSystem/DummyFileSystem.php",
     "tests/autoloaded",
     "tests/phpunit/Fixtures",

@@ -41,6 +41,8 @@ namespace Infection\Configuration\Entry;
  */
 class Logs
 {
+    private ?string $mutatorPerformanceFilePath = null;
+
     public function __construct(
         private ?string $textLogFilePath,
         private ?string $htmlLogFilePath,
@@ -144,5 +146,15 @@ class Logs
     public function setSummaryJsonLogFilePath(string $summaryJsonLogFilePath): void
     {
         $this->summaryJsonLogFilePath = $summaryJsonLogFilePath;
+    }
+
+    public function getMutatorPerformanceFilePath(): ?string
+    {
+        return $this->mutatorPerformanceFilePath;
+    }
+
+    public function setMutatorPerformanceFilePath(?string $mutatorPerformanceFilePath): void
+    {
+        $this->mutatorPerformanceFilePath = $mutatorPerformanceFilePath;
     }
 }

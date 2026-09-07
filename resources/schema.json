@@ -128,6 +128,10 @@
                 "summaryJson": {
                     "type": "string",
                     "definition": "Summary JSON log file, which contains only the statistics from the complete JSON file."
+                },
+                "mutatorPerformance": {
+                    "type": "string",
+                    "description": "JSONL report containing one mutation per line for mutator performance evaluation."
                 }
             }
         },

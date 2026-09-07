@@ -17,7 +17,8 @@
     "logs": {
         "stryker": {
             "report": "master"
-        }
+        },
+        "mutatorPerformance": "var/mutator-performance.jsonl"
     },
     "phpStan": {
         "configDir": "devTools"

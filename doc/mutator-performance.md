@@ -380,10 +380,10 @@ needed to quantify experimental noise.
 ## Metrics Which Do Not Evaluate the Mutator
 
 Infection's complete native `DetectionStatus` distribution is retained as diagnostic context. Statuses remain
-separate during collection; any grouping is defined during analysis and identifies the Infection version.
+separate during collection. Any grouping is defined during analysis and identifies the Infection version.
 
 Mutation score is not a mutator-performance metric. It primarily describes how a particular test suite detects a
-particular mutation set. A high killed proportion can mean that a mutator creates obvious or redundant mutations; a
+particular mutation set. A high killed proportion can mean that a mutator creates obvious or redundant mutations. A
 low proportion can mean weak tests, equivalent mutations, or subtle actionable gaps. Coverage rate is similarly a
 property of the selected subjects, tests, tracer, and mutation locations. Neither provides sufficient evidence on
 its own to accept or reject a mutator.
