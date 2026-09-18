@@ -116,3 +116,47 @@ export function parseReviewsJson(text: string): ReviewsParseResult {
 
   return { reviews, error: null };
 }
+
+export interface MutatorSummary {
+  /** The mutator's short name, or "" when the report didn't record one. */
+  name: string;
+  mutationCount: number;
+}
+
+/**
+ * The mutators present in the report and how many mutations each generated — the option list for
+ * the Metrics tab's scope selector. Sorted by name so the list is stable across reports rather
+ * than reordering as counts change between runs; the count rides along because it is the sample
+ * size behind every scoped metric, and a mutator with three mutations must not read like one with
+ * three hundred.
+ */
+export function summariseMutators(mutations: ReadonlyMap<string, IndexedMutation>): MutatorSummary[] {
+  const counts = new Map<string, number>();
+
+  for (const { meta } of mutations.values()) {
+    const name = typeof meta.mutatorName === "string" ? meta.mutatorName : "";
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+
+  return [...counts]
+    .map(([name, mutationCount]) => ({ name, mutationCount }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Narrows an indexed report to a single mutator, preserving insertion order. Scoping happens here,
+ * on the mutation map, rather than inside computeMetrics(): the metrics keep one definition and one
+ * set of tests, and a scoped figure is by construction the same formula over a smaller population.
+ */
+export function filterByMutator(
+  mutations: ReadonlyMap<string, IndexedMutation>,
+  mutatorName: string,
+): Map<string, IndexedMutation> {
+  const filtered = new Map<string, IndexedMutation>();
+
+  for (const [mutationId, mutation] of mutations) {
+    if ((mutation.meta.mutatorName ?? "") === mutatorName) filtered.set(mutationId, mutation);
+  }
+
+  return filtered;
+}

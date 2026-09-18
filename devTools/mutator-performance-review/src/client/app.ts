@@ -1,13 +1,37 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
-import { indexMutations, parseJsonl, parseReviewsJson } from "../shared/parse.ts";
-import { BAD_STATUSES, computeMetrics, NOT_EVALUATED, STATUS } from "../shared/metrics.ts";
-import { classificationKind, CLASSIFICATIONS } from "../shared/classifications.ts";
-import type { IndexedMutation, Metrics, Observation, ObservationRecord, ReviewRecord } from "../shared/types.ts";
-import { ArcElement, Chart, DoughnutController, Tooltip } from "chart.js";
+import { filterByMutator, indexMutations, parseJsonl, parseReviewsJson, summariseMutators } from "../shared/parse.ts";
+import {
+  BAD_STATUSES,
+  computeMetrics,
+  computeMutatorMetrics,
+  NOT_EVALUATED,
+  STATUS,
+  summariseSpread,
+} from "../shared/metrics.ts";
+import { classificationKind, CLASSIFICATIONS, NON_ACTIONABLE_CLASSIFICATIONS } from "../shared/classifications.ts";
+import type {
+  IndexedMutation,
+  Metrics,
+  MutatorMetrics,
+  Observation,
+  ObservationRecord,
+  ReviewRecord,
+  Spread,
+} from "../shared/types.ts";
+import {
+  ArcElement,
+  BarController,
+  BarElement,
+  CategoryScale,
+  Chart,
+  DoughnutController,
+  LinearScale,
+  Tooltip,
+} from "chart.js";
 
-Chart.register(ArcElement, DoughnutController, Tooltip);
+Chart.register(ArcElement, BarController, BarElement, CategoryScale, DoughnutController, LinearScale, Tooltip);
 
 /**
  * The native statuses for which Infection actually starts a mutant process — the complement of
@@ -30,10 +54,14 @@ const NOT_EVALUATED_STATUS_ORDER: readonly string[] = [
   STATUS.IGNORED,
 ];
 
-/** Resolves a status's declared `--status-N` custom property (see app.css) to a concrete color — Canvas 2D fills don't understand `var()`. */
+/** Resolves a CSS custom property to a concrete color — Canvas 2D fills don't understand `var()`. */
+function token(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+/** Resolves a status's declared `--status-N` custom property (see app.css). */
 function statusColor(status: string): string {
-  const i = EVALUATED_STATUS_ORDER.indexOf(status);
-  return getComputedStyle(document.documentElement).getPropertyValue(`--status-${i + 1}`).trim();
+  return token(`--status-${EVALUATED_STATUS_ORDER.indexOf(status) + 1}`);
 }
 
 let statusChart: Chart<"doughnut"> | undefined;
@@ -49,19 +77,23 @@ interface ReviewDraft {
 interface State {
   mutations: Map<string, IndexedMutation>;
   order: string[];
-  runIds: Set<string>;
   reviews: Map<string, ReviewRecord>;
   selectedId: string | null;
   filteredIds: string[];
+  /** The mutator the Metrics tab is scoped to; "" is every mutator. Does not affect the Review tab. */
+  mutatorScope: string;
+  /** Compare tab: mutators with fewer mutations than this are left out of every chart. */
+  compareMinMutations: number;
 }
 
 const state: State = {
   mutations: new Map(),
   order: [],
-  runIds: new Set(),
   reviews: new Map(),
   selectedId: null,
   filteredIds: [],
+  mutatorScope: "",
+  compareMinMutations: 1,
 };
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T {
@@ -81,11 +113,10 @@ async function loadReport(): Promise<void> {
   }
 
   const { records, errors } = parseJsonl<ObservationRecord>(await response.text());
-  const { mutations, order, runIds, warnings } = indexMutations(records);
+  const { mutations, order, warnings } = indexMutations(records);
 
   state.mutations = mutations;
   state.order = order;
-  state.runIds = runIds;
 
   showWarnings([...errors, ...warnings]);
 
@@ -97,9 +128,10 @@ async function loadReport(): Promise<void> {
   el("empty-state").style.display = "none";
   el("tabs").style.display = "flex";
 
-  renderStats();
+  populateMutatorScope();
   renderSidebar();
   renderMetrics();
+  renderCompareIfActive();
   renderDetail(state.filteredIds[0] ?? null);
 }
 
@@ -120,13 +152,27 @@ function showEmptyState(message: string): void {
   el("empty-state-message").textContent = message;
 }
 
-function switchTab(tab: "review" | "metrics"): void {
+type Tab = "review" | "metrics" | "compare";
+
+const TABS: readonly Tab[] = ["review", "metrics", "compare"];
+
+function switchTab(tab: Tab): void {
   for (const btn of document.querySelectorAll<HTMLButtonElement>(".tab-btn")) {
     btn.classList.toggle("active", btn.dataset.tab === tab);
   }
-  el("tab-review").classList.toggle("active", tab === "review");
-  el("tab-metrics").classList.toggle("active", tab === "metrics");
+  for (const name of TABS) el(`tab-${name}`).classList.toggle("active", name === tab);
+
+  // Chart.js sizes a responsive chart from its container, which measures 0 while the panel is
+  // display:none — so the Compare charts are drawn on activation rather than kept up to date in
+  // the background, where they would all render as empty.
+  if (tab === "compare") renderCompare();
+
   updateUrl();
+}
+
+/** Keeps the Compare charts in step with a review save, but only while they are actually on screen. */
+function renderCompareIfActive(): void {
+  if (el("tab-compare").classList.contains("active")) renderCompare();
 }
 
 const STATUS_FILTERS = new Set(["all", "unreviewed", "reviewed", "unstable"]);
@@ -138,7 +184,7 @@ const STATUS_FILTERS = new Set(["all", "unreviewed", "reviewed", "unstable"]);
  * form values on reload" behaviour, which only covers a same-tab reload.
  */
 function updateUrl(): void {
-  const tab = el("tab-metrics").classList.contains("active") ? "metrics" : "review";
+  const tab = TABS.find((name) => el(`tab-${name}`).classList.contains("active")) ?? "review";
   const status = el<HTMLSelectElement>("filter-status").value;
   const q = el<HTMLInputElement>("search").value;
 
@@ -149,6 +195,10 @@ function updateUrl(): void {
   else url.searchParams.set("status", status);
   if (q === "") url.searchParams.delete("q");
   else url.searchParams.set("q", q);
+  if (state.mutatorScope === "") url.searchParams.delete("mutator");
+  else url.searchParams.set("mutator", state.mutatorScope);
+  if (state.compareMinMutations === 1) url.searchParams.delete("min");
+  else url.searchParams.set("min", String(state.compareMinMutations));
 
   globalThis.history.replaceState(null, "", url);
 }
@@ -164,7 +214,20 @@ function restoreFromUrl(): void {
   const q = params.get("q");
   if (q !== null) el<HTMLInputElement>("search").value = q;
 
-  switchTab(params.get("tab") === "metrics" ? "metrics" : "review");
+  // Read before the switchTab() below, which writes the current state back to the URL: the scope
+  // selector cannot be populated until the report has loaded, so the value is parked in state and
+  // validated against the option list in populateMutatorScope().
+  state.mutatorScope = params.get("mutator") ?? "";
+
+  const min = el<HTMLSelectElement>("compare-min-mutations");
+  const wantedMin = params.get("min");
+  if (wantedMin !== null && [...min.options].some((option) => option.value === wantedMin)) {
+    min.value = wantedMin;
+    state.compareMinMutations = Number(wantedMin);
+  }
+
+  const tab = params.get("tab");
+  switchTab(TABS.find((name) => name === tab) ?? "review");
 }
 
 // ---------- rendering ----------
@@ -242,7 +305,10 @@ function renderSidebar(): void {
     list.appendChild(item);
   }
 
-  renderReviewProgress({ label: "review-progress-label", bar: "review-progress-bar", fill: "review-progress-fill" });
+  renderReviewProgress(
+    { label: "review-progress-label", bar: "review-progress-bar", fill: "review-progress-fill" },
+    state.mutations,
+  );
 }
 
 /**
@@ -252,9 +318,12 @@ function renderSidebar(): void {
  * `state.reviews.size` directly so a review left over from a mutation no longer in the current
  * report (e.g. the report was regenerated) can't inflate this past what's actually reviewed.
  */
-function renderReviewProgress(ids: { label: string; bar: string; fill: string }): void {
-  const total = state.mutations.size;
-  const reviewed = computeMetrics(state.mutations, state.reviews).reviewedCount;
+function renderReviewProgress(
+  ids: { label: string; bar: string; fill: string },
+  mutations: ReadonlyMap<string, IndexedMutation>,
+): void {
+  const total = mutations.size;
+  const reviewed = computeMetrics(mutations, state.reviews).reviewedCount;
   const pctDone = total > 0 ? (reviewed / total) * 100 : 0;
 
   const label = el(ids.label);
@@ -269,18 +338,25 @@ function renderReviewProgress(ids: { label: string; bar: string; fill: string })
   el(ids.fill).style.width = `${pctDone}%`;
 }
 
-function renderStats(): void {
+function renderStats(mutations: ReadonlyMap<string, IndexedMutation>): void {
   const stats = el("stats");
   stats.innerHTML = "";
 
   const counts: Record<string, number> = {};
-  for (const { observations } of state.mutations.values()) {
-    for (const o of observations) counts[o.detectionStatus] = (counts[o.detectionStatus] ?? 0) + 1;
+  // Runs are counted from the observations in scope rather than from state.runIds: scoped to a
+  // mutator that a given run generated nothing for, that run contributes no evidence here and
+  // saying otherwise would overstate how repeatedly this mutator was observed.
+  const runIds = new Set<string>();
+  for (const { observations } of mutations.values()) {
+    for (const o of observations) {
+      counts[o.detectionStatus] = (counts[o.detectionStatus] ?? 0) + 1;
+      runIds.add(o.runId);
+    }
   }
 
   const chips: string[] = [
-    `Runs: <b>${state.runIds.size}</b>`,
-    `Mutations: <b>${state.mutations.size}</b>`,
+    `Runs: <b>${runIds.size}</b>`,
+    `Mutations: <b>${mutations.size}</b>`,
   ];
   // Evaluated statuses get the donut below, NOT_EVALUATED ones get their own "Non-evaluated
   // mutations" card (both in renderStatusChart()) — a chip here is the fallback for a status this
@@ -335,6 +411,11 @@ function renderStatusChart(counts: Record<string, number>): void {
   const wrap = el("status-breakdown");
   wrap.innerHTML = "";
 
+  // Emptying the wrapper drops the canvas but not the Chart bound to it; scoping to a mutator
+  // with no evaluated observation would otherwise leak the previous scope's chart instance.
+  statusChart?.destroy();
+  statusChart = undefined;
+
   const segments = EVALUATED_STATUS_ORDER
     .map((status) => ({ status, count: counts[status] ?? 0 }))
     .filter((s) => s.count > 0);
@@ -370,7 +451,6 @@ function renderStatusChart(counts: Record<string, number>): void {
 
     wrap.append(donutBox, legend);
 
-    statusChart?.destroy();
     statusChart = new Chart<"doughnut">(canvas, {
       type: "doughnut",
       data: {
@@ -444,6 +524,13 @@ function pct(x: number | null): string {
   return x === null ? "—" : (x * 100).toFixed(1) + "%";
 }
 
+/** The subcategory on its own, sentence-cased: "non-actionable — equivalent" → "Equivalent". */
+function subcategoryLabel(classification: string): string {
+  const subcategory = classification.replace(/^non-actionable — /, "");
+
+  return subcategory.charAt(0).toUpperCase() + subcategory.slice(1);
+}
+
 /**
  * One line per card explaining what a reviewer is looking at — the denominator and what a high/low
  * value means — condensed from doc/mutator-performance.md's "Metrics" section, which remains the
@@ -456,7 +543,7 @@ function pct(x: number | null): string {
  * nonActionable/unresolved are the only fields fed by the reviews map). Answers "why didn't this
  * number move when I classified a mutation?" by construction rather than by a one-off explanation.
  */
-const METRIC_DEFINITIONS: ReadonlyArray<{
+type MetricDefinition = {
   label: string;
   value: (m: Metrics) => string | number;
   description: string;
@@ -471,7 +558,40 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
    * (100%, here), not a general-purpose way to decorate any number.
    */
   valueStatus?: (m: Metrics) => "good" | "critical" | undefined;
-}> = [
+  /**
+   * Present when the metric can be charted per mutator on the Compare tab. Omitted for a metric
+   * that only means something report-wide — a total that would rank mutators by how often they
+   * fire rather than by how they behave.
+   */
+  compare?: {
+    /** null leaves that mutator out of this chart: no denominator is not the same as zero. */
+    value: (m: Metrics) => number | null;
+    format: (value: number) => string;
+    /** "percent" fixes the axis at 0–100%, so a bar length means the same thing in every rate chart. */
+    axis: "percent" | "linear";
+    /** Which end of the scale is the good one. Drives the chart's subtitle only, never the order. */
+    better?: "higher" | "lower";
+    /**
+     * Replaces the card's description on the Compare tab. Set it when the chart plots something the
+     * description does not describe — a different statistic, or a filtered subset of the mutators.
+     */
+    note?: string;
+    /**
+     * Mutators this chart leaves out because their value carries no comparison signal — a metric
+     * already at its target has nothing to rank against. Only on the Compare tab: the Metrics tab's
+     * card still counts them, because they are part of the figure.
+     */
+    omit?: {
+      when: (value: number) => boolean;
+      /** Describes what was left out, for the count under the chart: "48 mutators at 100%". */
+      omitted: string;
+      /** Describes what is left, for the chart's own heading: "Syntactic validity below 100%". */
+      remaining: string;
+    };
+  };
+};
+
+const METRIC_DEFINITIONS: readonly MetricDefinition[] = [
   {
     label: "Evaluated",
     value: (m) => m.evaluated,
@@ -480,6 +600,7 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
     formula: "count(mutations with ≥1 evaluated observation)",
     formulaLegend: "Excludes not covered, skipped, and ignored — statuses with no mutant process at all.",
     group: "report",
+    compare: { value: (m) => m.evaluated, format: (v) => String(v), axis: "linear" },
   },
   {
     label: "Syntactic validity",
@@ -491,6 +612,17 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
     group: "report",
     valueStatus: (m) =>
       m.syntacticValidityRate === null ? undefined : m.syntacticValidityRate === 1 ? "good" : "critical",
+    compare: {
+      value: (m) => m.syntacticValidityRate,
+      format: pct,
+      axis: "percent",
+      better: "higher",
+      note: "The mutators that produced a syntax error in at least one evaluated mutation, by the share of their " +
+        "mutations that still parsed. Every bar here is a suspected mutator defect, and a shorter one is a bigger one.",
+      // Validity is 100% for nearly every mutator, so charting them all is one short bar buried in
+      // a wall of full ones. The chart is the exception report; the count of the rest is stated.
+      omit: { when: (value) => value === 1, omitted: "at 100%", remaining: "below 100%" },
+    },
   },
   {
     label: "Test workload",
@@ -500,6 +632,13 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
     formula: "Σ tests selected",
     formulaLegend: "Summed over every evaluated observation.",
     group: "report",
+    compare: {
+      value: (m) => m.meanTestsSelected,
+      format: (v) => v.toFixed(1),
+      axis: "linear",
+      note: "Mean tests per evaluated observation, not the total above — a total ranks mutators by how often " +
+        "they fire, which is not a property of the mutator's behaviour.",
+    },
   },
   {
     label: "Recorded runtime",
@@ -509,6 +648,13 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
     formula: "Σ decisive-process runtime (seconds)",
     formulaLegend: "Summed over every evaluated observation.",
     group: "report",
+    compare: {
+      value: (m) => m.meanRuntimeSeconds,
+      format: (v) => v.toFixed(3) + "s",
+      axis: "linear",
+      note: "Mean decisive-process runtime per timed observation, not the total above. Observations with no " +
+        "recorded process are left out of the denominator rather than counted as instant.",
+    },
   },
   {
     label: "Instability",
@@ -519,6 +665,19 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
     formulaLegend: "Repeated = mutations evaluated ≥2 times. Unstable = of those, ones whose status differed " +
       "across observations.",
     group: "report",
+    compare: {
+      value: (m) => m.instabilityRate,
+      format: pct,
+      axis: "percent",
+      better: "lower",
+      note: "The mutators with at least one mutation whose status changed between runs, by the share of their " +
+        "repeatedly-evaluated mutations that changed. Still a reliability check on the run, not on the mutator: a bar " +
+        "points at a flaky test or environment noise, not at a defect in the mutator it names.",
+      // The mirror of syntactic validity: a stable mutator is the expected case and every one of
+      // them is a zero-length bar, so the chart is the exception report and the rest is a count.
+      omit: { when: (value) => value === 0, omitted: "at 0%", remaining: "above 0%" },
+    },
+    valueStatus: (m) => m.instabilityRate === null ? undefined : m.instabilityRate === 0 ? "good" : "critical",
   },
   {
     label: "Actionability",
@@ -528,6 +687,7 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
     formula: "Actionable ÷ (Actionable + Non-actionable)",
     formulaLegend: "Counted from your review classifications; “cannot determine” reviews are excluded from both terms.",
     group: "review",
+    compare: { value: (m) => m.actionabilityRate, format: pct, axis: "percent", better: "higher" },
   },
   {
     label: "Unresolved",
@@ -537,7 +697,34 @@ const METRIC_DEFINITIONS: ReadonlyArray<{
     formula: "Cannot-determine ÷ (Actionable + Non-actionable + Cannot-determine)",
     formulaLegend: "Equivalent to cannot-determine ÷ all reviewed mutations.",
     group: "review",
+    compare: { value: (m) => m.unresolvedProportion, format: pct, axis: "percent", better: "lower" },
   },
+  // One card per non-actionable subcategory, generated from the classification list rather than
+  // written out three times — the three differ only in which classification they count. The doc
+  // reports them alongside the actionability rate because each points somewhere different: too many
+  // equivalent mutations question the mutator's guards, redundant ones its overlap with another
+  // mutator, irrelevant or arid ones the transformation itself.
+  ...NON_ACTIONABLE_CLASSIFICATIONS.map((classification): MetricDefinition => ({
+    // "non-actionable — equivalent" → "Equivalent". The prefix is dropped because the card sits in
+    // the review group directly under Actionability, where repeating it on all three says nothing.
+    label: subcategoryLabel(classification.value),
+    value: (m) => pct(m.nonActionableRates[classification.value]),
+    description: `${classification.description} Reported as a share of classified mutations, on the same ` +
+      "denominator as Actionability above — so the three subcategories and Actionability sum to 100%, and " +
+      "the one to act on is whichever dominates rather than any single target value.",
+    formula: `${subcategoryLabel(classification.value)} ÷ (Actionable + Non-actionable)`,
+    formulaLegend: "Counted from your review classifications; “cannot determine” reviews are excluded from both " +
+      "terms, exactly as in Actionability.",
+    group: "review",
+    compare: {
+      value: (m) => m.nonActionableRates[classification.value],
+      format: pct,
+      axis: "percent",
+      // Same reasoning as Instability: a mutator with none of this subcategory is the expected
+      // case and charts as a zero-length bar, so the chart is the exception report.
+      omit: { when: (value) => value === 0, omitted: "at 0%", remaining: "above 0%" },
+    },
+  })),
 ];
 
 function renderMetricsGrid(gridId: string, group: "report" | "review", metrics: Metrics): void {
@@ -584,19 +771,351 @@ function renderMetricsGrid(gridId: string, group: "report" | "review", metrics: 
   }
 }
 
-function renderMetrics(): void {
-  const metrics = computeMetrics(state.mutations, state.reviews);
+/**
+ * The mutations the Metrics tab is currently reporting on. Everything on that tab — the chips, the
+ * donut, the review progress bar, and every card — reads from this one function, so a scoped page
+ * can never mix a scoped figure with a report-wide one.
+ */
+function scopedMutations(): ReadonlyMap<string, IndexedMutation> {
+  return state.mutatorScope === "" ? state.mutations : filterByMutator(state.mutations, state.mutatorScope);
+}
 
-  // Lives in the Overview section's markup (above the donut), not the grid below — rendered here
-  // rather than in renderStats() so it stays live after every review save, same as the cards do.
+/**
+ * Fills the scope selector from the report itself, so it only ever offers mutators that actually
+ * generated something. Each option carries its mutation count because that count is the sample size
+ * behind every rate on the page: a 100% validity over 3 mutations and over 300 look identical on a
+ * card, and the selector is the only place that difference can be shown once.
+ */
+function populateMutatorScope(): void {
+  const select = el<HTMLSelectElement>("metrics-mutator");
+  const wanted = state.mutatorScope;
+
+  select.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = `All mutators (${state.mutations.size})`;
+  select.appendChild(all);
+
+  for (const { name, mutationCount } of summariseMutators(state.mutations)) {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = `${name === "" ? "(unknown mutator)" : name} (${mutationCount})`;
+    select.appendChild(option);
+  }
+
+  // A scope restored from the URL can name a mutator this report has no mutation for — the report
+  // was regenerated, or the link came from a different corpus. Fall back to every mutator rather
+  // than showing an empty page for a scope the selector cannot even display.
+  const known = [...select.options].some((option) => option.value === wanted);
+  state.mutatorScope = known ? wanted : "";
+  select.value = state.mutatorScope;
+  updateUrl();
+}
+
+function renderMetrics(): void {
+  const mutations = scopedMutations();
+  const metrics = computeMetrics(mutations, state.reviews);
+
+  renderStats(mutations);
+
+  // Lives in the Overview section's markup (above the donut), not the grid below — rendered from
+  // here, like everything else on this tab, so it stays live after every review save and follows
+  // the scope rather than always reporting the whole report.
   renderReviewProgress({
     label: "metrics-review-progress-label",
     bar: "metrics-review-progress-bar",
     fill: "metrics-review-progress-fill",
-  });
+  }, mutations);
+
+  el("metrics-scope-hint").textContent = state.mutatorScope === ""
+    ? "Every mutation in the report."
+    : `${mutations.size} mutation${mutations.size === 1 ? "" : "s"} generated by ${state.mutatorScope}.`;
 
   renderMetricsGrid("metrics-grid-report", "report", metrics);
   renderMetricsGrid("metrics-grid-review", "review", metrics);
+}
+
+let compareCharts: Chart<"bar">[] = [];
+
+/** How many mutators a card names before falling back to a count. */
+const MAX_NAMED_MUTATORS = 5;
+
+/**
+ * Draws each bar's value just past its tip. A bar chart's whole job is comparing lengths, and the
+ * exact figure at the end is what keeps the value axis recessive; the chart reserves right-hand
+ * padding for this, so a label never overflows the canvas or sits on top of its own bar.
+ */
+const barValuePlugin = {
+  id: "barValue",
+  afterDatasetsDraw(chart: Chart): void {
+    const labels = (chart.config.data.datasets[0] as { valueLabels?: string[] }).valueLabels;
+    if (labels === undefined) return;
+
+    const { ctx } = chart;
+    ctx.save();
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = token("--text-muted");
+    ctx.font = "11px system-ui, sans-serif";
+
+    for (const [i, element] of chart.getDatasetMeta(0).data.entries()) {
+      ctx.fillText(labels[i] ?? "", element.x + 8, element.y);
+    }
+
+    ctx.restore();
+  },
+};
+
+/**
+ * Draws the middle half of the mutators as a band, and the median as a line through it, behind the
+ * bars. This is the context a sorted bar chart cannot give on its own: the bars say which mutator
+ * is highest, the band says whether the spread between them is worth acting on.
+ */
+const referencePlugin = {
+  id: "reference",
+  beforeDatasetsDraw(chart: Chart): void {
+    const dataset = chart.config.data.datasets[0] as { spread?: Spread; spreadLabel?: string };
+    const spread = dataset.spread;
+    if (spread === undefined) return;
+
+    const { ctx, chartArea: { top, bottom } } = chart;
+    const x = chart.scales.x;
+    const left = x.getPixelForValue(spread.p25);
+    const right = x.getPixelForValue(spread.p75);
+    const median = x.getPixelForValue(spread.median);
+
+    ctx.save();
+    ctx.fillStyle = token("--reference-band");
+    ctx.fillRect(left, top, right - left, bottom - top);
+
+    ctx.strokeStyle = token("--reference-line");
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    // Half-pixel offset: a 1px line on an integer coordinate straddles two device pixels and
+    // renders as a 2px blur.
+    ctx.moveTo(Math.round(median) + 0.5, top);
+    ctx.lineTo(Math.round(median) + 0.5, bottom);
+    ctx.stroke();
+
+    // The label flips to the left of the line near the right edge, rather than being clipped.
+    const label = dataset.spreadLabel ?? "";
+    const flip = median > (chart.chartArea.left + chart.chartArea.right) / 2;
+    ctx.fillStyle = token("--text-muted");
+    ctx.font = "11px system-ui, sans-serif";
+    ctx.textAlign = flip ? "right" : "left";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(label, median + (flip ? -5 : 5), top - 3);
+    ctx.restore();
+  },
+};
+
+/**
+ * One horizontal bar chart for one metric, one bar per mutator. Single series throughout, so every
+ * bar wears the same accent hue: the mutator's identity is its axis label, and colouring bars by
+ * value or by rank would encode the length a second time in a channel that cannot be read exactly.
+ */
+function buildCompareChart(
+  definition: CompareDefinition,
+  rows: ReadonlyArray<{ label: string; value: number }>,
+  spread: Spread | null,
+): HTMLDivElement {
+  const wrap = document.createElement("div");
+  wrap.className = "chart-wrap";
+  // 26px a row is the bar (max 18px) plus the air the spec wants around it; the floor keeps a
+  // one-mutator chart from collapsing to a sliver, and the last term is the median label's line.
+  wrap.style.height = `${Math.max(90, rows.length * 26 + 34 + (spread === null ? 0 : 16))}px`;
+
+  const canvas = document.createElement("canvas");
+  wrap.appendChild(canvas);
+
+  const { format, axis } = definition.compare;
+  const percent = axis === "percent";
+
+  compareCharts.push(
+    new Chart<"bar">(canvas, {
+      type: "bar",
+      data: {
+        labels: rows.map((r) => r.label),
+        datasets: [{
+          data: rows.map((r) => r.value),
+          backgroundColor: token("--accent"),
+          borderRadius: 4,
+          borderSkipped: "start",
+          maxBarThickness: 18,
+          valueLabels: rows.map((r) => format(r.value)),
+          spread: spread ?? undefined,
+          spreadLabel: spread === null ? undefined : `median ${format(spread.median)}`,
+        } as never],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        // Top padding is where the median label goes; without it the label is clipped by the canvas.
+        layout: { padding: { right: 64, top: spread === null ? 0 : 16 } },
+        scales: {
+          x: {
+            beginAtZero: true,
+            // A rate always spans the full 0-100%, so two rate charts can be compared by eye; a
+            // count or a duration has no such ceiling and is left to fit its own data.
+            max: percent ? 1 : undefined,
+            border: { display: false },
+            grid: { color: token("--border") },
+            ticks: {
+              color: token("--text-muted"),
+              font: { size: 11 },
+              callback: (value) => percent ? `${Number(value) * 100}%` : String(value),
+            },
+          },
+          y: {
+            border: { display: false },
+            grid: { display: false },
+            ticks: { color: token("--text"), font: { size: 11 }, autoSkip: false },
+          },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (item) => format(item.parsed.x) } },
+        },
+      },
+      plugins: [referencePlugin, barValuePlugin],
+    }),
+  );
+
+  return wrap;
+}
+
+/** A metric definition known to be chartable — narrows `compare` away from undefined for the callees. */
+type CompareDefinition = MetricDefinition & { compare: NonNullable<MetricDefinition["compare"]> };
+
+function buildCompareCard(definition: CompareDefinition, perMutator: readonly MutatorMetrics[]): HTMLDivElement {
+  const card = document.createElement("div");
+  card.className = "compare-card";
+
+  const heading = document.createElement("h3");
+  // The heading carries the filter, not just the note under the chart: a reader who scrolls past a
+  // half-empty "Syntactic validity" chart must not read it as the whole population.
+  heading.textContent = definition.compare.omit === undefined
+    ? definition.label
+    : `${definition.label} ${definition.compare.omit.remaining}`;
+  if (definition.compare.better !== undefined) {
+    const hint = document.createElement("span");
+    hint.className = "compare-better";
+    hint.textContent = `${definition.compare.better} is better`;
+    heading.appendChild(hint);
+  }
+
+  const desc = document.createElement("p");
+  desc.className = "desc";
+  desc.textContent = definition.compare.note ?? definition.description;
+  card.append(heading, desc);
+
+  const rows = perMutator.map(({ name, mutationCount, metrics }) => ({
+    name,
+    label: `${name === "" ? "(unknown mutator)" : name} (${mutationCount})`,
+    value: definition.compare.value(metrics),
+  }));
+
+  // Each chart ranks on its own value, largest bar first, so the chart reads as a ranking of the
+  // thing it plots. Equal values fall back to the mutator name, which keeps the order stable: a
+  // chart where every mutator scores the same (all-100% validity, all-0% instability is common)
+  // would otherwise shuffle its rows on every re-render.
+  const measured = rows
+    .filter((row): row is typeof rows[number] & { value: number } => row.value !== null)
+    .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
+
+  const { omit } = definition.compare;
+  const omitted = omit === undefined ? [] : measured.filter((row) => omit.when(row.value));
+  const plotted = omit === undefined ? measured : measured.filter((row) => !omit.when(row.value));
+
+  if (plotted.length === 0) {
+    const none = document.createElement("p");
+    none.className = "compare-missing";
+    // Two different nothings: every mutator is at target, or none has been measured at all.
+    none.textContent = omitted.length > 0
+      ? `Every measured mutator is ${omit?.omitted} — nothing to compare.`
+      : "No mutator has a value for this metric yet.";
+    card.appendChild(none);
+
+    return card;
+  }
+
+  const spread = summariseSpread(plotted.map((row) => row.value));
+  card.appendChild(buildCompareChart(definition, plotted, spread));
+
+  // The band and the line have no legend of their own — a two-entry legend box for context marks
+  // would outweigh them — so they are named here, with the numbers spelled out for anyone who
+  // cannot read them off the chart.
+  if (spread !== null) {
+    const legend = document.createElement("p");
+    legend.className = "compare-legend";
+    const { format } = definition.compare;
+    legend.textContent = `Band: the middle half of these mutators, ${format(spread.p25)} to ${format(spread.p75)}. ` +
+      `Line: the median, ${format(spread.median)}.`;
+    card.appendChild(legend);
+  }
+
+  if (omitted.length > 0) {
+    const hidden = document.createElement("p");
+    hidden.className = "compare-missing";
+    hidden.textContent = `Not shown: ${omitted.length} mutator${omitted.length === 1 ? "" : "s"} ${omit?.omitted}.`;
+    card.appendChild(hidden);
+  }
+
+  // A missing value is not a zero — the mutator has no denominator for this metric (nothing
+  // evaluated, nothing repeated, nothing classified). Naming them keeps a mutator from looking
+  // like it scored badly when it was simply not measured.
+  if (measured.length < rows.length) {
+    const unmeasured = rows
+      .filter((row) => row.value === null)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((row) => row.label);
+
+    // Naming them is the point — an unmeasured mutator must not read as one that scored badly —
+    // but a review that has barely started leaves every mutator unmeasured, and a list of 48 names
+    // is a wall of text nobody reads. Name the first few, count the rest.
+    const named = unmeasured.slice(0, MAX_NAMED_MUTATORS);
+    const rest = unmeasured.length - named.length;
+
+    const missing = document.createElement("p");
+    missing.className = "compare-missing";
+    missing.textContent = `No data: ${named.join(", ")}${rest > 0 ? ` and ${rest} more` : ""}`;
+    card.appendChild(missing);
+  }
+
+  return card;
+}
+
+function renderCompareGrid(gridId: string, group: "report" | "review", perMutator: readonly MutatorMetrics[]): void {
+  const grid = el(gridId);
+  grid.innerHTML = "";
+
+  for (const definition of METRIC_DEFINITIONS) {
+    if (definition.group !== group || definition.compare === undefined) continue;
+    grid.appendChild(buildCompareCard(definition as CompareDefinition, perMutator));
+  }
+}
+
+/**
+ * The Compare tab: the same metrics as the Metrics tab, one bar per mutator instead of one number.
+ * Only metrics with a `compare` spec appear — a report-wide total would rank mutators by how often
+ * each one fires rather than by how it behaves, so those are charted as per-observation means.
+ */
+function renderCompare(): void {
+  const all = computeMutatorMetrics(state.mutations, state.reviews);
+  const perMutator = all.filter((m) => m.mutationCount >= state.compareMinMutations);
+
+  const shown = perMutator.length === all.length
+    ? `${all.length} mutator${all.length === 1 ? "" : "s"} in the report`
+    : `Showing ${perMutator.length} of ${all.length} mutators`;
+  el("compare-scope-hint").textContent = `${shown}. Each chart is sorted by its own value, ties by mutator name.`;
+
+  for (const chart of compareCharts) chart.destroy();
+  compareCharts = [];
+
+  renderCompareGrid("compare-grid-report", "report", perMutator);
+  renderCompareGrid("compare-grid-review", "review", perMutator);
 }
 
 function renderDiff(diff: string | undefined): HTMLPreElement {
@@ -735,6 +1254,7 @@ function saveReview(mutationId: string, draft: ReviewDraft, debounced: boolean):
   else state.reviews.delete(mutationId);
 
   renderMetrics();
+  renderCompareIfActive();
   renderSidebar();
 
   if (!hasClassification) {
@@ -922,8 +1442,20 @@ function onFilterChange(): void {
 el("search").addEventListener("input", onFilterChange);
 el("filter-status").addEventListener("change", onFilterChange);
 
+el("metrics-mutator").addEventListener("change", (event) => {
+  state.mutatorScope = (event.target as HTMLSelectElement).value;
+  renderMetrics();
+  updateUrl();
+});
+
+el("compare-min-mutations").addEventListener("change", (event) => {
+  state.compareMinMutations = Number((event.target as HTMLSelectElement).value);
+  renderCompare();
+  updateUrl();
+});
+
 for (const btn of document.querySelectorAll<HTMLButtonElement>(".tab-btn")) {
-  btn.addEventListener("click", () => switchTab(btn.dataset.tab === "metrics" ? "metrics" : "review"));
+  btn.addEventListener("click", () => switchTab(TABS.find((name) => name === btn.dataset.tab) ?? "review"));
 }
 
 /**

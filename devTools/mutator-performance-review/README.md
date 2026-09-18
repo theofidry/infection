@@ -41,8 +41,21 @@ tab, so it's visible there rather than tucked away in Metrics.
    request is in flight and "Saved" once it lands (fading out after a couple of seconds; a failed save stays up until
    the next attempt), so it's clear when it's safe to move on — there is no separate export step, and no session to lose
    by closing the tab.
-4. After appending a new Infection run, a plain browser reload picks it up — tab, search, and status filter all survive
-   it (they live in the URL query string, restored on load). There's no export step — no separate "reload" button
+4. The Metrics tab has a **Scope** selector at the top: "All mutators", or one mutator at a time. It re-scopes the whole
+   tab — chips, status donut, review progress, and every card — so the same, single set of formulas is applied to a
+   smaller population rather than computed a second way. Each option shows that mutator's mutation count, because that
+   count is the sample size behind every rate on the page: 100% validity over 3 mutations and over 300 look identical on
+   a card otherwise.
+5. The Compare tab charts the same metrics one bar per mutator, so mutators can be read against each other rather than
+   one at a time. Each chart is ranked by its own value, largest first, with ties falling back to the mutator name.
+   Behind the bars, a band marks where the middle half of the mutators sit (P25–P75) and a line marks the median, so a
+   bar can be read as typical or not rather than only as higher or lower than its neighbour. "Minimum mutations" drops
+   the long tail of mutators with too little evidence to compare. Syntactic validity, Instability, and the three
+   non-actionable subcategories chart only the mutators away from target — below 100% for the first, above 0% for the
+   rest — because a wall of identical bars is not a comparison; each says so in its heading as well as in the count of
+   the rest.
+6. After appending a new Infection run, a plain browser reload picks it up — tab, search, status filter, metrics scope,
+   and the Compare tab's minimum all survive it (they live in the URL query string, restored on load). There's no export step — no separate "reload" button
    either, both would just duplicate what a reload already does — `var/mutator-performance-reviews.json` is already the
    file to read, share, or join with the raw observations; open it directly.
 
@@ -68,8 +81,9 @@ devTools/mutator-performance-review/
   testdata/                # fixtures for the shared-module tests
 ```
 
-All parsing, indexing, and metrics computation (syntactic validity, review-driven actionability, unresolved proportion,
-outcome instability) happens client-side, in the modules under `src/shared/`, unit-tested directly with `deno test`.
+All parsing, indexing, and metrics computation (syntactic validity, review-driven actionability and its non-actionable
+subcategories, unresolved proportion, outcome instability, and the per-observation means the Compare tab charts)
+happens client-side, in the modules under `src/shared/`, unit-tested directly with `deno test`.
 This is deliberate: the same statistics used to exist a second time, untested, in
 `devTools/mutator-performance-workbook`'s XLSX output — see [the tooling doc](../../doc/mutator-performance-tooling.md)
 for the full rationale. The server is otherwise thin: it serves static files, reads/writes the two JSONL and JSON files

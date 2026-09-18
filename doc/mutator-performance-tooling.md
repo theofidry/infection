@@ -182,13 +182,53 @@ used on a real corpus:
   the SSE connection drops and later reconnects, which covers the case hot-reloading the client bundle alone can't:
   the server process itself restarting (e.g. after a `Dockerfile` or `server.ts` change forces a full
   `docker compose up --build`).
+- **Per-mutator views compute nothing new.** The Metrics tab scopes to one mutator and the Compare tab charts one bar
+  per mutator, but both go through the unchanged `computeMetrics()`; scoping narrows the *mutation map* it is given
+  (`filterByMutator()`), so a per-mutator figure is by construction the same formula over a smaller population. This
+  is the same reason the tool was rebuilt out of the workbook in the first place: a second implementation of a
+  statistic drifts out of sync silently.
+- **The non-actionable subcategories share Actionability's denominator.** `doc/mutator-performance.md` reports the
+  subcategories — equivalent, redundant, irrelevant or arid — alongside the actionability rate, because each points
+  somewhere different: at the mutator's guards, at its overlap with another mutator, or at the transformation itself.
+  Each is charted as a share of *classified* mutations rather than of non-actionable ones, so the four review rates
+  partition the classified population and sum to 100%; a subcategory does not otherwise look more dominant simply
+  because the mutator produced few non-actionable mutations at all. The three cards are generated from
+  `NON_ACTIONABLE_CLASSIFICATIONS`, so a change to the classification list reaches the metric and the charts together.
+- **Comparison needs per-observation means, not totals.** Test workload and recorded runtime are sums, so a chart of
+  them ranks mutators by how often each one fires — a property of the codebase under test, not of the mutator. The
+  Compare tab therefore charts mean tests per evaluated observation and mean runtime per *timed* observation
+  (observations with no recorded process are excluded from the denominator rather than counted as instant). The rates
+  compare as they are.
+- **Each chart ranks on its own value.** Bars are ordered largest first, per chart, so a chart reads as a ranking of the
+  thing it plots rather than as a re-run of the mutation-count order. Ties fall back to the mutator name: a chart where
+  every mutator scores the same — all-100% validity, all-0% instability — would otherwise reshuffle on every re-render.
+- **Median and quartiles, not mean and standard deviation.** Each Compare chart draws a band over the interquartile
+  range and a line at the median. These distributions are bounded (a rate cannot exceed 100%) and right-skewed: on the
+  first Infection run the mean mutant runtime across mutators was 0.408s while the 75th percentile was 0.305s, so the
+  mean sat above three quarters of the mutators and a symmetric band around it would have run off the axis. The mode is
+  degenerate here — runtimes are all distinct, and validity's mode is simply 100%. The band is suppressed below five
+  plotted mutators, where a quartile is noise, and when the quartile range is zero, where it would sit on its own
+  median. The pooled report-wide figure — what the Metrics tab shows under "All mutators" — is a third, different
+  number (0.423s); it is deliberately not drawn yet, because three reference marks on one chart is more than the
+  comparison needs.
+- **A chart may exclude values at target.** Syntactic validity is 100%, instability is 0%, and each non-actionable
+  subcategory is 0% for nearly every mutator, so those charts plot only the ones away from target. The filter is named
+  in each chart's own heading ("Syntactic validity below 100%", "Instability above 0%", "Redundant above 0%"), not only
+  in the count of omitted mutators underneath it: a reader scrolling past a
+  half-empty chart must not take it for the whole population. This is a Compare-tab display rule, not a metric change — the Metrics tab's card still counts every
+  mutator, because they are part of the figure.
+- **A missing value is not zero, and a small sample is stated.** A mutator with nothing evaluated, nothing repeated, or
+  nothing classified has no denominator for that metric; it is left out of the chart and named underneath it instead of
+  being drawn as a zero-length bar. Every bar's label carries the mutator's mutation count, because 100% validity over
+  3 mutations and over 300 are the same bar otherwise, and a "minimum mutations" filter drops the tail outright.
 - **Scope is deliberately narrow.** This pass reproduces the review workflow only. It does not reproduce the
   workbook's generated `Mutations`, `Summary`, or `Observations` tables beyond a small stats strip; browsing a
   mutation's full observation history happens inline in the review pane instead of a separate sheet. There is no
   concurrency control or authentication — this is a single-reviewer local devtool.
 
 Both tools currently exist side by side. The workbook's read-only views are not yet superseded; only its `Reviews`
-sheet — the part a developer had to fill in by hand — has a replacement.
+sheet — the part a developer had to fill in by hand — has a replacement, and its `Metrics` sheet, which the review
+tool now reports both report-wide, per mutator, and across mutators.
 
 ## Roadmap
 

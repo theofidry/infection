@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { indexMutations, parseJsonl, parseReviewsJson } from "./parse.ts";
+import { filterByMutator, indexMutations, parseJsonl, parseReviewsJson, summariseMutators } from "./parse.ts";
 import type { ObservationRecord, ReviewRecord } from "./types.ts";
 
 Deno.test("parseJsonl skips blank lines and reports malformed ones with their line number", () => {
@@ -121,4 +121,39 @@ Deno.test("parseReviewsJson skips a key whose value is not an object", () => {
 
   assert.equal(error, null);
   assert.equal(reviews.size, 0);
+});
+
+function mutatorIndex() {
+  return indexMutations([
+    observation({ mutation: { ...observation().mutation, id: "m1", mutatorName: "Plus" } }),
+    observation({ runId: "run-2", mutation: { ...observation().mutation, id: "m1", mutatorName: "Plus" } }),
+    observation({ mutation: { ...observation().mutation, id: "m2", mutatorName: "TrueValue" } }),
+    observation({ mutation: { ...observation().mutation, id: "m3", mutatorName: "Plus" } }),
+  ]).mutations;
+}
+
+Deno.test("summariseMutators counts mutations, not observations, and sorts by name", () => {
+  assert.deepEqual(summariseMutators(mutatorIndex()), [
+    { name: "Plus", mutationCount: 2 },
+    { name: "TrueValue", mutationCount: 1 },
+  ]);
+});
+
+Deno.test("summariseMutators groups a report with no recorded mutator name under an empty name", () => {
+  const mutations = indexMutations([
+    observation({ mutation: { ...observation().mutation, id: "m1", mutatorName: undefined as unknown as string } }),
+  ]).mutations;
+
+  assert.deepEqual(summariseMutators(mutations), [{ name: "", mutationCount: 1 }]);
+});
+
+Deno.test("filterByMutator keeps only that mutator's mutations, with their observations intact", () => {
+  const filtered = filterByMutator(mutatorIndex(), "Plus");
+
+  assert.deepEqual([...filtered.keys()], ["m1", "m3"]);
+  assert.equal(filtered.get("m1")?.observations.length, 2);
+});
+
+Deno.test("filterByMutator returns an empty map for a mutator absent from the report", () => {
+  assert.equal(filterByMutator(mutatorIndex(), "Nope").size, 0);
 });

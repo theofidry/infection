@@ -35,3 +35,14 @@ export const CLASSIFICATIONS: readonly ClassificationOption[] = [
 export function classificationKind(value: string): ClassificationKind | null {
   return CLASSIFICATIONS.find((c) => c.value === value)?.kind ?? null;
 }
+
+/**
+ * The non-actionable options, in declaration order. Reported as a breakdown of their own
+ * (doc/mutator-performance.md, Actionability Rate: the report "includes the non-actionable
+ * subcategories, which indicate whether the applicability guards, duplicate suppression, or
+ * transformation may require reconsideration"), so metrics and charts derive them from here rather
+ * than naming the three values a second time.
+ */
+export const NON_ACTIONABLE_CLASSIFICATIONS: readonly ClassificationOption[] = CLASSIFICATIONS.filter(
+  (classification) => classification.kind === "non-actionable",
+);
