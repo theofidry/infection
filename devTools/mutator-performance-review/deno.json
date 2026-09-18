@@ -1,0 +1,20 @@
+{
+  "imports": {
+    "esbuild": "npm:esbuild@0.28.2",
+    "chart.js": "npm:chart.js@4.4.7",
+    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.1"
+  },
+  "tasks": {
+    "serve": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run src/server.ts",
+    "test": "deno test --allow-read --allow-write --allow-env src",
+    "check": "deno check src",
+    "build:client": "deno run --allow-read --allow-write --allow-env --allow-net --allow-run src/build-client.ts"
+  },
+  "compilerOptions": {
+    "strict": true
+  },
+  "fmt": {
+    "indentWidth": 2,
+    "lineWidth": 120
+  }
+}

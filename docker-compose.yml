@@ -36,3 +36,15 @@ services:
     volumes:
       - .:/opt/infection
 
+  mutator-performance-review:
+    build:
+      context: .
+      dockerfile: devTools/mutator-performance-review/Dockerfile
+    volumes:
+      - .:/opt/infection
+    ports:
+      - '8000:8000'
+    environment:
+      REPORT_PATH: var/mutator-performance.jsonl
+      REVIEWS_PATH: var/mutator-performance-reviews.json
+

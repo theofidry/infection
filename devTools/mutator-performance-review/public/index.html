@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mutator Performance Review</title>
+    <link rel="stylesheet" href="app.css">
+  </head>
+  <body>
+    <header>
+      <h1>Mutator Performance Review</h1>
+      <div class="spacer"></div>
+    </header>
+
+    <div id="warnings"></div>
+
+    <nav class="tabs" id="tabs" style="display:none">
+      <button class="tab-btn active" type="button" data-tab="review">Review</button>
+      <button class="tab-btn" type="button" data-tab="metrics">Metrics</button>
+    </nav>
+
+    <main>
+      <div id="empty-state">
+        <p id="empty-state-message">Loading the report…</p>
+      </div>
+
+      <div id="tab-review" class="tab-panel active">
+        <div id="sidebar">
+          <div class="review-progress" id="review-progress">
+            <div class="review-progress-label" id="review-progress-label"></div>
+            <div class="review-progress-bar" id="review-progress-bar">
+              <div class="review-progress-fill" id="review-progress-fill"></div>
+            </div>
+          </div>
+          <div class="controls">
+            <input type="search" id="search" placeholder="Filter by mutator, file, or ID…">
+            <select id="filter-status">
+              <option value="all">All</option>
+              <option value="unreviewed">Unreviewed</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="unstable">Unstable</option>
+            </select>
+          </div>
+          <div id="mutation-list"></div>
+        </div>
+        <div id="detail">
+          <div class="placeholder">Select a mutation on the left.</div>
+        </div>
+      </div>
+
+      <div id="tab-metrics" class="tab-panel">
+        <div class="metrics-page">
+          <section>
+            <h2 class="section-heading">Overview</h2>
+            <div class="stats" id="stats"></div>
+            <div class="review-progress" id="metrics-review-progress">
+              <div class="review-progress-label" id="metrics-review-progress-label"></div>
+              <div class="review-progress-bar" id="metrics-review-progress-bar">
+                <div class="review-progress-fill" id="metrics-review-progress-fill"></div>
+              </div>
+            </div>
+            <div class="status-breakdown" id="status-breakdown"></div>
+          </section>
+          <section>
+            <h2 class="section-heading">Metrics</h2>
+            <h3 class="subsection-heading">
+              Fixed <span class="subsection-hint">— from the report, unaffected by classification</span>
+            </h3>
+            <div class="metrics-grid" id="metrics-grid-report"></div>
+            <h3 class="subsection-heading">
+              Depends on review <span class="subsection-hint">— changes as mutations are classified</span>
+            </h3>
+            <div class="metrics-grid" id="metrics-grid-review"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <div id="save-toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

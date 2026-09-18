@@ -17,6 +17,7 @@
 /.tools/
 /build/
 /devTools/Docker*.json
+/devTools/mutator-performance-review/public/app.js
 /devTools/sbx/kits/project-local/spec.yaml
 /dist/
 /infection-cache
