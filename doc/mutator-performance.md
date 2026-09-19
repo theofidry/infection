@@ -449,6 +449,25 @@ No individual metric determines the decision. The evidence supports a mutator wh
 mutations are sufficiently actionable for the declared population, and its computational cost satisfies the decision
 rule recorded before the study.
 
+## Open Questions
+
+These items are recorded as unresolved. They must be settled before the affected metrics are used in a decision.
+
+### Memory Usage Policy and Terminology
+
+The memory metrics above do not yet name a single, consistently sourced figure. Infection records the peak memory
+which the test framework reports for a process; it does not record process resident memory, and the run-level figure
+has no defined collection method. The measure, its baseline, and its unit must be defined together, and the
+primitives needed to collect them do not exist yet. The terminology is undecided as well: _peak memory_,
+_resident memory_, and _memory usage_ are currently used as though they were interchangeable, and they are not.
+
+### Exhaustion Rate and Crash Rate
+
+A mutation whose process exhausts the memory limit is a candidate metric of its own, expressed as a proportion of
+evaluated mutations. A related _crash rate_ may be useful. Neither is defined yet, and existing plans are to be
+reviewed before either is adopted. Note that `DetectionStatus::ERROR` conflates memory exhaustion with every other
+fatal error, so either metric needs a signal which Infection does not currently record.
+
 ## References
 
 1. <a id="ref-1"></a>Goran Petrović, Marko Ivanković, Gordon Fraser, and René Just, "Practical Mutation Testing at
