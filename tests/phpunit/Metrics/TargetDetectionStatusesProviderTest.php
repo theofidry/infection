@@ -75,6 +75,20 @@ final class TargetDetectionStatusesProviderTest extends TestCase
         $this->assertProvidesExcluding([], $provider->get());
     }
 
+    public function test_it_provides_all_statuses_when_mutator_performance_report_is_expected(): void
+    {
+        $logs = $this->createMock(Logs::class);
+        $logs
+            ->expects($this->once())
+            ->method('getMutatorPerformanceFilePath')
+            ->willReturn('mutator-performance.jsonl')
+        ;
+
+        $provider = new TargetDetectionStatusesProvider($logs, LogVerbosity::NONE, false, 0);
+
+        $this->assertProvidesExcluding([], $provider->get());
+    }
+
     public function test_it_provides_all_statuses_when_debugging_is_enabled_for_text_logger(): void
     {
         $logs = $this->createMock(Logs::class);

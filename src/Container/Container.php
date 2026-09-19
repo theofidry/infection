@@ -131,6 +131,7 @@ use Infection\Process\Runner\NullInitialStaticAnalysisRunner;
 use Infection\Process\Runner\ParallelProcessRunner;
 use Infection\Process\Runner\ProcessRunner;
 use Infection\Process\SymfonyProcessShellCommandRunner;
+use Infection\Report\MutatorPerformance\MutatorPerformanceReporterFactory;
 use Infection\Reporter\AdvisoryReporter;
 use Infection\Reporter\FederatedReporter;
 use Infection\Reporter\FileLocationReporter;
@@ -488,6 +489,10 @@ final class Container extends DIContainer
                     $config->processTimeout,
                 );
             },
+            MutatorPerformanceReporterFactory::class => static fn (self $container): MutatorPerformanceReporterFactory => new MutatorPerformanceReporterFactory(
+                $container->getResultsCollector(),
+                $container->getFileSystem(),
+            ),
             Reporter::class => static function (self $container): Reporter {
                 $output = $container->getOutput();
                 $config = $container->getConfiguration();
@@ -512,6 +517,9 @@ final class Container extends DIContainer
                             $container->getConfiguration()->logs,
                         ),
                         $container->getStrykerLoggerFactory()->createFromLogEntries(
+                            $container->getConfiguration()->logs,
+                        ),
+                        $container->getMutatorPerformanceReporterFactory()->create(
                             $container->getConfiguration()->logs,
                         ),
                     ]),
@@ -907,6 +915,11 @@ final class Container extends DIContainer
     public function getFileReporterFactory(): FileReporterFactory
     {
         return $this->get(FileReporterFactory::class);
+    }
+
+    public function getMutatorPerformanceReporterFactory(): MutatorPerformanceReporterFactory
+    {
+        return $this->get(MutatorPerformanceReporterFactory::class);
     }
 
     public function getStrykerLoggerFactory(): StrykerReporterFactory

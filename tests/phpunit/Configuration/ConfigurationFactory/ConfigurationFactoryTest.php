@@ -342,6 +342,26 @@ final class ConfigurationFactoryTest extends TestCase
                 ),
         ];
 
+        yield 'relative mutator performance log file path' => [
+            $defaultScenario
+                ->withSchema(
+                    $defaultSchemaBuilder->withLogs(
+                        LogsBuilder::withMinimalTestData()
+                            ->withMutatorPerformanceFilePath('var/mutator-performance.jsonl')
+                            ->build(),
+                    ),
+                )
+                ->withExpected(
+                    $defaultConfigurationBuilder
+                        ->withLogs(
+                            $defaultLogsBuilder
+                                ->withMutatorPerformanceFilePath('/path/to/var/mutator-performance.jsonl')
+                                ->build(),
+                        )
+                        ->build(),
+                ),
+        ];
+
         yield 'null html file log path' => [
             $defaultScenario->forValueForHtmlLogFilePath(
                 '/path/to/from-config.html',

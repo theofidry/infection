@@ -314,6 +314,7 @@ parameters:
     level: 8
     paths:
         - ../src
+        - mutator-performance-workbook/src
         - ../tests/Architecture
         - ../tests/phpunit
         - ../tests/benchmark
@@ -339,6 +340,7 @@ parameters:
         - ../tests/benchmark/Tracing/coverage (?)
         - ../tests/benchmark/Tracing/sources (?)
         - ../tests/benchmark/Tracing/benchmark-source (?)
+        - mutator-performance-workbook
     stubFiles:
         - phpstan.stub
     treatPhpDocTypesAsCertain: false

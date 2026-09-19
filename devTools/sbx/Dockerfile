@@ -1,4 +1,4 @@
-FROM docker/sandbox-templates:codex-docker
+FROM docker/sandbox-templates:claude-code-docker
 
 # The base image runs as the non-root `agent` user by default.
 # Switch to root for all system-level package installations.
@@ -74,6 +74,16 @@ RUN set -o errexit -o nounset -o pipefail \
 # Allow telemetry
 ENV NO_PROXY="${NO_PROXY:+${NO_PROXY},}host.docker.internal,169.254.1.1,localhost,127.0.0.1,::1,gateway.docker.internal"
 ENV no_proxy="$NO_PROXY"
+
+ENV CLAUDE_CODE_ENABLE_TELEMETRY=1
+ENV CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1
+ENV OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4318
+ENV OTEL_TRACES_EXPORTER=otlp
+ENV OTEL_METRICS_EXPORTER=otlp
+ENV OTEL_LOGS_EXPORTER=otlp
+ENV OTEL_SERVICE_NAME=claude-code
+ENV OTEL_RESOURCE_ATTRIBUTES="project=infection,deployment.environment=sandbox"
 
 # Restore the default non-root user that the sandbox agent runs as.
 USER agent

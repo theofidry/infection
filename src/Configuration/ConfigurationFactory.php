@@ -507,7 +507,7 @@ class ConfigurationFactory
             $logs->setSummaryJsonLogFilePath($summaryJsonLogFilePath);
         }
 
-        return new Logs(
+        $logConfig = new Logs(
             self::pathToAbsolute($logs->getTextLogFilePath(), $configDir),
             self::pathToAbsolute($logs->getHtmlLogFilePath(), $configDir),
             self::pathToAbsolute($logs->getSummaryLogFilePath(), $configDir),
@@ -519,6 +519,12 @@ class ConfigurationFactory
             $logs->getStrykerConfig(),
             self::pathToAbsolute($logs->getSummaryJsonLogFilePath(), $configDir),
         );
+
+        $logConfig->setMutatorPerformanceFilePath(
+            self::pathToAbsolute($logs->getMutatorPerformanceFilePath(), $configDir),
+        );
+
+        return $logConfig;
     }
 
     private function detectCiGithubActions(): bool

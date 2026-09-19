@@ -156,7 +156,7 @@ class SchemaConfigurationFactory
 
     private static function createLogs(stdClass $logs): Logs
     {
-        return new Logs(
+        $logConfig = new Logs(
             self::normalizeString($logs->text ?? null),
             self::normalizeString($logs->html ?? null),
             self::normalizeString($logs->summary ?? null),
@@ -168,6 +168,19 @@ class SchemaConfigurationFactory
             self::createStrykerConfig($logs->stryker ?? null),
             self::normalizeString($logs->summaryJson ?? null),
         );
+
+        $logConfig->setMutatorPerformanceFilePath(
+            self::normalizeMixedString($logs->mutatorPerformance ?? null),
+        );
+
+        return $logConfig;
+    }
+
+    private static function normalizeMixedString(mixed $value): ?string
+    {
+        Assert::nullOrString($value);
+
+        return self::normalizeString($value);
     }
 
     private static function createStrykerConfig(?stdClass $stryker): ?StrykerConfig
