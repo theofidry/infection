@@ -66,6 +66,7 @@ use Infection\Resource\Processor\CpuCoresCountProvider;
 use Infection\Source\Exception\NoSourceFound;
 use Infection\StaticAnalysis\StaticAnalysisToolTypes;
 use Infection\TestFramework\AdapterInstaller;
+use Infection\TestFramework\Contracts\Throwable\RequirementChecksFailed;
 use Infection\TestFramework\TestFrameworkTypes;
 use InvalidArgumentException;
 use const PHP_SAPI;
@@ -80,6 +81,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * The mutation testing run: it turns the command line into container values, hands over to the engine,
+ * and maps what comes back onto exit codes.
+ *
  * @internal
  */
 final class RunCommand extends BaseCommand
@@ -548,6 +552,7 @@ final class RunCommand extends BaseCommand
      *
      * @throws ProcessTimedOutException
      * @throws ProcessException
+     * @throws RequirementChecksFailed
      */
     private function startUp(
         Container $container,
@@ -584,8 +589,6 @@ final class RunCommand extends BaseCommand
 
             $consoleOutput->logNotInControlOfExitCodes();
         }
-
-        $container->getCoverageChecker()->checkCoverageRequirements();
 
         $config = $container->getConfiguration();
 

@@ -42,6 +42,9 @@ use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
 
 /**
+ * Derives Infection's working directory from a base temporary directory. The result is namespaced to
+ * Infection, and the base has to be absolute.
+ *
  * @internal
  */
 final class TmpDirProvider

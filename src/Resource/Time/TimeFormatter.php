@@ -38,6 +38,9 @@ namespace Infection\Resource\Time;
 use function trim;
 
 /**
+ * Renders a duration in seconds as a string in hours, minutes and seconds. Anything under a second
+ * renders as `0s`.
+ *
  * @internal
  * @final
  */

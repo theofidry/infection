@@ -61,6 +61,12 @@ use Infection\TestFramework\Coverage\Locator\Throwable\TooManyReportsFound;
 use Infection\TestFramework\Coverage\XmlReport\InvalidCoverage;
 
 /**
+ * Orchestrates a run: the requirement checks, the initial test and static-analysis runs, mutation
+ * generation and evaluation, then the reports and the gates.
+ *
+ * The order is constrained. The memory limit can only be imposed once the initial run has revealed how
+ * much the suite needs, and it has to come after static analysis, which needs more.
+ *
  * @internal
  */
 final readonly class Engine

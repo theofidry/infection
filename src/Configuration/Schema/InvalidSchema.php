@@ -44,6 +44,8 @@ use UnexpectedValueException;
 use Webmozart\Assert\Assert;
 
 /**
+ * Thrown when the configuration file does not match the JSON schema. Every validation error is listed.
+ *
  * @internal
  */
 final class InvalidSchema extends UnexpectedValueException

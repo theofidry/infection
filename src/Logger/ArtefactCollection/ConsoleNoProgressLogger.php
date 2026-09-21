@@ -35,21 +35,24 @@ declare(strict_types=1);
 
 namespace Infection\Logger\ArtefactCollection;
 
-use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\Logger\ArtefactCollection\InitialStaticAnalysisExecution\InitialStaticAnalysisExecutionLogger;
 use Infection\Logger\ArtefactCollection\InitialTestsExecution\InitialTestsExecutionLogger;
 use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
+use Infection\TestFramework\Contracts\TestFramework;
 use InvalidArgumentException;
 use function sprintf;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Announces the initial run, then stays silent. Serves both the initial test run and the initial
+ * static-analysis run.
+ *
  * @internal
  */
 final readonly class ConsoleNoProgressLogger implements InitialStaticAnalysisExecutionLogger, InitialTestsExecutionLogger
 {
     public function __construct(
-        private TestFrameworkAdapter|StaticAnalysisToolAdapter $testFramework,
+        private TestFramework|StaticAnalysisToolAdapter $testFramework,
         private OutputInterface $output,
     ) {
     }

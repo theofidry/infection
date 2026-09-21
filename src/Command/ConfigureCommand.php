@@ -68,6 +68,9 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputOption;
 
 /**
+ * Generates the configuration file interactively, guessing what it can from the project's Composer
+ * autoload section. It requires an interactive terminal.
+ *
  * @internal
  */
 final class ConfigureCommand extends BaseCommand

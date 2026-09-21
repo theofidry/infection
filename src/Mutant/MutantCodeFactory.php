@@ -41,6 +41,11 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\CloningVisitor;
 
 /**
+ * Produces the mutated source of a mutation.
+ *
+ * The AST is cloned in a traversal of its own before the mutator visitor is added, which leaves the
+ * original AST byte-identical for the other mutations of the same file.
+ *
  * @internal
  * @final
  */

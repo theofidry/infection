@@ -42,6 +42,9 @@ use function sprintf;
 use function str_contains;
 
 /**
+ * Validates the configuration file against the shipped JSON schema, collecting every error. The schema
+ * is addressed as a URL, so it also resolves from inside the PHAR.
+ *
  * @final
  */
 class SchemaValidator

@@ -38,6 +38,9 @@ namespace Infection\TestFramework\Coverage;
 use LogicException;
 
 /**
+ * Thrown when the run cannot produce or find the coverage it needs. The message lists the available
+ * remedies.
+ *
  * @internal
  */
 final class CoverageNotFound extends LogicException

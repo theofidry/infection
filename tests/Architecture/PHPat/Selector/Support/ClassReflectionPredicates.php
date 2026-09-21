@@ -40,6 +40,10 @@ use PHPStan\Reflection\ClassReflection;
 use ReflectionMethod;
 use ReflectionProperty;
 
+/**
+ * The reflection questions the selectors keep asking: whether a class is concrete, and whether a
+ * member belongs to it or to an ancestor.
+ */
 final class ClassReflectionPredicates
 {
     use CannotBeInstantiated;

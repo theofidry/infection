@@ -49,6 +49,12 @@ use Symfony\Component\Finder\Iterator\PathFilterIterator;
 use Symfony\Component\Finder\SplFileInfo;
 
 /**
+ * Collects the files to mutate from the configured source directories, minus the excluded paths and
+ * narrowed by an optional filter.
+ *
+ * Relative source directories resolve against the directory of the configuration file rather than the
+ * working directory. Collecting nothing throws.
+ *
  * @internal
  */
 final readonly class BasicSourceCollector implements SourceCollector

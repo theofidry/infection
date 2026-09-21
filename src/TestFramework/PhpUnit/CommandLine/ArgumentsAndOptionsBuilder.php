@@ -46,6 +46,10 @@ use SplFileInfo;
 use function sprintf;
 
 /**
+ * Builds PHPUnit's arguments. A mutant's run is narrowed with `--filter` to the tests covering the
+ * mutation; the initial run is narrowed too when the sources were filtered and the tests can be
+ * deduced from them.
+ *
  * @internal
  */
 final readonly class ArgumentsAndOptionsBuilder implements CommandLineArgumentsAndOptionsBuilder

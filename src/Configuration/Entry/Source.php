@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Configuration\Entry;
 
 /**
+ * The directories to mutate, and the paths to leave out of them.
+ *
  * @internal
  */
 final readonly class Source

@@ -38,6 +38,9 @@ namespace Infection\Logger\MutationAnalysis\TeamCity;
 use Symfony\Component\Filesystem\Path;
 
 /**
+ * A mutated source file seen as a TeamCity test suite. It is named by its path relative to the
+ * configuration file.
+ *
  * @phpstan-import-type MessageAttributes from TeamCity
  *
  * @internal

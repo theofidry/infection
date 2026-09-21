@@ -44,6 +44,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\Assert\Assert;
 
 /**
+ * Base of every Infection command. It bundles the input and the output into one object, and turns a
+ * boolean outcome into a process exit code.
+ *
  * @internal
  */
 abstract class BaseCommand extends Command

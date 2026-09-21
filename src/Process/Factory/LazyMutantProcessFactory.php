@@ -39,6 +39,8 @@ use Infection\Mutant\Mutant;
 use Infection\Process\MutantProcess;
 
 /**
+ * Creates the follow-up process a mutant gets once it escaped, such as a static-analysis run.
+ *
  * @internal
  */
 interface LazyMutantProcessFactory

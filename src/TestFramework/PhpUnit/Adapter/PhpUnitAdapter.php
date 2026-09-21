@@ -55,6 +55,12 @@ use function version_compare;
 use Webmozart\Assert\Assert;
 
 /**
+ * Runs PHPUnit, for the initial run and for every mutant.
+ *
+ * What it generates differs by PHPUnit version, so the version is resolved once from the executable
+ * and gated on throughout. "No test executed" counts as a pass, so a mutant whose filter was degraded
+ * to nothing is not read as a kill.
+ *
  * @internal
  */
 final class PhpUnitAdapter implements MemoryUsageAware, ProvidesInitialRunOnlyOptions, SyntaxErrorAware, TestFrameworkAdapter

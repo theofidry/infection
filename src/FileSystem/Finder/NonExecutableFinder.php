@@ -43,6 +43,9 @@ use const PATH_SEPARATOR;
 use function sprintf;
 
 /**
+ * Searches the PATH, and extra directories, for a file by name, without requiring the execute
+ * permission.
+ *
  * @internal
  */
 final class NonExecutableFinder

@@ -41,6 +41,9 @@ use Infection\TestFramework\Contracts\CompletedProcess;
 use function sprintf;
 
 /**
+ * Thrown when the initial static-analysis run does not pass. The message carries the tool's own
+ * output.
+ *
  * @internal
  */
 final class InitialStaticAnalysisRunFailed extends Exception

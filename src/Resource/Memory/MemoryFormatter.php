@@ -42,6 +42,8 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * Renders a byte count as a string with the largest fitting unit.
+ *
  * @internal
  * @final
  */

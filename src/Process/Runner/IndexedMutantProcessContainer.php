@@ -38,6 +38,8 @@ namespace Infection\Process\Runner;
 use Infection\Process\MutantProcessContainer;
 
 /**
+ * Pairs a running mutant container with the worker slot it occupies.
+ *
  * @internal
  */
 final class IndexedMutantProcessContainer

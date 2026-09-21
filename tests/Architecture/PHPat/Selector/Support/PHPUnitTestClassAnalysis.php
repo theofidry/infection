@@ -52,6 +52,10 @@ use PHPUnit\Framework\TestCase;
 use function str_ends_with;
 use function str_starts_with;
 
+/**
+ * Reads the PHPUnit attributes the rules are expressed in, such as what a test covers, which groups it
+ * belongs to and which environment variables it declares, and tells a test class from anything else.
+ */
 final class PHPUnitTestClassAnalysis
 {
     use CannotBeInstantiated;

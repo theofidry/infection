@@ -38,6 +38,9 @@ namespace Infection\Reflection;
 use ReflectionClass;
 
 /**
+ * Reflects an anonymous class. It reports no name, and its own interfaces have to be searched for a
+ * public method, since there is no prototype to walk up to.
+ *
  * @internal
  */
 final readonly class AnonymousClassReflection implements ClassReflection

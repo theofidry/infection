@@ -39,6 +39,9 @@ use DomainException;
 use function sprintf;
 
 /**
+ * Thrown when PHP's `auto_prepend_file` is set. The preloaded file runs before the include interceptor
+ * is installed, so mutants would be tested against the original code.
+ *
  * @internal
  */
 final class PreloadedSourceFound extends DomainException

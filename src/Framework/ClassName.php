@@ -50,6 +50,9 @@ use function substr;
 use Webmozart\Assert\Assert;
 
 /**
+ * Class-name arithmetic that works without autoloading: the short name, the namespace, and the
+ * canonical test class names a source class is expected to have.
+ *
  * @internal
  */
 final class ClassName

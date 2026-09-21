@@ -40,6 +40,9 @@ use RuntimeException;
 use function sprintf;
 
 /**
+ * Thrown when the user's PHPUnit configuration cannot be worked from, either because of its root node
+ * or because it fails schema validation.
+ *
  * @internal
  */
 final class InvalidPhpUnitConfiguration extends RuntimeException

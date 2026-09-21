@@ -44,6 +44,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * The `--base` option: the commit, branch or tag the diff is taken against. Left out, the repository's
+ * default base is looked up.
+ *
  * @internal
  */
 final class BaseOption

@@ -47,6 +47,9 @@ use function Safe\mb_convert_encoding;
 use function strtr;
 
 /**
+ * The string normalisations the output and the reports need: line endings converted one way or the
+ * other, trailing whitespace trimmed, and non-UTF-8 content made safe to embed in JSON.
+ *
  * @internal
  */
 final class Str

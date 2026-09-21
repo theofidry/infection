@@ -41,6 +41,9 @@ use LogicException;
 use function usort;
 
 /**
+ * Holds mutant execution results and returns them ordered by file path, then by starting line. Sorting
+ * happens on the first read and is redone only after a new result is added.
+ *
  * @internal
  */
 final class SortableMutantExecutionResults

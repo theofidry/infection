@@ -41,6 +41,9 @@ use Infection\Console\IO;
 use function sprintf;
 
 /**
+ * Prints the commit the diff-based options compare against: the merge base with the given base, or
+ * with the repository's default base.
+ *
  * @internal
  */
 final class GitBaseReferenceCommand extends BaseCommand

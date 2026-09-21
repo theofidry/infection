@@ -38,6 +38,8 @@ namespace Infection\StaticAnalysis;
 use Infection\TestFramework\Contracts\ShellCommandRunner;
 
 /**
+ * Builds a static analyser's adapter from the paths and options the run resolved.
+ *
  * @internal
  */
 interface StaticAnalysisToolAdapterFactory

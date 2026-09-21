@@ -57,6 +57,12 @@ use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use SplFileInfo;
 
 /**
+ * Creates the enrichment traverser and the mutation traverser.
+ *
+ * The enrichment visitors share one traverser and their registration order matters: names and parents
+ * are resolved before reflection, the diff exclusion runs before the tests are attached, and the tests
+ * before untested code is ruled out. No visitor removes a node; they only flip eligibility.
+ *
  * @internal
  * @final
  */

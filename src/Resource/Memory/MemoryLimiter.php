@@ -42,6 +42,12 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
+ * Appends a `memory_limit` of twice the initial test run's memory usage to the temporary php.ini
+ * created by the Xdebug handler.
+ *
+ * Does nothing when the memory usage is unknown, when the user already set a limit, when the process
+ * runs off a system ini, or when the file is absent or not writable.
+ *
  * @internal
  * @final
  */

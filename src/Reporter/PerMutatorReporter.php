@@ -53,6 +53,8 @@ use function str_repeat;
 use function strlen;
 
 /**
+ * Renders a table of the run broken down by mutator, with each mutator's MSI and test timings.
+ *
  * @internal
  */
 final readonly class PerMutatorReporter implements LineMutationTestingResultsReporter

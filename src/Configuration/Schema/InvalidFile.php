@@ -40,6 +40,8 @@ use Throwable;
 use UnexpectedValueException;
 
 /**
+ * Thrown when the configuration file cannot be read or is not valid JSON.
+ *
  * @internal
  */
 final class InvalidFile extends UnexpectedValueException

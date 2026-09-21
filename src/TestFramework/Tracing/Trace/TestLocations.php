@@ -39,6 +39,12 @@ use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\TestFramework\Coverage\JUnit\JUnitTestExecutionInfoAdder;
 
 /**
+ * The tests covering one source file, indexed both by the line they execute and by the method they
+ * belong to.
+ *
+ * The line index is handed out by reference, so the JUnit enrichment can add timings in place; a
+ * rebuilt copy would be discarded and the enrichment would do nothing.
+ *
  * @internal
  */
 final class TestLocations

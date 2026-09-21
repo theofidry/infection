@@ -39,6 +39,8 @@ use Infection\CannotBeInstantiated;
 use const PHP_OS_FAMILY;
 
 /**
+ * Answers the platform questions Infection's behaviour turns on, path case-sensitivity above all.
+ *
  * @internal
  */
 final class OperatingSystem

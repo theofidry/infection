@@ -42,6 +42,9 @@ use Infection\Source\Exception\NoSourceFound;
 use Symfony\Component\Filesystem\Path;
 
 /**
+ * Tells whether a range of lines in a file is part of the git diff being mutated. The whole diff is
+ * resolved on the first call and memoised.
+ *
  * @internal
  */
 final class GitDiffSourceLineMatcher implements SourceLineMatcher

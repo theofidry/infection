@@ -42,6 +42,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 
 /**
+ * The `--debug` option: keeps the temporary files, logs the command lines, and prints the initial test
+ * run's output.
+ *
  * @internal
  */
 final class DebugOption implements CommandOption

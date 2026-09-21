@@ -38,7 +38,7 @@ namespace Infection\Process\Factory;
 use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\Configuration\Configuration;
 use Infection\Mutant\Mutant;
-use Infection\Mutant\MutantExecutionResultFactory;
+use Infection\Mutant\TestFrameworkMutantExecutionResultFactory;
 use Infection\Process\DryRunProcess;
 use Infection\Process\MutantProcess;
 use Infection\Process\MutantProcessContainer;
@@ -47,6 +47,12 @@ use function min;
 use Symfony\Component\Process\Process;
 
 /**
+ * Builds the process container of a mutant: the test-framework process, plus the factories of its
+ * follow-up processes.
+ *
+ * The timeout is derived per mutant from the nominal time its tests take, with an allowance for
+ * booting the test framework, and never exceeds the configured ceiling.
+ *
  * @internal
  * @final
  */
@@ -60,21 +66,22 @@ class MutantProcessContainerFactory
      * @param list<LazyMutantProcessFactory> $lazyMutantProcessCreators
      */
     public function __construct(
-        private readonly TestFrameworkAdapter $testFrameworkAdapter,
         private readonly float $timeout,
-        private readonly MutantExecutionResultFactory $mutantExecutionResultFactory,
         private readonly array $lazyMutantProcessCreators,
         private readonly Configuration $configuration,
     ) {
     }
 
-    public function create(Mutant $mutant, string $testFrameworkExtraOptions = ''): MutantProcessContainer
-    {
+    public function create(
+        TestFrameworkAdapter $testFrameworkAdapter,
+        Mutant $mutant,
+        string $testFrameworkExtraOptions = '',
+    ): MutantProcessContainer {
         // getNominalTestExecutionTime() returns the time the test-suite requires to run the test, excluding process creation and test-framework bootstrapping.
         $timeout = min(self::TEST_FRAMEWORK_BOOTSTRAP_THRESHOLD + (self::TIMEOUT_FACTOR * $mutant->getMutation()->getNominalTestExecutionTime()), $this->timeout);
 
         $process = new Process(
-            command: $this->testFrameworkAdapter->getMutantCommandLine(
+            command: $testFrameworkAdapter->getMutantCommandLine(
                 $mutant->getTests(),
                 $mutant->getFilePath(),
                 $mutant->getMutation()->getHash(),
@@ -93,7 +100,7 @@ class MutantProcessContainerFactory
             new MutantProcess(
                 $process,
                 $mutant,
-                $this->mutantExecutionResultFactory,
+                new TestFrameworkMutantExecutionResultFactory($testFrameworkAdapter),
             ),
             $this->lazyMutantProcessCreators,
         );

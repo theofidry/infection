@@ -41,6 +41,8 @@ use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
 
 /**
+ * Marks ineligible, and stops traversing into, the subtrees the node ignorers reject.
+ *
  * @internal
  */
 final class SkipIgnoredNodesVisitor extends NodeVisitorAbstract

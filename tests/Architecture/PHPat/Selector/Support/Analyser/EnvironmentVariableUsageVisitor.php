@@ -48,6 +48,10 @@ use PhpParser\NodeVisitorAbstract;
 use function str_contains;
 use function strtolower;
 
+/**
+ * Collects the environment variables a file reads, through the superglobal or through a `putenv()`
+ * call. Only statically identifiable names are collected.
+ */
 final class EnvironmentVariableUsageVisitor extends NodeVisitorAbstract
 {
     /**

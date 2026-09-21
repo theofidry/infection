@@ -41,6 +41,9 @@ use Infection\TestFramework\Config\TestFrameworkConfigLocatorInterface;
 use function sprintf;
 
 /**
+ * Finds a static analyser's configuration file, trying the conventional extensions of the supported
+ * tools in order.
+ *
  * @internal
  */
 final readonly class StaticAnalysisConfigLocator implements TestFrameworkConfigLocatorInterface

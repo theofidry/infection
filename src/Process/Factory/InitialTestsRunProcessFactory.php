@@ -41,22 +41,21 @@ use Infection\TestFramework\Contracts\ShellCommandRunner;
 use Symfony\Component\Process\Process;
 
 /**
+ * Builds the process of the initial test run. When coverage is expected the process runs in a vanilla
+ * PHP environment, where the debugger is available again. The default timeout is removed.
+ *
  * @internal
  * @final
  */
 class InitialTestsRunProcessFactory
 {
-    public function __construct(
-        private readonly TestFrameworkAdapter $testFrameworkAdapter,
-    ) {
-    }
-
     /**
      * Creates process with enabled debugger as test framework is going to use in the code coverage.
      *
      * @param string[] $phpExtraOptions
      */
     public function createProcess(
+        TestFrameworkAdapter $testFrameworkAdapter,
         string $testFrameworkExtraOptions,
         array $phpExtraOptions,
         bool $skipCoverage,
@@ -65,7 +64,7 @@ class InitialTestsRunProcessFactory
         $processClass = $skipCoverage ? Process::class : OriginalPhpProcess::class;
 
         return new $processClass(
-            command: $this->testFrameworkAdapter->getInitialTestRunCommandLine(
+            command: $testFrameworkAdapter->getInitialTestRunCommandLine(
                 $testFrameworkExtraOptions,
                 $phpExtraOptions,
                 $skipCoverage,

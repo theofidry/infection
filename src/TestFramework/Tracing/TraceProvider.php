@@ -44,6 +44,9 @@ use Infection\TestFramework\Coverage\XmlReport\InvalidCoverage;
 use Infection\TestFramework\Tracing\Trace\Trace;
 
 /**
+ * Produces the trace of every covered source file, from whatever artefacts the test framework left
+ * behind.
+ *
  * @internal
  */
 interface TraceProvider

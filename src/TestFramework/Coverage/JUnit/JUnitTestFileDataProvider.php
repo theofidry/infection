@@ -42,6 +42,9 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * Reads a test's file and runtime out of the JUnit report. The XPath shapes are tried in order, since
+ * the report's structure differs between PHPUnit, Codeception, PhpSpec and Behat.
+ *
  * @internal
  */
 final class JUnitTestFileDataProvider implements TestFileDataProvider

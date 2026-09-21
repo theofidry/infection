@@ -45,6 +45,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * The `--filter` option of the git commands: which of git's own diff-filter letters a file has to
+ * match.
+ *
  * @internal
  */
 final class FilterOption

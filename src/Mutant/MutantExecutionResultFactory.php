@@ -38,6 +38,8 @@ namespace Infection\Mutant;
 use Infection\Process\MutantProcess;
 
 /**
+ * Turns a finished mutant process into its execution result.
+ *
  * @internal
  */
 interface MutantExecutionResultFactory

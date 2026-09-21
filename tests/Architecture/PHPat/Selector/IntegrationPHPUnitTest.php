@@ -39,6 +39,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\Analyser\Analyser;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the tests declared in the integration group.
+ */
 final readonly class IntegrationPHPUnitTest implements SelectorInterface
 {
     public function __construct(

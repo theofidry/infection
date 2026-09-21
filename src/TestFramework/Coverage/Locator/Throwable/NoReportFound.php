@@ -39,6 +39,8 @@ use RuntimeException;
 use function sprintf;
 
 /**
+ * Thrown when no coverage report exists where one was expected.
+ *
  * @internal
  */
 final class NoReportFound extends RuntimeException implements ReportLocationThrowable

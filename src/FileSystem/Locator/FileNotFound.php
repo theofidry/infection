@@ -41,6 +41,8 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * Thrown when a file cannot be located. The searched roots are part of the message.
+ *
  * @internal
  */
 final class FileNotFound extends RuntimeException

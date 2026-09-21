@@ -39,6 +39,8 @@ use function array_udiff;
 use function array_values;
 
 /**
+ * The outcome recorded for a mutant. The values are user-facing.
+ *
  * @internal
  */
 enum DetectionStatus: string

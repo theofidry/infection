@@ -39,6 +39,8 @@ use Infection\Process\Factory\LazyMutantProcessFactory;
 use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
 
 /**
+ * A static analyser that runs a scripted stand-in instead of a real tool.
+ *
  * @internal
  */
 final readonly class DebugStaticAnalysisAdapter implements StaticAnalysisToolAdapter

@@ -39,6 +39,10 @@ use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 use function str_starts_with;
 
+/**
+ * Selects anonymous classes. They are recognised by PHPStan's own naming rather than PHP's, which
+ * changes between versions.
+ */
 final class IsAnonymousClass implements SelectorInterface
 {
     public function getName(): string

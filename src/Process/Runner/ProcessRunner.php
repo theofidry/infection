@@ -38,6 +38,9 @@ namespace Infection\Process\Runner;
 use Infection\Process\MutantProcessContainer;
 
 /**
+ * Runs mutant process containers and yields them back as they finish. The input is consumed lazily and
+ * must not be rewound, counted or buffered.
+ *
  * @internal
  */
 interface ProcessRunner

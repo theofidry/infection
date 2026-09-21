@@ -39,6 +39,8 @@ use ReflectionClass;
 use ReflectionException;
 
 /**
+ * Reflects a named class through PHP's own reflection, resolving inherited methods to their prototype.
+ *
  * @internal
  */
 final readonly class CoreClassReflection implements ClassReflection

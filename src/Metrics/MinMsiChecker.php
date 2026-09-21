@@ -38,6 +38,9 @@ namespace Infection\Metrics;
 use Infection\Console\ConsoleOutput;
 
 /**
+ * Checks the MSI and the covered-code MSI against their configured minimums, and emits a notice when a
+ * score exceeds its minimum by more than the tolerance.
+ *
  * @internal
  * @final
  */

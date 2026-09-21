@@ -40,6 +40,9 @@ use Infection\CannotBeInstantiated;
 use function ksort;
 
 /**
+ * Orders a mutant's tests fastest first. Times are bucketed rather than compared, which sorts in one
+ * pass; precision drops as the times grow.
+ *
  * @internal
  */
 final readonly class TestLocationBucketSorter

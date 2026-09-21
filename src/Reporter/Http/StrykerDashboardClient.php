@@ -40,6 +40,9 @@ use Psr\Log\LoggerInterface;
 use function sprintf;
 
 /**
+ * Sends the Stryker report to the dashboard and logs what came back. A rejected upload is logged
+ * rather than thrown.
+ *
  * @internal
  */
 class StrykerDashboardClient

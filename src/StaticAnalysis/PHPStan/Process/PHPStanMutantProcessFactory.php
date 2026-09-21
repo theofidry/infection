@@ -47,6 +47,9 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 /**
+ * Builds the PHPStan process of one mutant, with the throwaway configuration that points the analysis
+ * at the mutated file in place of the original.
+ *
  * @internal
  */
 final readonly class PHPStanMutantProcessFactory implements LazyMutantProcessFactory

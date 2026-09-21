@@ -39,6 +39,8 @@ use function hash;
 use Infection\CannotBeInstantiated;
 
 /**
+ * Derives the short, stable node identifiers TeamCity service messages need from arbitrary strings.
+ *
  * @internal
  */
 final class NodeIdFactory

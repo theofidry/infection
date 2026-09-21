@@ -40,6 +40,8 @@ use function json_encode;
 use const JSON_THROW_ON_ERROR;
 
 /**
+ * Renders only the run's summary figures as JSON.
+ *
  * @internal
  */
 final readonly class SummaryJsonReporter implements LineMutationTestingResultsReporter

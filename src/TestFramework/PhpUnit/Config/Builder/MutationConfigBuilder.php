@@ -52,6 +52,11 @@ use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
 
 /**
+ * Writes the PHPUnit configuration of one mutant's run.
+ *
+ * On top of the shared edits it generates the bootstrap swapping the original file for the mutant at
+ * include time, and turns PHPUnit's result cache on so the tests that failed last run first.
+ *
  * @internal
  */
 final class MutationConfigBuilder

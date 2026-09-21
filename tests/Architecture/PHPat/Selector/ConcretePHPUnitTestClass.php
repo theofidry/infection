@@ -39,6 +39,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\PHPUnitTestClassAnalysis
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the concrete PHPUnit test classes.
+ */
 final class ConcretePHPUnitTestClass implements SelectorInterface
 {
     public function getName(): string

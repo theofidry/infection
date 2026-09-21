@@ -40,6 +40,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\EventArchitecture;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the single-event subscriber interfaces whose event no longer exists.
+ */
 final readonly class SingleEventSubscriberWithoutCorrespondingEvent implements SelectorInterface
 {
     public function __construct(

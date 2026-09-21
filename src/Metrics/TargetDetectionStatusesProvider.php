@@ -43,6 +43,9 @@ use Infection\Reporter\TextFileReporter;
 use function iterator_to_array;
 
 /**
+ * Derives from the log configuration and the log verbosity which detection statuses have to be
+ * retained for the whole run. It mirrors what each logger reads.
+ *
  * @internal
  * @final
  */

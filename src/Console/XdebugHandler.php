@@ -40,6 +40,12 @@ use Infection\CannotBeInstantiated;
 use Psr\Log\LoggerInterface;
 
 /**
+ * Restarts the master process without Xdebug.
+ *
+ * The restart is persistent, so the temporary ini also governs the child processes. After it,
+ * `extension_loaded('xdebug')` is false even though coverage still works; ask the handler for the
+ * skipped version instead.
+ *
  * @internal
  */
 final class XdebugHandler

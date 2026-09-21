@@ -40,6 +40,9 @@ use function array_slice;
 use function is_string;
 
 /**
+ * Reads the Stryker dashboard API key from the environment, accepting the current variable names and
+ * the deprecated one.
+ *
  * @internal
  *
  * @see https://github.com/stryker-mutator/stryker-handbook/blob/master/dashboard.md#send-a-report-direcly-from-stryker

@@ -46,6 +46,10 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use function strtolower;
 
+/**
+ * Selects the single-event subscriber interfaces that do not declare the handler method their event
+ * calls for, named and typed by convention.
+ */
 final readonly class SingleEventSubscriberWithoutExpectedMethod implements SelectorInterface
 {
     public function __construct(

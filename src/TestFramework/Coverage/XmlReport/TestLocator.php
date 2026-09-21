@@ -43,6 +43,12 @@ use Infection\TestFramework\Tracing\Trace\TestLocations;
 use Webmozart\Assert\Assert;
 
 /**
+ * Finds the tests covering a mutation.
+ *
+ * A mutation on a function signature resolves through the method's whole line range, since no test
+ * executes the signature itself. Anywhere else, the tests of every line in the range are collected and
+ * deduplicated.
+ *
  * @internal
  * @final
  */

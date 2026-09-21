@@ -45,6 +45,8 @@ use Infection\TestFramework\Contracts\ShellCommandRunner;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
+ * Assembles the Mago adapter and its collaborators.
+ *
  * @internal
  */
 final class MagoAdapterFactory implements StaticAnalysisToolAdapterFactory

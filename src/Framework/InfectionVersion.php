@@ -42,6 +42,9 @@ use function preg_quote;
 use function Safe\preg_match;
 
 /**
+ * Reports the version Infection is running as, from the Composer runtime. A version that cannot be
+ * determined is reported as such rather than thrown.
+ *
  * @internal
  * @final
  */

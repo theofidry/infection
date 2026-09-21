@@ -44,6 +44,12 @@ use Pipeline\Helper\RunningVariance;
 use function sprintf;
 
 /**
+ * Accumulates mutant execution results into per-status counts and into the running variance of the
+ * killed mutants' runtimes.
+ *
+ * Only aggregates are kept, so the memory used does not grow with the number of mutants. The runtime
+ * statistics use Welford's online algorithm for the same reason.
+ *
  * @internal
  */
 class MetricsCalculator implements Collector

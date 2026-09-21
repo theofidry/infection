@@ -41,6 +41,9 @@ use Infection\CannotBeInstantiated;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**
+ * The log verbosity levels, and the normalisation of what the user passed. Numeric levels are
+ * deprecated but still accepted, and an unrecognised value falls back to the default.
+ *
  * @internal
  */
 final class LogVerbosity

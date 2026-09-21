@@ -53,6 +53,12 @@ use function Pipeline\take;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
+ * Evaluates every mutation: it filters out the ones needing no process, materialises the remaining
+ * mutants, and feeds the resulting processes to the process runner.
+ *
+ * The mutations stay a stream, so a mutant is created and written to disc as its process is about to
+ * start. Each filter dispatches its own event, since a discarded mutation still produces a result.
+ *
  * @internal
  * @final
  */

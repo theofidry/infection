@@ -38,6 +38,8 @@ namespace Infection\Configuration\ProjectDirectoryProvider;
 use function Safe\getcwd;
 
 /**
+ * Provides the working directory as the project directory. It always answers.
+ *
  * @internal
  */
 final readonly class CurrentWorkingDirectoryProvider implements ProjectDirectoryProvider

@@ -42,6 +42,8 @@ use InvalidArgumentException;
 use function sprintf;
 
 /**
+ * Retains every mutant execution result of the run, indexed by detection status.
+ *
  * @internal
  */
 final class ResultsCollector implements Collector

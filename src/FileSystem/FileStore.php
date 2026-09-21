@@ -41,6 +41,11 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Webmozart\Assert\Assert;
 
 /**
+ * Reads a file's contents, keeping the last file read.
+ *
+ * Symfony's `SplFileInfo::getContents()` re-reads the disc on every call, and the same file is read
+ * several times in a row. Keeping one file is enough, since the pipeline works a file at a time.
+ *
  * @internal
  */
 final class FileStore

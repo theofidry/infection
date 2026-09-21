@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\PhpParser\Visitor\AddIdToTraversedNodesVisitor;
 
 /**
+ * Hands out consecutive numbers, starting at zero.
+ *
  * @internal
  */
 final class Sequence

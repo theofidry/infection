@@ -49,6 +49,8 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
 /**
+ * Asks which directories to mutate, offering what the Composer autoload section suggests.
+ *
  * @internal
  */
 final readonly class SourceDirsProvider

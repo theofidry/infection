@@ -40,6 +40,11 @@ use Infection\PhpParser\Visitor\ReflectionVisitor;
 use PhpParser\Node;
 
 /**
+ * Works out which lines a mutation is attributed to when looking for its covering tests.
+ *
+ * A node inside an array literal widens to the outermost array, which is the line coverage records. A
+ * node on a function signature keeps to its own line.
+ *
  * @internal
  */
 final class LineRangeCalculator

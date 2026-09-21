@@ -38,6 +38,8 @@ namespace Infection\Environment;
 use RuntimeException;
 
 /**
+ * Thrown when the current process is not a CI build whose repository and branch can be resolved.
+ *
  * @internal
  */
 final class CouldNotResolveBuildContext extends RuntimeException

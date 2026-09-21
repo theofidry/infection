@@ -41,6 +41,9 @@ use function round;
 use function sprintf;
 
 /**
+ * A mutation seen as a TeamCity test: its identity, the name and source location shown in the UI, and
+ * the attributes of the messages that open and close it.
+ *
  * @phpstan-import-type MessageAttributes from TeamCity
  *
  * @internal

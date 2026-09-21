@@ -64,6 +64,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Dumps the enriched AST of one file, as mutation generation sees it. It accepts a set of changed line
+ * ranges, which reproduces what a git-diff run sees.
+ *
  * @internal
  */
 final class DumpAstCommand extends BaseCommand

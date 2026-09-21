@@ -40,6 +40,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\ClassReflectionPredicate
 use PHPStan\Reflection\ClassReflection;
 use ReflectionProperty;
 
+/**
+ * Tells whether a class declares a mutable public property of its own.
+ */
 final class PublicPropertyAnalysis
 {
     use CannotBeInstantiated;

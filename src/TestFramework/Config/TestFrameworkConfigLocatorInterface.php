@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\TestFramework\Config;
 
 /**
+ * Finds a tool's configuration file in a directory.
+ *
  * @internal
  *
  * @see TestFrameworkConfigLocator

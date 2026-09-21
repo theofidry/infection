@@ -40,6 +40,8 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
+ * Marks ineligible the nodes whose lines the source line matcher does not cover.
+ *
  * @internal
  */
 final class ExcludeUnchangedLinesVisitor extends NodeVisitorAbstract

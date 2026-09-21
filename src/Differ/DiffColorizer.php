@@ -53,6 +53,9 @@ use function substr_replace;
 use Webmozart\Assert\Assert;
 
 /**
+ * Colours a mutant's diff for the console, marking both the changed lines and the changed part within
+ * them.
+ *
  * @internal
  * @final
  */

@@ -82,6 +82,13 @@ use function sys_get_temp_dir;
 use Webmozart\Assert\Assert;
 
 /**
+ * Merges the configuration file with the command-line input into the run's configuration.
+ *
+ * Precedence is decided per field: a tri-state option takes whichever source set it, while a flag
+ * either source may force on is the disjunction of both. Paths resolve against the directory of the
+ * configuration file. A git base is refined through the merge base, so only the user's own commits get
+ * mutated.
+ *
  * @internal
  * @final
  */

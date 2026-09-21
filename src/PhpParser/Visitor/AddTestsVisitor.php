@@ -45,6 +45,12 @@ use PhpParser\NodeVisitorAbstract;
 use function Pipeline\take;
 
 /**
+ * Attaches to every eligible node the tests covering it.
+ *
+ * The lookup is attached as a memoising closure rather than resolved on the spot: most nodes produce
+ * no mutation, and resolving the covering tests of a line range is expensive. Nodes on a function
+ * signature resolve against the whole function's line range.
+ *
  * @internal
  */
 final class AddTestsVisitor extends NodeVisitorAbstract

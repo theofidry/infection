@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace Infection\Process\Runner;
 
+use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\Event\EventDispatcher\EventDispatcher;
 use Infection\Event\Events\ArtefactCollection\InitialTestExecution\InitialTestCaseWasCompleted;
 use Infection\Event\Events\ArtefactCollection\InitialTestExecution\InitialTestSuiteWasFinished;
@@ -43,6 +44,9 @@ use Infection\Process\Factory\InitialTestsRunProcessFactory;
 use Symfony\Component\Process\Process;
 
 /**
+ * Runs the project's test suite once, unmutated, to produce the coverage and trace artefacts. It stops
+ * at the first line written to standard error, and reports progress through events.
+ *
  * @internal
  * @final
  */
@@ -58,17 +62,19 @@ class InitialTestsRunner
      * @param string[] $phpExtraOptions
      */
     public function run(
+        TestFrameworkAdapter $testFrameworkAdapter,
         string $testFrameworkExtraOptions,
         array $phpExtraOptions,
         bool $skipCoverage,
     ): Process {
         $process = $this->processBuilder->createProcess(
+            $testFrameworkAdapter,
             $testFrameworkExtraOptions,
             $phpExtraOptions,
             $skipCoverage,
         );
 
-        $this->eventDispatcher->dispatch(new InitialTestSuiteWasStarted());
+        $this->eventDispatcher->dispatch(new InitialTestSuiteWasStarted($process->getCommandLine()));
 
         $process->run(function (string $type) use ($process): void {
             if ($type === Process::ERR) {

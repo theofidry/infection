@@ -42,6 +42,9 @@ use const JSON_THROW_ON_ERROR;
 use Symfony\Component\Filesystem\Path;
 
 /**
+ * Renders the escaped mutants in GitLab's Code Quality format. The mutation hash is used as the
+ * fingerprint.
+ *
  * @internal
  */
 final readonly class GitLabCodeQualityReporter implements LineMutationTestingResultsReporter

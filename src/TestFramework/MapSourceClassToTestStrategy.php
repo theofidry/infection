@@ -38,6 +38,8 @@ namespace Infection\TestFramework;
 use Infection\CannotBeInstantiated;
 
 /**
+ * The strategies for deducing which test files cover a changed source file.
+ *
  * @internal
  */
 final class MapSourceClassToTestStrategy

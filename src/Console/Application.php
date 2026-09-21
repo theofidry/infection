@@ -61,6 +61,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function trim;
 
 /**
+ * The Infection console application. It defaults to the run command, so a bare `infection` and an
+ * `infection <paths>` both run mutation testing.
+ *
  * @internal
  */
 final class Application extends BaseApplication

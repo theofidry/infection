@@ -42,6 +42,10 @@ use function strlen;
 use function substr;
 use Symfony\Component\Filesystem\Path;
 
+/**
+ * Encodes the naming convention tying an event to its single-event subscriber, and tells which side of
+ * it a class is on.
+ */
 final readonly class EventArchitecture
 {
     private const string SUBSCRIBER_SUFFIX = 'Subscriber';

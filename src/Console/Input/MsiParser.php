@@ -47,6 +47,11 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Parses the MSI thresholds given on the command line.
+ *
+ * The precision comes from how the user wrote the value, so `85.25` is compared at two decimals and
+ * `85` at none. A value outside the percentage range throws.
+ *
  * @internal
  */
 final class MsiParser

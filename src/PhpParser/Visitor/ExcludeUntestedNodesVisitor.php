@@ -39,6 +39,8 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
+ * Marks ineligible the nodes no test reaches. Registered in covered-only mode only.
+ *
  * @internal
  */
 final class ExcludeUntestedNodesVisitor extends NodeVisitorAbstract

@@ -42,6 +42,9 @@ use function microtime;
 use Symfony\Component\Process\Process;
 
 /**
+ * Pairs the process evaluating a mutant with the mutant itself, and records whether it timed out and
+ * when it finished.
+ *
  * @internal
  * @final
  */

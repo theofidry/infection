@@ -45,6 +45,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Runs a shell command through Symfony's process component. Commands are argv arrays end to end:
+ * Symfony treats each element as one token and does not split on whitespace.
+ *
  * @internal
  */
 final readonly class SymfonyProcessShellCommandRunner implements ShellCommandRunner

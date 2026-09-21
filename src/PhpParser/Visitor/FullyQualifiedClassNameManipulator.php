@@ -39,6 +39,9 @@ use Infection\CannotBeInstantiated;
 use PhpParser\Node;
 
 /**
+ * Reads the fully qualified name that name resolution attached to a node, from whichever of the three
+ * places it ended up in.
+ *
  * @internal
  */
 final class FullyQualifiedClassNameManipulator

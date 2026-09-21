@@ -38,6 +38,9 @@ namespace Infection\Metrics;
 use Infection\Mutant\MutantExecutionResult;
 
 /**
+ * Consumes mutant execution results as they are produced. Implementations decide what to retain:
+ * counts, the results themselves, or nothing.
+ *
  * @internal
  */
 interface Collector

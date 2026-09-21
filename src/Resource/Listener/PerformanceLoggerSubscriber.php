@@ -47,6 +47,9 @@ use function sprintf;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Times the run and prints the elapsed time, the peak memory usage of the master process and the
+ * thread count when it ends.
+ *
  * @internal
  */
 final readonly class PerformanceLoggerSubscriber implements ApplicationExecutionWasFinishedSubscriber, ApplicationExecutionWasStartedSubscriber

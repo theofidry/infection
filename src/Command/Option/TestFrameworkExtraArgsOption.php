@@ -42,6 +42,9 @@ use Symfony\Component\Console\Input\InputOption;
 use function trim;
 
 /**
+ * The `--test-framework-extra-args` option: raw arguments inserted before the ones Infection generates
+ * for the test framework.
+ *
  * @internal
  */
 final class TestFrameworkExtraArgsOption implements CommandOption

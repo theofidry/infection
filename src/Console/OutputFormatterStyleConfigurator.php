@@ -41,6 +41,9 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Registers the console styles the run's output is written in: one per detection status, one per diff
+ * side, and one per score band.
+ *
  * @internal
  */
 final class OutputFormatterStyleConfigurator

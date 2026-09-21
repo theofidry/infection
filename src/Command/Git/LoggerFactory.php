@@ -43,6 +43,9 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Builds the logger of the git commands. Every level goes to standard error, which leaves standard
+ * output to the command's own result.
+ *
  * @internal
  */
 final class LoggerFactory

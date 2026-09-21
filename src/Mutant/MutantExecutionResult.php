@@ -45,6 +45,12 @@ use function strrpos;
 use Webmozart\Assert\Assert;
 
 /**
+ * The outcome of evaluating one mutant: its detection status, the process output, and the identity and
+ * position of the mutation.
+ *
+ * It holds no AST, and its diff and mutated code stay deferred, so a whole run's worth of results can
+ * be retained.
+ *
  * @internal
  * @final
  */

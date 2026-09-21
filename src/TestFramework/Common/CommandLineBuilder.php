@@ -46,6 +46,12 @@ use function substr;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
+ * Assembles the argv array that runs a test framework executable.
+ *
+ * The executable runs directly when it is executable, the shell has a PHP on its PATH and no PHP
+ * options are needed, which lets a wrapper script around PHPUnit work. Otherwise the chosen PHP
+ * interpreter is put in front of it.
+ *
  * @internal
  * @final
  */

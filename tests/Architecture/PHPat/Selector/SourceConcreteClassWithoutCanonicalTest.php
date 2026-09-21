@@ -40,6 +40,10 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\ClassReflectionPredicate
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the concrete source classes that have no test named after them. Classes with no behaviour of
+ * their own are exempt.
+ */
 final class SourceConcreteClassWithoutCanonicalTest implements SelectorInterface
 {
     public function getName(): string

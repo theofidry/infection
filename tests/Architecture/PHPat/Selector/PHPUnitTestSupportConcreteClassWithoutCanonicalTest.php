@@ -49,6 +49,10 @@ use function str_ends_with;
 use function str_starts_with;
 use Symfony\Component\Filesystem\Path;
 
+/**
+ * Selects the test-support classes that have no test of their own. The fixtures and data providers
+ * serving other tests are exempt, and listed explicitly rather than inferred.
+ */
 final class PHPUnitTestSupportConcreteClassWithoutCanonicalTest implements SelectorInterface
 {
     private const array PHPUNIT_TEST_FIXTURE_NAMESPACES = [

@@ -43,6 +43,8 @@ use function is_a;
 use Webmozart\Assert\Assert;
 
 /**
+ * The static analysers a run can be configured with.
+ *
  * @internal
  */
 final class StaticAnalysisToolTypes

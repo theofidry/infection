@@ -36,6 +36,9 @@ declare(strict_types=1);
 namespace Infection\Metrics;
 
 /**
+ * Throws when the number of timed-out mutants exceeds the configured ceiling. No configured ceiling
+ * means no check.
+ *
  * @internal
  * @final
  */

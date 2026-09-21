@@ -45,6 +45,9 @@ use Symfony\Component\Console\Input\InputOption;
 use function trim;
 
 /**
+ * The `--initial-tests-php-options` option: the PHP options the initial test run's process is started
+ * with.
+ *
  * @internal
  */
 final class InitialTestsPhpOptionsOption implements CommandOption

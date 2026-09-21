@@ -41,6 +41,8 @@ use function str_replace;
 use Webmozart\Assert\Assert;
 
 /**
+ * Extracts a semantic version out of whatever a tool prints when asked for one.
+ *
  * @internal
  */
 final class VersionParser

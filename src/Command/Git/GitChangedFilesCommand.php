@@ -52,6 +52,8 @@ use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
 
 /**
+ * Prints the source files a git-diff-filtered run would mutate.
+ *
  * @internal
  */
 final class GitChangedFilesCommand extends BaseCommand

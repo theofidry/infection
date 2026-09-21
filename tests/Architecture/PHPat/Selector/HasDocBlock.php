@@ -39,6 +39,9 @@ use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 use function trim;
 
+/**
+ * Selects the classes carrying a doc block of any kind.
+ */
 final class HasDocBlock implements SelectorInterface
 {
     public function getName(): string

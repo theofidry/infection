@@ -39,6 +39,8 @@ use Infection\Command\BaseCommand;
 use Infection\Console\IO;
 
 /**
+ * Prints the branch the repository is compared against when no base is given.
+ *
  * @internal
  */
 final class GitDefaultBaseCommand extends BaseCommand

@@ -39,6 +39,8 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
+ * Marks ineligible everything that is neither inside a function body nor part of a function signature.
+ *
  * @internal
  */
 final class ExcludeNonMutableCodeVisitor extends NodeVisitorAbstract

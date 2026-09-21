@@ -40,6 +40,8 @@ use function str_contains;
 use function trim;
 
 /**
+ * Guesses where the PHPUnit configuration lives from the project's Composer autoload section.
+ *
  * @internal
  */
 final readonly class PhpUnitPathGuesser

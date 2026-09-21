@@ -42,6 +42,10 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\PHPUnitTestClassAnalysis
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the tests reading an environment variable, directly or through the code they cover, without
+ * declaring it.
+ */
 final readonly class PHPUnitTestMissingEnvironmentVariable implements SelectorInterface
 {
     public function __construct(

@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\TestFramework\Coverage\JUnit;
 
 /**
+ * Where a test lives and how long it took.
+ *
  * @internal
  */
 final class TestFileTimeData

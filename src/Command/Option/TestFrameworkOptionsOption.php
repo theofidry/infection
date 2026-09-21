@@ -43,6 +43,9 @@ use Symfony\Component\Console\Input\InputOption;
 use function trim;
 
 /**
+ * The deprecated `--test-framework-options` option, superseded by the extra-args one. It also reports
+ * whether it was passed.
+ *
  * @internal
  */
 final class TestFrameworkOptionsOption implements CommandOption

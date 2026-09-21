@@ -42,6 +42,9 @@ use function Safe\preg_replace;
 use const SORT_STRING;
 
 /**
+ * Lists the tags a doc block carries. Inline `@` sequences inside words, such as an email address, are
+ * dropped first.
+ *
  * @internal
  */
 final class PHPDocParser

@@ -39,6 +39,9 @@ use Infection\Reporter\LineMutationTestingResultsReporter;
 use function Safe\json_encode;
 
 /**
+ * Renders a self-contained HTML page that hands the Stryker report to the Stryker mutation-testing
+ * elements, loaded from a CDN.
+ *
  * @internal
  */
 final readonly class HtmlFileReporter implements LineMutationTestingResultsReporter

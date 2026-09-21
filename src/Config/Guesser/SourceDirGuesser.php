@@ -45,6 +45,9 @@ use stdClass;
 use function trim;
 
 /**
+ * Guesses which directories hold the project's source from its Composer autoload section. A project
+ * autoloading from `src` gets only that, so a framework directory such as `app` is not mixed in.
+ *
  * @internal
  */
 class SourceDirGuesser

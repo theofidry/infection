@@ -40,6 +40,9 @@ use function in_array;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the classes named in an explicit list.
+ */
 final readonly class ClassNamedAny implements SelectorInterface
 {
     /**

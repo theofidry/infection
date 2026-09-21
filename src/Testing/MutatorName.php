@@ -41,6 +41,8 @@ use Infection\Mutator\ProfileList;
 use Webmozart\Assert\Assert;
 
 /**
+ * Resolves a mutator's configuration name from its class.
+ *
  * @internal
  */
 final class MutatorName

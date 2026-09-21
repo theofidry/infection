@@ -38,6 +38,8 @@ namespace Infection\PhpParser\Visitor\IgnoreNode;
 use PhpParser\Node;
 
 /**
+ * Ignores interfaces, which declare no executable code.
+ *
  * @internal
  */
 final class InterfaceIgnorer implements NodeIgnorer

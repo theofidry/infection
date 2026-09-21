@@ -39,6 +39,9 @@ use const PHP_ROUND_HALF_UP;
 use function round;
 
 /**
+ * Computes the MSI, the mutation coverage rate and the covered-code MSI from the mutant counts of a
+ * run, memoising each. Whether timeouts count as detected changes all three.
+ *
  * @internal
  */
 final class Calculator

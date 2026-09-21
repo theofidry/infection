@@ -51,6 +51,13 @@ use PHPStan\Reflection\ClassReflection;
 use function sprintf;
 use Webmozart\Assert\Assert;
 
+/**
+ * Parses a class's source once and answers every question the selectors ask of it.
+ *
+ * Some of those facts are not available through reflection, such as whether a method body does
+ * anything or which environment variables are read. Results are kept per class, since many rules ask
+ * about the same classes.
+ */
 final class Analyser
 {
     /**

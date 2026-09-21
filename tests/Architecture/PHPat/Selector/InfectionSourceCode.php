@@ -39,6 +39,9 @@ use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 use Symfony\Component\Filesystem\Path;
 
+/**
+ * Selects the classes under `src`.
+ */
 final class InfectionSourceCode implements SelectorInterface
 {
     private const string PROJECT_ROOT = __DIR__ . '/../../../../';

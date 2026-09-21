@@ -35,16 +35,19 @@ declare(strict_types=1);
 
 namespace Infection\Logger\ArtefactCollection;
 
-use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use Infection\Logger\ArtefactCollection\InitialStaticAnalysisExecution\InitialStaticAnalysisExecutionLogger;
 use Infection\Logger\ArtefactCollection\InitialTestsExecution\InitialTestsExecutionLogger;
 use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
+use Infection\TestFramework\Contracts\TestFramework;
 use InvalidArgumentException;
 use function sprintf;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Shows a progress bar during the initial run, and in debug mode the tool's own output once it is
+ * over. Serves both the initial test run and the initial static-analysis run.
+ *
  * @internal
  */
 final readonly class ConsoleProgressBarLogger implements InitialStaticAnalysisExecutionLogger, InitialTestsExecutionLogger
@@ -53,7 +56,7 @@ final readonly class ConsoleProgressBarLogger implements InitialStaticAnalysisEx
 
     public function __construct(
         private OutputInterface $output,
-        private TestFrameworkAdapter|StaticAnalysisToolAdapter $testFramework,
+        private TestFramework|StaticAnalysisToolAdapter $testFramework,
         private bool $debug,
     ) {
         $this->progressBar = new ProgressBar($this->output);

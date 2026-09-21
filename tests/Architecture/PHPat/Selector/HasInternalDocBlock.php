@@ -39,6 +39,9 @@ use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 use function str_contains;
 
+/**
+ * Selects the classes marked `@internal`.
+ */
 final class HasInternalDocBlock implements SelectorInterface
 {
     public function getName(): string

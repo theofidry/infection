@@ -50,6 +50,8 @@ use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
 
 /**
+ * Prints the changed line ranges, per file, that a git-diff-lines run would restrict mutation to.
+ *
  * @internal
  */
 final class GitChangedLinesCommand extends BaseCommand

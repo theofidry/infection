@@ -40,6 +40,10 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\Analyser\Analyser;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the classes with no behaviour of their own beyond what a parent or an interface already
+ * provides.
+ */
 final class HasTrivialImplementation implements SelectorInterface
 {
     private Analyser $analyser;
