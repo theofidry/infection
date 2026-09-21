@@ -193,6 +193,8 @@ final readonly class XmlConfigurationManipulator
         $this->addOrUpdateCoverageNodes('source', 'include', $xPath, $srcDirs, $filteredSourceFilesToMutate);
     }
 
+    // TODO: use --validate-configuration instead
+    //  exitCode + output
     // TODO: fix return type... There is no point in returning true if we
     //   never return false.
     public function validate(string $configPath, SafeDOMXPath $xPath): true

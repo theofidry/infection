@@ -74,7 +74,7 @@ interface TestFramework
      *
      * @throws InitialTestsFailed
      */
-    public function executeInitialRun(): InitialRunResults|CompositeInitialRunResults;
+    public function executeInitialRun(Selection $selection): InitialRunResults|CompositeInitialRunResults;
 
     /**
      * Evaluates the Mutant. Some test frameworks may be able to do this in-memory, e.g.

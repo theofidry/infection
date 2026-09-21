@@ -95,6 +95,9 @@ final readonly class InitialConfigBuilder implements ConfigBuilder
         $this->configManipulator->removeExistingLoggers($xPath);
         $this->configManipulator->removeExistingPrinters($xPath);
 
+        // TODO: maybe a bit too defensive?
+        $this->configManipulator->validate($path, $xPath);
+
         $this->filesystem->dumpFile(
             $path,
             $xPath->document->saveXML(),
