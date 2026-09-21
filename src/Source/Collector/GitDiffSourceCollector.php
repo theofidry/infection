@@ -43,6 +43,9 @@ use Infection\Source\Exception\NoSourceFound;
 use Webmozart\Assert\Assert;
 
 /**
+ * Restricts the collected sources to the files git reports as changed against a base revision. The
+ * diff is resolved once and handed to the plain collector as a path filter.
+ *
  * @internal
  */
 final readonly class GitDiffSourceCollector implements SourceCollector

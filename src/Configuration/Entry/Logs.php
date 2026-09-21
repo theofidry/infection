@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Configuration\Entry;
 
 /**
+ * The report destinations a run was configured with, one path per format.
+ *
  * @internal
  * @final
  */

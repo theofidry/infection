@@ -42,6 +42,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
+ * The console input and output of the current command, bundled together. Symfony's style object hides
+ * both behind its own API.
+ *
  * @internal
  */
 final class IO extends SymfonyStyle

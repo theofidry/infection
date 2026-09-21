@@ -48,6 +48,9 @@ use Symfony\Component\Console\Question\Question;
 use Webmozart\Assert\Assert;
 
 /**
+ * Prints what a mutator does, how it mutates, and how to kill its mutants. Without an argument it
+ * asks, completing on the known mutator names.
+ *
  * @internal
  */
 final class DescribeCommand extends BaseCommand

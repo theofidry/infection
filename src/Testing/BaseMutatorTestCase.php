@@ -64,6 +64,13 @@ use function token_get_all;
 use const TOKEN_PARSE;
 use Webmozart\Assert\Assert;
 
+/**
+ * Base test case for mutator tests, shipped as a public extension point.
+ *
+ * The snippet under test is wrapped in a namespace, a class and a method, then put through the
+ * production traversal. Global-scope code is never mutated, so an unwrapped snippet would yield
+ * nothing.
+ */
 abstract class BaseMutatorTestCase extends TestCase
 {
     private const string WRAPPED_CODE_METHOD_BODY_INDENT = '        ';

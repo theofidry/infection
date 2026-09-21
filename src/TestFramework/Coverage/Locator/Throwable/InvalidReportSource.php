@@ -39,6 +39,8 @@ use RuntimeException;
 use function sprintf;
 
 /**
+ * Thrown when the directory a report was to be looked for in is not a readable directory.
+ *
  * @internal
  */
 final class InvalidReportSource extends RuntimeException implements ReportLocationThrowable

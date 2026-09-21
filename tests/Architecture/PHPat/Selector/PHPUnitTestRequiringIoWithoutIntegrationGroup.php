@@ -40,6 +40,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\IoCodeDetector;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the tests touching the outside world without being declared as integration tests.
+ */
 final readonly class PHPUnitTestRequiringIoWithoutIntegrationGroup implements SelectorInterface
 {
     public function __construct(

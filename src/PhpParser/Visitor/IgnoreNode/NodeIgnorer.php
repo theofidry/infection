@@ -38,6 +38,8 @@ namespace Infection\PhpParser\Visitor\IgnoreNode;
 use PhpParser\Node;
 
 /**
+ * Decides whether a node and its subtree are left out of enrichment.
+ *
  * @internal
  */
 interface NodeIgnorer

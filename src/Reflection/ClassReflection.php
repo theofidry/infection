@@ -36,6 +36,9 @@ declare(strict_types=1);
 namespace Infection\Reflection;
 
 /**
+ * The view of a class the mutators need: its name, whether it is final, and whether a method it
+ * declares also exists with a given visibility further up the hierarchy.
+ *
  * @internal
  */
 interface ClassReflection

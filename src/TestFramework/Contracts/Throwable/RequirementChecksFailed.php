@@ -38,6 +38,8 @@ namespace Infection\TestFramework\Contracts\Throwable;
 use Throwable;
 
 /**
+ * Marks the failures of an adapter's up-front requirement checks, whichever adapter raised them.
+ *
  * @internal
  */
 interface RequirementChecksFailed extends Throwable

@@ -40,6 +40,10 @@ use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 use function Safe\preg_match;
 
+/**
+ * Selects the classes using `@inheritdoc`, on themselves or on a method they declare. Inherited
+ * methods do not count, since the tag would then belong to the parent's file.
+ */
 final readonly class HasInheritDoc implements SelectorInterface
 {
     private const string INHERIT_DOC_PATTERN = '/(?:\{\s*)?@inheritdoc\b(?:\s*\})?/i';

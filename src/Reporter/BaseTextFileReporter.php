@@ -45,6 +45,11 @@ use const PHP_EOL;
 use function sprintf;
 
 /**
+ * Renders the run results as plain text, one section per detection status.
+ *
+ * Sections the current verbosity leaves empty are announced with the option that would fill them.
+ * Subclasses decide how a section headline looks.
+ *
  * @internal
  */
 abstract readonly class BaseTextFileReporter implements LineMutationTestingResultsReporter

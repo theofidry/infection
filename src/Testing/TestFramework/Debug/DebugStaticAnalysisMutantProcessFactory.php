@@ -43,6 +43,8 @@ use Infection\TestFramework\Contracts\ShellCommandRunner;
 use Symfony\Component\Process\Process;
 
 /**
+ * Builds the stand-in analyser's process for one mutant, tagged with the mutation hash.
+ *
  * @internal
  */
 final readonly class DebugStaticAnalysisMutantProcessFactory implements LazyMutantProcessFactory

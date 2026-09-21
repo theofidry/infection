@@ -51,6 +51,9 @@ use Symfony\Component\Console\Question\Question;
 use function trim;
 
 /**
+ * Resolves where the test framework's configuration lives. It is asked for only when the file is
+ * neither in the usual place nor where the Composer autoload section suggests.
+ *
  * @internal
  */
 final readonly class TestFrameworkConfigPathProvider

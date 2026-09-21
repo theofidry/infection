@@ -44,6 +44,9 @@ use function sprintf;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Announces the initial run, then stays silent. Serves both the initial test run and the initial
+ * static-analysis run.
+ *
  * @internal
  */
 final readonly class ConsoleNoProgressLogger implements InitialStaticAnalysisExecutionLogger, InitialTestsExecutionLogger

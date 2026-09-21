@@ -39,6 +39,9 @@ use function count;
 use Infection\Mutant\DetectionStatus;
 
 /**
+ * Decorates a collector with the status filtering the configured loggers need. Returns no collector
+ * when no status is needed, and the undecorated collector when every status is.
+ *
  * @internal
  */
 final readonly class FilteringResultsCollectorFactory

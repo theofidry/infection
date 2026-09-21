@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Logger\ArtefactCollection\InitialStaticAnalysisExecution;
 
 /**
+ * Reports the progress of the initial static-analysis run.
+ *
  * @internal
  */
 interface InitialStaticAnalysisExecutionLogger

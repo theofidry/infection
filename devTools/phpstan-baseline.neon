@@ -1063,12 +1063,6 @@ parameters:
 			path: ../src/TestFramework/XML/SafeDOMXPath.php
 
 		-
-			rawMessage: Infection\Testing\BaseMutatorTestCase should not exist
-			identifier: phpat.testExtensionPointsHaveDocBlock
-			count: 1
-			path: ../src/Testing/BaseMutatorTestCase.php
-
-		-
 			rawMessage: Infection\Testing\MutatorName should not exist
 			identifier: phpat.testConcreteSourceClassesHaveTests
 			count: 1

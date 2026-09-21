@@ -50,6 +50,9 @@ use function Later\lazy;
 use Webmozart\Assert\Assert;
 
 /**
+ * Turns one file's XML coverage report into a trace. Extracting the test locations is deferred behind
+ * a memoising wrapper rather than left as a bare generator, since the trace is read more than once.
+ *
  * @internal
  * @final
  */

@@ -43,6 +43,11 @@ use Symfony\Component\Process\Process;
 use Webmozart\Assert\Assert;
 
 /**
+ * Builds the execution result of a finished test-framework process.
+ *
+ * The detection status comes from the exit code and from what the adapter makes of the output. The
+ * adapter decides whether the tests passed, since a run that executed no test is not a kill.
+ *
  * @internal
  */
 final readonly class TestFrameworkMutantExecutionResultFactory implements MutantExecutionResultFactory

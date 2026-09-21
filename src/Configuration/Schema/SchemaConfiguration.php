@@ -45,6 +45,9 @@ use Infection\TestFramework\TestFrameworkTypes;
 use Webmozart\Assert\Assert;
 
 /**
+ * The configuration file as it was written, before any merging with the command line or resolution of
+ * paths. Options the file does not set are null.
+ *
  * @internal
  */
 final readonly class SchemaConfiguration

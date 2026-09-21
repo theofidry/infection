@@ -42,6 +42,9 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
+ * Runs the mutators against every node of a file and gathers what they produce. Each node's mutations
+ * are kept as the generator the mutators returned, and flattened only when read.
+ *
  * @internal
  */
 final class MutationCollectorVisitor extends NodeVisitorAbstract

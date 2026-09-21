@@ -43,6 +43,9 @@ use function is_a;
 use Webmozart\Assert\Assert;
 
 /**
+ * The test frameworks a run can be configured with, the built-in ones plus whatever adapter packages
+ * are installed.
+ *
  * @internal
  */
 final class TestFrameworkTypes

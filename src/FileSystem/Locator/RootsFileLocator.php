@@ -43,6 +43,9 @@ use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
 
 /**
+ * Resolves a path to an existing file, trying each configured root in order for a relative path. A
+ * directory is rejected.
+ *
  * @internal
  */
 final readonly class RootsFileLocator implements Locator

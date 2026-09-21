@@ -56,6 +56,10 @@ use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 use XMLReader;
 use XMLWriter;
 
+/**
+ * Decides whether a file touches the outside world, by looking for the native functions and the
+ * classes that do. The list is explicit, since this cannot be inferred from types.
+ */
 final class IoCodeDetectorVisitor extends NodeVisitorAbstract
 {
     // See https://www.php.net/manual/en/ref.filesystem.php and newer PHP migration guides.

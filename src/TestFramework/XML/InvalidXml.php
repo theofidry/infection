@@ -39,6 +39,8 @@ use function sprintf;
 use UnexpectedValueException;
 
 /**
+ * Thrown when a document Infection has to read is not valid XML.
+ *
  * @internal
  */
 final class InvalidXml extends UnexpectedValueException

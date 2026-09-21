@@ -38,6 +38,8 @@ namespace Infection\Configuration\Schema;
 use Infection\FileSystem\Locator\Locator;
 
 /**
+ * Finds the configuration file, trying the conventional names in order of preference, and loads it.
+ *
  * @internal
  */
 final readonly class SchemaConfigurationLoader

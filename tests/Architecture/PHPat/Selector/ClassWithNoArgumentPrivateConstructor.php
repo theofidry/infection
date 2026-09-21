@@ -39,6 +39,10 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\ClassReflectionPredicate
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the classes hiding their constructor with a private no-argument one. A private constructor
+ * taking arguments is a named-constructor pattern and does not match.
+ */
 final class ClassWithNoArgumentPrivateConstructor implements SelectorInterface
 {
     public function getName(): string

@@ -47,6 +47,12 @@ use function min;
 use Symfony\Component\Process\Process;
 
 /**
+ * Builds the process container of a mutant: the test-framework process, plus the factories of its
+ * follow-up processes.
+ *
+ * The timeout is derived per mutant from the nominal time its tests take, with an allowance for
+ * booting the test framework, and never exceeds the configured ceiling.
+ *
  * @internal
  * @final
  */

@@ -40,6 +40,9 @@ use PHPStan\Reflection\ClassReflection;
 use function str_starts_with;
 use Symfony\Component\Filesystem\Path;
 
+/**
+ * Selects everything Infection owns, source and tests alike, minus the benchmark fixtures.
+ */
 final class InfectionCode implements SelectorInterface
 {
     private const string PROJECT_ROOT = __DIR__ . '/../../../../';

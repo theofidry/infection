@@ -46,6 +46,9 @@ use OndraM\CiDetector\CiDetector;
 use Psr\Log\LoggerInterface;
 
 /**
+ * Assembles the Stryker dashboard reporter and its collaborators, or nothing when the log
+ * configuration has no Stryker entry.
+ *
  * @internal
  * @final
  */

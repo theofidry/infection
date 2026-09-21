@@ -39,6 +39,8 @@ use RuntimeException;
 use Throwable;
 
 /**
+ * Thrown when a git operation is attempted outside a repository.
+ *
  * @internal
  */
 final class NoGitProjectFound extends RuntimeException

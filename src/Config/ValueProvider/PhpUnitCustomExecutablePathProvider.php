@@ -51,6 +51,8 @@ use Symfony\Component\Console\Question\Question;
 use function trim;
 
 /**
+ * Asks for the PHPUnit executable, and only when it cannot be found on its own.
+ *
  * @internal
  */
 final readonly class PhpUnitCustomExecutablePathProvider

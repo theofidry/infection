@@ -41,6 +41,9 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * Thrown when neither a file nor a directory can be located at a path. The searched roots are part of
+ * the message.
+ *
  * @internal
  */
 final class FileOrDirectoryNotFound extends RuntimeException

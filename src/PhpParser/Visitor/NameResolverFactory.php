@@ -39,6 +39,9 @@ use Infection\CannotBeInstantiated;
 use PhpParser\NodeVisitor\NameResolver;
 
 /**
+ * Creates php-parser's name resolver configured to annotate names instead of replacing the nodes,
+ * which is what format-preserving printing requires.
+ *
  * @internal
  */
 final class NameResolverFactory

@@ -46,6 +46,9 @@ use function strlen;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Prints individual mutants to the console as coloured diffs, up to the configured number. The budget
+ * is shared across the sections rather than applied per section.
+ *
  * @internal
  */
 final class ShowMutationsReporter implements Reporter

@@ -47,6 +47,12 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * A serializable description of a single change to apply to a source file, produced during analysis
+ * and applied later, possibly in another process.
+ *
+ * Its hash identifies the mutation across runs, which makes the hashing recipe a compatibility
+ * contract.
+ *
  * @internal
  * @final
  */

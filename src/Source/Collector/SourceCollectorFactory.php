@@ -46,6 +46,8 @@ use function sprintf;
 use const true;
 
 /**
+ * Creates the source collector matching the configured source filter.
+ *
  * @internal
  */
 final readonly class SourceCollectorFactory

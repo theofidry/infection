@@ -43,6 +43,12 @@ use SplQueue;
 use Webmozart\Assert\Assert;
 
 /**
+ * Buffers the mutant process containers waiting for a worker slot, pulling at most one new container
+ * from the input stream per call.
+ *
+ * Enqueuing returns the microseconds it spent rather than a count; the caller subtracts that from its
+ * polling sleep.
+ *
  * @final
  * @internal
  */

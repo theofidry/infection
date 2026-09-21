@@ -39,6 +39,9 @@ use RuntimeException;
 use function sprintf;
 
 /**
+ * Thrown when the coverage report names a test the JUnit report knows nothing about, which usually
+ * means the two come from different runs.
+ *
  * @internal
  */
 final class TestNotFound extends RuntimeException

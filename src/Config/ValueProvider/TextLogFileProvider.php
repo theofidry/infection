@@ -41,6 +41,8 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Question\Question;
 
 /**
+ * Asks where to write the text log, and recommends skipping it.
+ *
  * @internal
  */
 final readonly class TextLogFileProvider

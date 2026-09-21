@@ -41,6 +41,9 @@ use function sprintf;
 use Throwable;
 
 /**
+ * Thrown when several candidate reports are found and none can be told apart. The candidates are
+ * carried on the exception.
+ *
  * @internal
  */
 final class TooManyReportsFound extends RuntimeException implements ReportLocationThrowable

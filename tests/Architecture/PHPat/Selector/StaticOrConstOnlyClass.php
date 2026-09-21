@@ -41,6 +41,10 @@ use PHPStan\Reflection\ClassReflection;
 use ReflectionClass;
 use ReflectionMethod;
 
+/**
+ * Selects the classes made only of constants and static members. Declaring a public constructor opts a
+ * class out.
+ */
 final class StaticOrConstOnlyClass implements SelectorInterface
 {
     public function getName(): string

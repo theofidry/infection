@@ -50,6 +50,9 @@ use function sprintf;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
+ * Builds the adapter of the configured static analyser, locating its executable and its configuration
+ * file.
+ *
  * @internal
  */
 final readonly class StaticAnalysisToolFactory

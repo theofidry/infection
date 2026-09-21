@@ -52,6 +52,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Turns the decoded configuration file into its typed form, leaving absent options null rather than
+ * applying defaults.
+ *
  * @final
  */
 class SchemaConfigurationFactory

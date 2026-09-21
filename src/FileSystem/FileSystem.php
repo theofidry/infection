@@ -50,6 +50,10 @@ use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 use Symfony\Component\Finder\Finder;
 
 /**
+ * Extends Symfony's filesystem with the readability questions Infection asks, and turns the
+ * false-returning path resolution into an exception. Infection touches the disc through this class
+ * only.
+ *
  * @internal
  */
 class FileSystem extends SymfonyFilesystem

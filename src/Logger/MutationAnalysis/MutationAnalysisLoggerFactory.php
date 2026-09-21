@@ -45,6 +45,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Terminal;
 
 /**
+ * Creates the mutation-analysis logger matching a given name.
+ *
  * @internal
  */
 final readonly class MutationAnalysisLoggerFactory

@@ -44,6 +44,9 @@ use Infection\Process\Factory\InitialTestsRunProcessFactory;
 use Symfony\Component\Process\Process;
 
 /**
+ * Runs the project's test suite once, unmutated, to produce the coverage and trace artefacts. It stops
+ * at the first line written to standard error, and reports progress through events.
+ *
  * @internal
  * @final
  */

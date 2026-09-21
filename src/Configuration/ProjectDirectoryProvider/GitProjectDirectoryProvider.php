@@ -40,6 +40,9 @@ use Infection\Git\NoGitProjectFound;
 use Psr\Log\LoggerInterface;
 
 /**
+ * Takes the project directory from git's repository root. Not being in a repository is logged and
+ * yields no answer.
+ *
  * @internal
  */
 final readonly class GitProjectDirectoryProvider implements ProjectDirectoryProvider

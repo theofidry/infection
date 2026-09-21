@@ -40,6 +40,8 @@ use PhpParser\PrettyPrinter\Standard;
 use function Safe\preg_replace;
 
 /**
+ * Pretty-printer that keeps single-quoted strings encoded as the original file wrote them.
+ *
  * @internal
  */
 final class InfectionPrettyPrinter extends Standard

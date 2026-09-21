@@ -39,6 +39,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\Analyser\Analyser;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the tests declaring that they cover nothing.
+ */
 final readonly class PHPUnitTestWithCoversNothing implements SelectorInterface
 {
     public function __construct(

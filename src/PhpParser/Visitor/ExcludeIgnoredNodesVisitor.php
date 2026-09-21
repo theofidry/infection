@@ -41,6 +41,8 @@ use PhpParser\NodeVisitorAbstract;
 use function str_contains;
 
 /**
+ * Marks ineligible the node carrying an `@infection-ignore-all` annotation, and everything below it.
+ *
  * @internal
  */
 final class ExcludeIgnoredNodesVisitor extends NodeVisitorAbstract

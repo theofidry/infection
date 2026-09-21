@@ -40,6 +40,9 @@ use PhpParser\Node;
 use Webmozart\Assert\Assert;
 
 /**
+ * Wraps what a mutator puts in place of the node it mutates: a node, a list of nodes, or one of
+ * php-parser's traversal constants.
+ *
  * @internal
  */
 final readonly class MutatedNode

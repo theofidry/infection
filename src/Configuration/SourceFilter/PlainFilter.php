@@ -42,6 +42,9 @@ use function explode;
 use function implode;
 
 /**
+ * Narrows the sources to an explicit list of paths, given as a comma-separated value. A value listing
+ * nothing produces no filter rather than a filter matching nothing.
+ *
  * @internal
  */
 final readonly class PlainFilter implements SourceFileFilter

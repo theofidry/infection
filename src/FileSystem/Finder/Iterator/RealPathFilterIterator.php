@@ -41,6 +41,9 @@ use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Iterator\MultiplePcreFilterIterator;
 
 /**
+ * Filters found files on their real path rather than the path they were reached through, so a filter
+ * still matches when a source directory is reached through a symlink. Paths are normalised on Windows.
+ *
  * @internal
  *
  * @template-covariant TKey

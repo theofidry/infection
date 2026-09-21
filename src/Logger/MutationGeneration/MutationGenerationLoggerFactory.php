@@ -38,6 +38,9 @@ namespace Infection\Logger\MutationGeneration;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Creates the mutation-generation logger: a progress bar, or the silent one when progress is turned
+ * off.
+ *
  * @internal
  */
 final readonly class MutationGenerationLoggerFactory

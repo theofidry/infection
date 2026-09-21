@@ -38,6 +38,8 @@ namespace Infection\Logger\MutationAnalysis;
 use Infection\Framework\Enum\ImplodableEnum;
 
 /**
+ * The mutation-analysis loggers a user can pick from.
+ *
  * @internal
  */
 enum MutationAnalysisLoggerName: string

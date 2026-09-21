@@ -40,6 +40,9 @@ use Infection\FileSystem\Locator\FileOrDirectoryNotFound;
 use function sprintf;
 
 /**
+ * Finds a tool's configuration file by trying the conventional extensions in order, so a distributed
+ * template is only used when no local file overrides it.
+ *
  * @internal
  */
 final readonly class TestFrameworkConfigLocator implements TestFrameworkConfigLocatorInterface

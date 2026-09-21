@@ -41,6 +41,9 @@ use Infection\Mutant\DetectionStatus;
 use Infection\Mutant\MutantExecutionResult;
 
 /**
+ * Forwards to the decorated collector only the results whose detection status is one of the configured
+ * ones.
+ *
  * @internal
  */
 final readonly class FilteringResultsCollector implements Collector

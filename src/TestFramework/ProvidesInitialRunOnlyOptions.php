@@ -36,6 +36,9 @@ declare(strict_types=1);
 namespace Infection\TestFramework;
 
 /**
+ * Declares the options that make sense for the initial run but not for a mutant's, such as the ones
+ * producing coverage.
+ *
  * @internal
  */
 interface ProvidesInitialRunOnlyOptions

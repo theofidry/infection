@@ -43,6 +43,9 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 /**
+ * Asks whether to install the official adapter of a test framework Infection does not support out of
+ * the box. It only asks when the adapter is missing.
+ *
  * @internal
  */
 final readonly class AdapterInstallationDecider

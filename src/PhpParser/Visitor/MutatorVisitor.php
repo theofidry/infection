@@ -41,6 +41,11 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
 /**
+ * Applies one mutation to a cloned AST by replacing the node it targets.
+ *
+ * The node is matched on its token positions and its class rather than on identity: the AST being
+ * traversed is a clone of the one the mutation was generated from, possibly built in another process.
+ *
  * @internal
  */
 final class MutatorVisitor extends NodeVisitorAbstract

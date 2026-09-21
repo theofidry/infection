@@ -49,6 +49,13 @@ use function sprintf;
 use function strtolower;
 
 /**
+ * Decides up front whether the run can get the coverage it needs, and whether what it got is usable.
+ *
+ * Several signals are weighed, including the skip options, the SAPI, the available drivers and the PHP
+ * options only the child process will see. The master process has already restarted itself without
+ * Xdebug by then, so it cannot simply ask whether the extension is loaded. Failures carry a list of
+ * remedies.
+ *
  * @internal
  * @final
  */

@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Configuration\ProjectDirectoryProvider;
 
 /**
+ * Resolves the root of the project under test.
+ *
  * @internal
  */
 interface ProjectDirectoryProvider

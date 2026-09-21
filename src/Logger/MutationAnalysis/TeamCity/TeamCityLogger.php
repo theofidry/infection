@@ -43,6 +43,12 @@ use Infection\Mutation\Mutation;
 use Psr\Log\LoggerInterface;
 
 /**
+ * Reports mutation analysis as TeamCity service messages, mapping each source file to a test suite and
+ * each mutation to a test within it.
+ *
+ * Mutants are evaluated out of order, so a suite is closed only once every mutation generated for its
+ * file has been accounted for. That bookkeeping lives in the logger state.
+ *
  * @phpstan-type MutationRecord = array{hash: string, message: string}
  *
  * @internal

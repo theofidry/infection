@@ -50,6 +50,8 @@ use Infection\Event\Events\ArtefactCollection\InitialTestExecution\InitialTestSu
 use Infection\Logger\Console\ConsoleLogger;
 
 /**
+ * Runs only the initial test suite, the way Infection runs it, with debug output on by default.
+ *
  * @internal
  */
 final class InitialTestRunCommand extends BaseCommand

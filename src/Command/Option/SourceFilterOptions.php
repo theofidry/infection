@@ -51,6 +51,10 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * The options narrowing which sources are mutated, a plain path list or a git diff by filter, base or
+ * changed lines, and the single filter they resolve to. They are mutually exclusive, and combining
+ * them throws.
+ *
  * @internal
  */
 final class SourceFilterOptions

@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\TestFramework\Contracts;
 
 /**
+ * The outcome of a finished shell command, detached from the process that produced it.
+ *
  * @internal
  */
 final readonly class CompletedProcess

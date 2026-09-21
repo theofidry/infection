@@ -40,6 +40,9 @@ use Infection\Mutant\DetectionStatus;
 use Infection\Process\Factory\LazyMutantProcessFactory;
 
 /**
+ * Holds the chain of processes a single mutant goes through, and hands out the next one. Only an
+ * escaped mutant has a next process.
+ *
  * @internal
  * @final
  */

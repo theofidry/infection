@@ -43,6 +43,11 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * Reads the coverage index and yields one provider per covered file, without opening any of them.
+ *
+ * A report with no executed line at all throws, unless the sources were filtered, where it is a
+ * legitimate outcome.
+ *
  * @internal
  * @final
  */

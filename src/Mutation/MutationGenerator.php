@@ -53,6 +53,9 @@ use PhpParser\Node;
 use Webmozart\Assert\Assert;
 
 /**
+ * Generates the mutations of every collected source file, one file at a time, and streams them out.
+ * Progress is announced through events.
+ *
  * @internal
  * @final
  */

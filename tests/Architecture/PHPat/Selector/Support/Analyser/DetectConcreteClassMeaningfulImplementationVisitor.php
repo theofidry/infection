@@ -46,6 +46,10 @@ use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitorAbstract;
 use function spl_object_id;
 
+/**
+ * Decides whether a class does anything of its own, as opposed to only declaring members that
+ * delegate, do nothing, or throw.
+ */
 final class DetectConcreteClassMeaningfulImplementationVisitor extends NodeVisitorAbstract
 {
     private ?Class_ $targetClass = null;

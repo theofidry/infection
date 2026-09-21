@@ -49,6 +49,9 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use function var_export;
 
 /**
+ * Builds the command line of the debug runtime, and appends the command to itself, encoded, so the
+ * spawned script can report how it was invoked.
+ *
  * @internal
  */
 final class DebugCommandLine

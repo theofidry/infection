@@ -63,6 +63,10 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use Webmozart\Assert\Assert;
 
 /**
+ * Builds the test framework adapter for the configured framework, wiring in the paths, the
+ * configuration and the coverage it needs. Adapters other than PHPUnit's come from separate packages
+ * and are resolved by name through the installed extensions.
+ *
  * @internal
  */
 final readonly class Factory

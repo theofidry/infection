@@ -40,6 +40,10 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\PHPUnitTestClassAnalysis
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the tests declared as integration tests although neither they nor the code they cover touch
+ * the outside world.
+ */
 final readonly class PHPUnitTestNotRequiringIoWithIntegrationGroup implements SelectorInterface
 {
     public function __construct(

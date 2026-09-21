@@ -38,6 +38,9 @@ namespace Infection\TestFramework\Coverage\XmlReport;
 use InvalidArgumentException;
 
 /**
+ * Thrown when the coverage report is not what it claims to be: a file it lists is missing, or its
+ * structure cannot be read.
+ *
  * @internal
  */
 final class InvalidCoverage extends InvalidArgumentException

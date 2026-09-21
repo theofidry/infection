@@ -35,6 +35,9 @@ declare(strict_types=1);
 
 namespace Infection\Tests\Architecture\PHPat\Selector\Support\Analyser;
 
+/**
+ * Everything the analyser learned about one class in its single pass.
+ */
 final readonly class AnalysisResult
 {
     /**

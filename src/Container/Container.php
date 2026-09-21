@@ -192,6 +192,13 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use Webmozart\Assert\Assert;
 
 /**
+ * The service registry: one flat set of lazy factories keyed by class name, with a typed getter per
+ * service.
+ *
+ * Wiring is explicit rather than autowired, and laziness is a memoising closure rather than a proxy.
+ * Once the command line is parsed, `withValues()` clones the container and re-binds everything the
+ * configuration decides; option values live in the configuration object, not as container entries.
+ *
  * @internal
  */
 final class Container extends DIContainer

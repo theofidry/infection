@@ -51,6 +51,12 @@ use Symfony\Component\Filesystem\Filesystem;
 use function version_compare;
 
 /**
+ * Runs PHPStan, once over the project and then against the mutants the tests failed to kill.
+ *
+ * The memory limit is lifted on the PHP process rather than passed to PHPStan: PHPStan applies its own
+ * limit only after starting its sub-processes, by which point an inherited limit may already have
+ * killed them.
+ *
  * @internal
  */
 final class PHPStanAdapter implements StaticAnalysisToolAdapter

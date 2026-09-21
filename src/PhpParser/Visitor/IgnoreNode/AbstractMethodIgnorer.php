@@ -38,6 +38,8 @@ namespace Infection\PhpParser\Visitor\IgnoreNode;
 use PhpParser\Node;
 
 /**
+ * Ignores abstract methods, which have no body to mutate.
+ *
  * @internal
  */
 final class AbstractMethodIgnorer implements NodeIgnorer

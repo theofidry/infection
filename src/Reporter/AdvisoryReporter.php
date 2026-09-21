@@ -38,6 +38,8 @@ namespace Infection\Reporter;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Prints a reminder, at the end of a run, that some of the reported mutants are false positives.
+ *
  * @internal
  */
 final readonly class AdvisoryReporter implements Reporter

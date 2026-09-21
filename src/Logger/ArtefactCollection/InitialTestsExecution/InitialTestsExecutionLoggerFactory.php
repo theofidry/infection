@@ -41,6 +41,9 @@ use Infection\TestFramework\Contracts\TestFramework;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Creates the logger of the initial test run: a progress bar, or the silent one when progress is
+ * turned off.
+ *
  * @internal
  */
 final readonly class InitialTestsExecutionLoggerFactory

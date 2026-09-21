@@ -40,6 +40,8 @@ use function sprintf;
 use Throwable;
 
 /**
+ * Thrown when a collected source file is not valid PHP for the configured parser.
+ *
  * @internal
  */
 final class UnparsableFile extends RuntimeException

@@ -40,6 +40,9 @@ use const PHP_SAPI;
 use function Safe\ini_get;
 
 /**
+ * Reports whether a memory limit is already set, and whether the current process runs off a system
+ * php.ini.
+ *
  * @internal
  * @final
  */

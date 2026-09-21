@@ -39,6 +39,9 @@ use function Safe\preg_match;
 use function str_contains;
 
 /**
+ * Tells whether the code a mutation removed matches a user-supplied pattern. The pattern is written
+ * without delimiters, so a delimiter absent from it is picked here.
+ *
  * @internal
  * @final
  */

@@ -42,6 +42,9 @@ use function Later\lazy;
 use function sprintf;
 
 /**
+ * Creates the mutant of a mutation: it resolves where the mutated file goes in the temporary
+ * directory, and defers both the code generation and the diff.
+ *
  * @internal
  * @final
  */

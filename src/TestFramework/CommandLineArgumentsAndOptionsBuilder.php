@@ -38,6 +38,8 @@ namespace Infection\TestFramework;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
 
 /**
+ * Builds the test framework's own arguments, separately for the initial run and for a mutant.
+ *
  * @internal
  */
 interface CommandLineArgumentsAndOptionsBuilder

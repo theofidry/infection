@@ -45,6 +45,12 @@ use Infection\TestFramework\Contracts\ShellCommandRunner;
 use Symfony\Component\Process\Process;
 
 /**
+ * Builds the Mago process of one mutant.
+ *
+ * Mago is asked to substitute the mutated file for the original rather than being pointed at the
+ * mutant, which analyses the file in the context of its project. The process is single-threaded, since
+ * many of them run at once.
+ *
  * @internal
  */
 final readonly class MagoMutantProcessFactory implements LazyMutantProcessFactory

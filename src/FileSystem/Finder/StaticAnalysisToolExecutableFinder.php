@@ -56,6 +56,12 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Locates the static analyser's executable, preferring the user's custom path and falling back to the
+ * vendor binary directory Composer reports.
+ *
+ * On Windows the Composer binary is a batch wrapper, so the real entry point is extracted from it: a
+ * batch file cannot be the target of a PHP process.
+ *
  * @internal
  * @final
  */

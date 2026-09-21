@@ -38,6 +38,8 @@ namespace Infection\Logger\MutationGeneration;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Announces that mutation generation has started, then stays silent.
+ *
  * @internal
  */
 final readonly class ConsoleNoProgressLogger implements MutationGenerationLogger

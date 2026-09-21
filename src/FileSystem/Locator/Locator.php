@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\FileSystem\Locator;
 
 /**
+ * Resolves a user-supplied path to a real path, searching a set of roots when the path is relative.
+ *
  * @internal
  */
 interface Locator

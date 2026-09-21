@@ -39,6 +39,8 @@ use function sprintf;
 use UnexpectedValueException;
 
 /**
+ * Thrown when the MSI or the covered-code MSI of a run is below the configured minimum.
+ *
  * @internal
  */
 final class MinMsiCheckFailed extends UnexpectedValueException

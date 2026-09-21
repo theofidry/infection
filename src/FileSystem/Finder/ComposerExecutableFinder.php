@@ -36,6 +36,9 @@ declare(strict_types=1);
 namespace Infection\FileSystem\Finder;
 
 /**
+ * Locates the Composer executable and returns it as an argv prefix: one element for a binary, two when
+ * PHP has to be put in front of a phar.
+ *
  * @internal
  */
 interface ComposerExecutableFinder

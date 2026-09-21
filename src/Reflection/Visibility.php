@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Reflection;
 
 /**
+ * The two method visibilities the function-signature mutators can narrow to.
+ *
  * @internal
  */
 final readonly class Visibility

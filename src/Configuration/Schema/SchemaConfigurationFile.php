@@ -43,6 +43,11 @@ use function Safe\file_get_contents;
 use stdClass;
 
 /**
+ * The configuration file on disc, decoded once on demand.
+ *
+ * JSON5 is accepted. A file that is missing, unreadable or malformed is reported as such rather than
+ * as a schema violation.
+ *
  * @internal
  */
 final class SchemaConfigurationFile

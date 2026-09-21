@@ -49,6 +49,12 @@ use function Safe\json_encode;
 use function sprintf;
 
 /**
+ * Uploads the run results to the Stryker dashboard, resolving the repository and branch from the CI
+ * environment and the API key from the environment.
+ *
+ * Anything that makes the upload impossible, such as not running in CI, a missing API key or an
+ * excluded branch, is logged as a notice and ends the reporter quietly.
+ *
  * @internal
  */
 final readonly class StrykerReporter implements Reporter

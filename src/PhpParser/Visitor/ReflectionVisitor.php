@@ -48,6 +48,13 @@ use ReflectionException;
 use Webmozart\Assert\Assert;
 
 /**
+ * Annotates each node with the reflection of its enclosing class, its enclosing function scope and
+ * name, whether it sits inside a function body or on a signature, and whether strict types are
+ * declared.
+ *
+ * Code outside a class-like is not traversed. State is reset before each file, since the instance is
+ * reused across files.
+ *
  * @internal
  */
 final class ReflectionVisitor extends NodeVisitorAbstract

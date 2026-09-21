@@ -43,6 +43,9 @@ use SplFileInfo;
 use Throwable;
 
 /**
+ * Parses a source file into its statements and the token stream that produced them. Both are kept,
+ * since mutants are printed against the original tokens.
+ *
  * @internal
  */
 final readonly class FileParser

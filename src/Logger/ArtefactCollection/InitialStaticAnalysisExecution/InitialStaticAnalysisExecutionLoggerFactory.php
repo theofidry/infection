@@ -41,6 +41,9 @@ use Infection\StaticAnalysis\StaticAnalysisToolAdapter;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Creates the logger of the initial static-analysis run: a progress bar, or the silent one when
+ * progress is turned off.
+ *
  * @internal
  */
 final readonly class InitialStaticAnalysisExecutionLoggerFactory

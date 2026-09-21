@@ -40,6 +40,9 @@ use function Safe\preg_match;
 use Webmozart\Assert\Assert;
 
 /**
+ * Infers which PHPUnit schema a configuration file was written for, from the elements and attributes
+ * it uses and from the schema it points at. An undecidable file is taken to be a legacy one.
+ *
  * @internal
  */
 final class XmlConfigurationVersionProvider

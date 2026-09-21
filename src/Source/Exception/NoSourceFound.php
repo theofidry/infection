@@ -42,6 +42,11 @@ use Throwable;
 use function trim;
 
 /**
+ * Thrown when a run has nothing to mutate.
+ *
+ * Whether the sources were filtered is carried separately from the message: an empty git diff is a
+ * different outcome from a source list that matches nothing.
+ *
  * @internal
  */
 final class NoSourceFound extends RuntimeException

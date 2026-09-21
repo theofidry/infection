@@ -39,6 +39,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\EventArchitecture;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the classes in the event directory that are neither an event nor a single-event subscriber.
+ */
 final readonly class EventDirectoryClassWithoutExpectedShape implements SelectorInterface
 {
     public function __construct(

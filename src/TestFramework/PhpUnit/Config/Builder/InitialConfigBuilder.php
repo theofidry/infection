@@ -45,6 +45,9 @@ use function version_compare;
 use Webmozart\Assert\Assert;
 
 /**
+ * Writes the PHPUnit configuration of the initial run: the user's own, with coverage output added and
+ * colours, loggers, printers and result caching taken out.
+ *
  * @internal
  */
 final readonly class InitialConfigBuilder

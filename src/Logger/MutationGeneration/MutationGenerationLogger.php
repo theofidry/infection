@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Logger\MutationGeneration;
 
 /**
+ * Reports the progress of mutation generation, one step per source file.
+ *
  * @internal
  */
 interface MutationGenerationLogger

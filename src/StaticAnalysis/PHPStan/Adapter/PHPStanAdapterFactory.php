@@ -47,6 +47,8 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use Webmozart\Assert\Assert;
 
 /**
+ * Assembles the PHPStan adapter and its collaborators.
+ *
  * @internal
  */
 final class PHPStanAdapterFactory implements StaticAnalysisToolAdapterFactory

@@ -41,6 +41,9 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * Takes the project directory from an environment variable. A variable that is set but does not point
+ * at a readable absolute directory throws.
+ *
  * @internal
  */
 final readonly class EnvironmentVariableBasedProjectDirectoryProvider implements ProjectDirectoryProvider

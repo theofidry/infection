@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\TestFramework\Tracing\Trace;
 
 /**
+ * The line span of a method.
+ *
  * @internal
  */
 final readonly class SourceMethodLineRange

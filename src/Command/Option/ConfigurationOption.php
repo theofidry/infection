@@ -43,6 +43,9 @@ use Symfony\Component\Console\Input\InputOption;
 use function trim;
 
 /**
+ * The `--configuration` option: which configuration file to use instead of looking one up by its
+ * conventional names.
+ *
  * @internal
  */
 final class ConfigurationOption

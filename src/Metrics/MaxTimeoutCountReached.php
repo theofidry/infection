@@ -39,6 +39,8 @@ use function sprintf;
 use UnexpectedValueException;
 
 /**
+ * Thrown when a run produces more timed-out mutants than the configured ceiling allows.
+ *
  * @internal
  */
 final class MaxTimeoutCountReached extends UnexpectedValueException

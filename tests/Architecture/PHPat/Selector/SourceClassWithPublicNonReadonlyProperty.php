@@ -39,6 +39,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\Analyser\Analyser;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the source classes declaring a mutable public property. Inherited properties do not count.
+ */
 final readonly class SourceClassWithPublicNonReadonlyProperty implements SelectorInterface
 {
     public function __construct(

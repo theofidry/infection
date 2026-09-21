@@ -46,6 +46,11 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
+ * Writes a line-based report to the configured destination.
+ *
+ * Standard output, standard error and the output stream are written to directly, since the filesystem
+ * component cannot handle streams. Any other `php://` path is rejected with an explicit message.
+ *
  * @internal
  */
 final readonly class FileReporter implements Reporter

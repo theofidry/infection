@@ -40,6 +40,8 @@ use Override;
 use Symfony\Component\Console\Helper\ProgressBar;
 
 /**
+ * Reports mutation analysis as a progress bar.
+ *
  * @internal
  */
 final class ConsoleProgressBarLogger extends AbstractMutationAnalysisLogger

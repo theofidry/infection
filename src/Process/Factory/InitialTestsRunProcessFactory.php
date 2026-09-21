@@ -41,6 +41,9 @@ use Infection\TestFramework\Contracts\ShellCommandRunner;
 use Symfony\Component\Process\Process;
 
 /**
+ * Builds the process of the initial test run. When coverage is expected the process runs in a vanilla
+ * PHP environment, where the debugger is available again. The default timeout is removed.
+ *
  * @internal
  * @final
  */

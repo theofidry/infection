@@ -48,6 +48,9 @@ use function sprintf;
 use Webmozart\Assert\Assert;
 
 /**
+ * Queries an XML document, turning libxml's false returns into exceptions. Coverage reports are
+ * namespaced, so a prefix is registered on loading and every query has to use it.
+ *
  * @internal
  */
 final readonly class SafeDOMXPath

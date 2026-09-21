@@ -40,6 +40,9 @@ use RuntimeException;
 use function sprintf;
 
 /**
+ * Thrown when no environment variable holds the Stryker dashboard API key. The message lists the
+ * variables that are read, minus the deprecated one.
+ *
  * @internal
  */
 final class CouldNotResolveStrykerApiKey extends RuntimeException

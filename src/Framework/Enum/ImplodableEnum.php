@@ -41,6 +41,8 @@ use function implode;
 use function sprintf;
 
 /**
+ * Renders a backed enum's cases as a list, plain or quoted.
+ *
  * @internal
  * @phpstan-require-implements BackedEnum<string>
  */

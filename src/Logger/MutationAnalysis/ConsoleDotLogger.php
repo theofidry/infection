@@ -51,6 +51,9 @@ use Symfony\Component\Console\Terminal;
 use Webmozart\Assert\Assert;
 
 /**
+ * Reports mutation analysis as one character per mutant, with a legend and a per-row count. The row
+ * width can follow the terminal, and the count is omitted when the number of mutations is unknown.
+ *
  * @internal
  */
 final class ConsoleDotLogger extends AbstractMutationAnalysisLogger

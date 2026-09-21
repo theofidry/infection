@@ -52,6 +52,9 @@ use PhpParser\Node;
 use Webmozart\Assert\Assert;
 
 /**
+ * Everything a run was configured to do, after the configuration file and the command line have been
+ * merged. Option values live here and nowhere else.
+ *
  * @internal
  * @final
  */

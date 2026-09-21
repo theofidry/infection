@@ -43,6 +43,9 @@ use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
+ * Locates Composer, looking at the working directory and its two parents on top of the usual paths. A
+ * phar, or a file found without the execute permission, is returned prefixed with the PHP executable.
+ *
  * @internal
  */
 final readonly class ConcreteComposerExecutableFinder implements ComposerExecutableFinder

@@ -43,6 +43,9 @@ use Symfony\Component\Process\Process;
 use Webmozart\Assert\Assert;
 
 /**
+ * Thrown when the initial test run does not pass. The message carries the framework's own output and
+ * its recommendations.
+ *
  * @internal
  */
 final class InitialTestsFailed extends Exception

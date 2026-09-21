@@ -48,6 +48,8 @@ use SplFileInfo;
 use Symfony\Component\Filesystem\Path;
 
 /**
+ * Prints the source files a run would mutate, given the configuration and the filters.
+ *
  * @internal
  */
 final class ListSourcesCommand extends BaseCommand

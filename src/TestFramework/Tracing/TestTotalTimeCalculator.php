@@ -42,6 +42,9 @@ use function strpos;
 use function substr;
 
 /**
+ * Sums how long a mutation's tests take. Timings are recorded per test suite rather than per test, so
+ * each suite counts once however many of its tests cover the mutation.
+ *
  * @internal
  */
 final readonly class TestTotalTimeCalculator

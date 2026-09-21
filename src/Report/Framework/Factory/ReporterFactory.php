@@ -39,6 +39,9 @@ use Infection\Configuration\Entry\Logs;
 use Infection\Reporter\Reporter;
 
 /**
+ * Builds the reporter a given log entry calls for, or a null reporter when the configuration does not
+ * ask for that report.
+ *
  * @internal
  */
 interface ReporterFactory

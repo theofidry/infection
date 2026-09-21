@@ -38,6 +38,8 @@ namespace Infection\TestFramework\Contracts\Throwable;
 use Throwable;
 
 /**
+ * Marks the failures of the initial run, whichever adapter raised them.
+ *
  * @internal
  */
 interface InitialTestsFailed extends Throwable

@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Reporter;
 
 /**
+ * Renders the run results as lines of text, leaving where they go to the reporter wrapping it.
+ *
  * @internal
  */
 interface LineMutationTestingResultsReporter

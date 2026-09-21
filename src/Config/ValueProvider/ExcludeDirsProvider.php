@@ -54,6 +54,9 @@ use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
+ * Asks which directories to leave out of the sources, pre-selecting the usual ones when the whole
+ * project directory is the source.
+ *
  * @internal
  */
 final readonly class ExcludeDirsProvider

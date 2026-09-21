@@ -40,6 +40,9 @@ use Infection\Tests\AutoReview\ProjectCode\ProjectCodeProvider;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the classes declared as public extension points.
+ */
 final class ExtensionPoint implements SelectorInterface
 {
     public function getName(): string

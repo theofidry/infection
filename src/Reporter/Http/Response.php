@@ -38,6 +38,8 @@ namespace Infection\Reporter\Http;
 use Webmozart\Assert\Assert;
 
 /**
+ * An HTTP response reduced to a status code and a body. A status code outside the HTTP range throws.
+ *
  * @internal
  */
 final readonly class Response

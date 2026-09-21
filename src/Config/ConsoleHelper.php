@@ -40,6 +40,8 @@ use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Formats the section banners and the question prompts of the interactive configuration command.
+ *
  * @internal
  */
 class ConsoleHelper

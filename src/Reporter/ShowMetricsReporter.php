@@ -43,6 +43,9 @@ use function str_repeat;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Prints the end-of-run summary to the console: the mutant count per detection status, and the
+ * resulting scores coloured by score band.
+ *
  * @internal
  */
 final readonly class ShowMetricsReporter implements Reporter

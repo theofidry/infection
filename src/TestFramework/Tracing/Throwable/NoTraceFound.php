@@ -39,6 +39,8 @@ use RuntimeException;
 use function sprintf;
 
 /**
+ * Thrown when no coverage trace exists for a source file.
+ *
  * @internal
  */
 final class NoTraceFound extends RuntimeException

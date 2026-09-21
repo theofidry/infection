@@ -48,6 +48,10 @@ use Symfony\Component\Console\Input\StringInput;
 use function trim;
 
 /**
+ * Splits the raw option string the user passed for the test framework into argv tokens, honouring
+ * quoting. The process component treats each array element as one argument, so a joined command line
+ * would be one broken token.
+ *
  * @internal
  */
 final readonly class TestFrameworkExtraArgs

@@ -44,6 +44,9 @@ use Infection\AbstractTestFramework\TestFrameworkAdapter;
 use function Safe\preg_match;
 
 /**
+ * A test framework that runs a scripted stand-in instead of a real one, with outcomes the script
+ * decides.
+ *
  * @internal
  */
 final readonly class DebugTestFrameworkAdapter implements MemoryUsageAware, TestFrameworkAdapter

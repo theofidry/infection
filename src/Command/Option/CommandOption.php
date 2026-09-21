@@ -39,6 +39,9 @@ use Infection\Console\IO;
 use Symfony\Component\Console\Command\Command;
 
 /**
+ * A console option owned by a class of its own: its name, its description, and how its raw value is
+ * interpreted.
+ *
  * @internal
  */
 interface CommandOption

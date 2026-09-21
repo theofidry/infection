@@ -39,6 +39,9 @@ use RuntimeException;
 use function sprintf;
 
 /**
+ * Thrown when an executable Infection needs cannot be located: Composer, PHP, the test framework or
+ * the static analyser.
+ *
  * @internal
  */
 final class FinderException extends RuntimeException

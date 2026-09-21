@@ -40,6 +40,9 @@ use PhpParser\Node;
 use Webmozart\Assert\Assert;
 
 /**
+ * Reads and writes the parent link that php-parser's parent-connecting visitor puts on each node.
+ * `findParent()` allows a root node, `getParent()` does not.
+ *
  * @internal
  */
 final class ParentConnector

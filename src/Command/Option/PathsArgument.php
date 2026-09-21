@@ -45,6 +45,9 @@ use Symfony\Component\Console\Input\InputArgument;
 use function trim;
 
 /**
+ * The positional paths of the run command: the source and test paths to restrict mutation testing to.
+ * Which kind each path is gets inferred later, from the configured source directories.
+ *
  * @internal
  */
 final class PathsArgument

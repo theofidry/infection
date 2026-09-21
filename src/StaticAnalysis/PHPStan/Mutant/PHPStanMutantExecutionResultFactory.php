@@ -45,6 +45,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Builds the execution result of a finished PHPStan process. A problem reported in the mutated code is
+ * a kill, so a non-zero exit code counts as one.
+ *
  * @internal
  */
 final class PHPStanMutantExecutionResultFactory implements MutantExecutionResultFactory

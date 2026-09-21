@@ -42,6 +42,12 @@ use function Safe\preg_match;
 use function sprintf;
 
 /**
+ * Which branches report to the Stryker dashboard, and whether they upload the full report or only the
+ * badge figure.
+ *
+ * The branch is either a literal name or a regular expression, told apart by its delimiters. A literal
+ * is turned into an anchored pattern.
+ *
  * @internal
  */
 final readonly class StrykerConfig

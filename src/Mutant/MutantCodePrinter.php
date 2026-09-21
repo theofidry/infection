@@ -40,6 +40,9 @@ use PhpParser\Node;
 use PhpParser\PrettyPrinterAbstract;
 
 /**
+ * Prints mutated statements against the tokens of the original file, so the output differs from the
+ * original only at the mutation.
+ *
  * @internal
  * @final
  */

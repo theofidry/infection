@@ -46,6 +46,9 @@ use function sprintf;
 use UnexpectedValueException;
 
 /**
+ * The six node position attributes a mutation carries. Plucking them from a node's attributes throws
+ * when any is missing.
+ *
  * @internal
  */
 enum MutationAttributeKeys: string

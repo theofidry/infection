@@ -66,6 +66,9 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use Webmozart\Assert\Assert;
 
 /**
+ * Assembles the PHPUnit adapter and the config builders it needs, from the paths and options the run
+ * resolved.
+ *
  * @internal
  */
 final class PhpUnitAdapterFactory implements TestFrameworkFactory

@@ -41,6 +41,9 @@ use function sprintf;
 use UnexpectedValueException;
 
 /**
+ * Thrown when a node being dumped carries another node in its attributes, which the dumper cannot
+ * follow without risking a cycle.
+ *
  * @internal
  */
 final class PotentialCircularDependencyDetected extends UnexpectedValueException

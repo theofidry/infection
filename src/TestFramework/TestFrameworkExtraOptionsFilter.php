@@ -43,6 +43,8 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Strips from the user's extra options the ones belonging to the initial run only.
+ *
  * @internal
  * @final
  */

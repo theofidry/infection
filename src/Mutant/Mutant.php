@@ -40,6 +40,10 @@ use Infection\Mutation\Mutation;
 use Later\Interfaces\Deferred;
 
 /**
+ * A materialised mutation: the path its code is written to, its mutated code, and its diff against the
+ * original. The mutated code and the diff are deferred, so a mutant that is never evaluated does not
+ * compute them.
+ *
  * @internal
  * @final
  */

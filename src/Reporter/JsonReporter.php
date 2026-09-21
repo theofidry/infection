@@ -43,6 +43,8 @@ use function json_encode;
 use const JSON_THROW_ON_ERROR;
 
 /**
+ * Renders the summary figures and every mutant that was not killed as a single JSON document.
+ *
  * @internal
  */
 final readonly class JsonReporter implements LineMutationTestingResultsReporter

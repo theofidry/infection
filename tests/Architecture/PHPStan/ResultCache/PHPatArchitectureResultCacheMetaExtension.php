@@ -43,6 +43,11 @@ use function Safe\md5_file;
 use function sprintf;
 use Symfony\Component\Finder\Finder;
 
+/**
+ * Ties PHPStan's result cache to the contents of the selector directory. The rules are expressed in
+ * code PHPStan does not treat as part of the analysis, so without this an edited selector would keep
+ * reporting the previous run's findings.
+ */
 final class PHPatArchitectureResultCacheMetaExtension implements ResultCacheMetaExtension
 {
     private const string SELECTOR_DIRECTORY = __DIR__ . '/../../PHPat/Selector';

@@ -81,6 +81,9 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * The mutation testing run: it turns the command line into container values, hands over to the engine,
+ * and maps what comes back onto exit codes.
+ *
  * @internal
  */
 final class RunCommand extends BaseCommand

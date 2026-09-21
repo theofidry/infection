@@ -39,6 +39,9 @@ use Infection\Tests\Architecture\PHPat\Selector\Support\EventArchitecture;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the single-event subscriber interfaces.
+ */
 final readonly class SingleEventSubscriberSelector implements SelectorInterface
 {
     public function __construct(

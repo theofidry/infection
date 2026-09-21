@@ -38,6 +38,8 @@ namespace Infection\Configuration\Entry;
 use Symfony\Component\Filesystem\Path;
 
 /**
+ * Where to find PHPUnit, and the directory its configuration is relative to.
+ *
  * @internal
  */
 final readonly class PhpUnit

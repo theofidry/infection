@@ -41,6 +41,9 @@ use function is_array;
 use function iterator_to_array;
 
 /**
+ * Counts the items of an iterable, buffering it when it is a generator. A concurrent run must not be
+ * buffered, so it gets the unknown-count value instead.
+ *
  * @internal
  */
 final class IterableCounter

@@ -45,6 +45,9 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
+ * Builds the file reporters the log configuration asks for, honouring the log verbosity, and combines
+ * them into one.
+ *
  * @internal
  * @final
  */

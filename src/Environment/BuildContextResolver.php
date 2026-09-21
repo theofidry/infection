@@ -40,6 +40,9 @@ use OndraM\CiDetector\Exception\CiNotDetectedException;
 use function trim;
 
 /**
+ * Resolves the current CI build's repository and branch. A pull-request build is refused, including
+ * when the detection is unsure: its branch is the ephemeral merge branch.
+ *
  * @internal
  */
 final readonly class BuildContextResolver

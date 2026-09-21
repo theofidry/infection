@@ -50,6 +50,9 @@ use Infection\TestFramework\Contracts\TestFramework;
 use Infection\TestFramework\Coverage\CoverageChecker;
 
 /**
+ * Presents an adapter written against the old external contract as the current test-framework
+ * interface.
+ *
  * @internal
  *
  * @deprecated This is for the compatibility layer with the old AbstractTestFramework contract. To be removed.

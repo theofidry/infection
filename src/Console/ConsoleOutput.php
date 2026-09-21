@@ -41,6 +41,9 @@ use Psr\Log\LoggerInterface;
 use function sprintf;
 
 /**
+ * Emits the run's notices through the logger rather than straight to the output: a debugger being
+ * enabled, a deprecated option value, an MSI gate that could be raised.
+ *
  * @internal
  * @final
  */

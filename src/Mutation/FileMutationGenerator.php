@@ -55,6 +55,12 @@ use SplFileInfo;
 use Webmozart\Assert\Assert;
 
 /**
+ * Generates every mutation of one source file: resolves the file's trace, parses and enriches its AST,
+ * then runs the mutators over the eligible nodes.
+ *
+ * In covered-only mode a file with no covering test is skipped. A file with no trace is mutated
+ * against an empty one.
+ *
  * @internal
  * @final
  */

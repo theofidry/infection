@@ -38,6 +38,9 @@ namespace Infection\StaticAnalysis;
 use Infection\Process\Factory\LazyMutantProcessFactory;
 
 /**
+ * Runs a static analyser, over the project and then over individual mutants. The mutant side is a
+ * process factory, since only an escaped mutant gets a process.
+ *
  * @internal
  */
 interface StaticAnalysisToolAdapter

@@ -54,6 +54,8 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Replays a recorded TeamCity log line by line, with a delay between them.
+ *
  * @internal
  */
 final class MockTeamCityCommand extends BaseCommand

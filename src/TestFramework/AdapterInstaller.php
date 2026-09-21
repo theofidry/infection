@@ -41,6 +41,9 @@ use Infection\TestFramework\Contracts\ShellCommandRunner;
 use Webmozart\Assert\Assert;
 
 /**
+ * Installs an official test-framework adapter through Composer and registers its autoloading in the
+ * running process.
+ *
  * @internal
  */
 final readonly class AdapterInstaller

@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Process\Runner;
 
 /**
+ * Passes the process containers through without starting anything.
+ *
  * @internal
  */
 final class DryProcessRunner implements ProcessRunner

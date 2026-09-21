@@ -40,6 +40,9 @@ use Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound;
 use Infection\Framework\OperatingSystem;
 
 /**
+ * Provides the number of CPU cores available. Returns 1 on Windows and whenever the count cannot be
+ * determined.
+ *
  * @internal
  * @final
  */

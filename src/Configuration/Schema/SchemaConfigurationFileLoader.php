@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Configuration\Schema;
 
 /**
+ * Validates a configuration file against the schema and turns it into its typed form.
+ *
  * @final
  */
 class SchemaConfigurationFileLoader

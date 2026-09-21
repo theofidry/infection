@@ -43,6 +43,8 @@ use function str_replace;
 use Symfony\Component\Filesystem\Path;
 
 /**
+ * Renders the escaped mutants as GitHub workflow commands.
+ *
  * @internal
  */
 final readonly class GitHubAnnotationsReporter implements LineMutationTestingResultsReporter

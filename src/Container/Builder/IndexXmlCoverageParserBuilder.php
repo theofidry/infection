@@ -41,6 +41,8 @@ use Infection\FileSystem\FileSystem;
 use Infection\TestFramework\Coverage\XmlReport\IndexXmlCoverageParser;
 
 /**
+ * Builds the coverage index parser, which needs to know whether the sources were filtered.
+ *
  * @internal
  * @implements Builder<IndexXmlCoverageParser>
  */

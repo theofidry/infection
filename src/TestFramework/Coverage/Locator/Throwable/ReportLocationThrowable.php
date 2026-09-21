@@ -38,6 +38,8 @@ namespace Infection\TestFramework\Coverage\Locator\Throwable;
 use Throwable;
 
 /**
+ * Marks the failures of locating a coverage report.
+ *
  * @internal
  */
 interface ReportLocationThrowable extends Throwable

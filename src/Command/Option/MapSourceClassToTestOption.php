@@ -45,6 +45,12 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 
 /**
+ * The `--map-source-class-to-test` option: restricts the initial test run to the tests covering the
+ * changed sources.
+ *
+ * Its three states differ. Absent leaves the choice to Infection, given without a value means on, and
+ * a value names the mapping strategy.
+ *
  * @internal
  */
 final class MapSourceClassToTestOption implements CommandOption

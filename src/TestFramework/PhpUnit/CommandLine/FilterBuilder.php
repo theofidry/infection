@@ -48,6 +48,12 @@ use function strlen;
 use function version_compare;
 
 /**
+ * Builds the `--filter` pattern restricting a mutant's run to its covering tests.
+ *
+ * A pattern too long for PCRE, or for the Windows environment block, is degraded in steps: drop the
+ * data-provider keys, then the class names, then pass no filter at all. Passing no filter runs the
+ * whole suite, which is slow but correct; a truncated pattern would not be.
+ *
  * @internal
  */
 final class FilterBuilder

@@ -49,6 +49,12 @@ use function trim;
 use Webmozart\Assert\Assert;
 
 /**
+ * Interprets the raw option values of the run command.
+ *
+ * It covers what a console option cannot express on its own: options whose absence, presence without a
+ * value and explicit value mean three different things, and the thread count, where `max` resolves to
+ * the machine's cores minus one.
+ *
  * @internal
  */
 final readonly class RunCommandHelper

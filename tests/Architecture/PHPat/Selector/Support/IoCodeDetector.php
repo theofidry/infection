@@ -41,6 +41,10 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tells whether a class, or the code a test covers, touches the outside world. For a test case, the
+ * covered classes are examined with their parents. Answers are kept per class.
+ */
 final class IoCodeDetector
 {
     /**

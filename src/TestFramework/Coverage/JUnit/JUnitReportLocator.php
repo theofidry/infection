@@ -49,6 +49,9 @@ use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Finder;
 
 /**
+ * Finds the JUnit report, at the path PHPUnit would have written it to or anywhere in the coverage
+ * directory. Finding several throws rather than guessing.
+ *
  * @internal
  */
 final class JUnitReportLocator extends BaseReportLocator implements ReportLocator

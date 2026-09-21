@@ -75,6 +75,11 @@ use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
 
 /**
+ * Builds the run results in the Stryker mutation testing report schema.
+ *
+ * It resolves what that schema needs and Infection does not otherwise track: the original source of
+ * every mutated file, the mutator descriptions, and the tests each mutant covers.
+ *
  * @internal
  */
 final readonly class StrykerHtmlReportBuilder

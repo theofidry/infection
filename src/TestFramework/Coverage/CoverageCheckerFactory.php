@@ -41,6 +41,9 @@ use Infection\TestFramework\Coverage\JUnit\JUnitReportLocator;
 use Infection\TestFramework\Coverage\XmlReport\IndexXmlCoverageLocator;
 
 /**
+ * Builds the coverage checker for a given adapter, since whether a JUnit report is expected depends on
+ * the adapter.
+ *
  * @internal
  */
 final readonly class CoverageCheckerFactory

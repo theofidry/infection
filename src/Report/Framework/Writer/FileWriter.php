@@ -42,6 +42,8 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
+ * Writes a report to a file, replacing whatever was there.
+ *
  * @internal
  */
 final readonly class FileWriter implements ReportWriter

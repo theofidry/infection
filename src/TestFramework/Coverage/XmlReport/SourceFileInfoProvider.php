@@ -48,6 +48,10 @@ use Symfony\Component\Filesystem\Path;
 use function trim;
 
 /**
+ * Holds what is needed to open one file's coverage report, and opens it only when asked. A coverage
+ * file listed in the index but absent from disc is reported as out-of-date coverage rather than as a
+ * parse error.
+ *
  * @internal
  * @final
  */

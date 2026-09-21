@@ -58,6 +58,11 @@ use function version_compare;
 use Webmozart\Assert\Assert;
 
 /**
+ * Applies the individual edits Infection makes to a PHPUnit configuration, one small method per edit.
+ *
+ * Each version cutoff exists because the schema changed at that version, and the comments say which
+ * change. From PHPUnit 12 on, the user's coverage configuration is authoritative and left alone.
+ *
  * @internal
  */
 final readonly class XmlConfigurationManipulator

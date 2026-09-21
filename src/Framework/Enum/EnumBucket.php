@@ -71,6 +71,9 @@ use OutOfBoundsException;
 use function sprintf;
 
 /**
+ * A checklist of an enum's cases that callers take from one by one and can then assert empty. Adding a
+ * case to the enum makes that assertion fail.
+ *
  * @internal
  *
  * @template T of BackedEnum

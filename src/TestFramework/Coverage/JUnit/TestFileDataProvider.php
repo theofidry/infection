@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\TestFramework\Coverage\JUnit;
 
 /**
+ * Resolves where a test lives and how long it took, from its identifier in the coverage report.
+ *
  * @internal
  */
 interface TestFileDataProvider

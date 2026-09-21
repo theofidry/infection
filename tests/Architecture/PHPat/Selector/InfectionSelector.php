@@ -46,6 +46,10 @@ use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ReflectionProvider;
 use Webmozart\Assert\Assert;
 
+/**
+ * The entry point to the project's selectors. It also builds the expensive collaborators, the
+ * parser-based analyser and the I/O detector, once and shares them.
+ */
 final class InfectionSelector
 {
     use CannotBeInstantiated;

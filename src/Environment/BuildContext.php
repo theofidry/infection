@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace Infection\Environment;
 
 /**
+ * The repository and branch a CI build runs against.
+ *
  * @internal
  */
 final readonly class BuildContext

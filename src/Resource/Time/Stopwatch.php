@@ -42,6 +42,8 @@ use Webmozart\Assert\Assert;
 // use function microtime
 
 /**
+ * Measures a single elapsed duration. Starting a running stopwatch, or stopping a stopped one, throws.
+ *
  * @internal
  */
 final class Stopwatch

@@ -50,6 +50,8 @@ use function trim;
 use function ucfirst;
 
 /**
+ * Scaffolds a custom mutator and its test from the shipped templates.
+ *
  * @internal
  */
 final class MakeCustomMutatorCommand extends BaseCommand

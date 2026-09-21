@@ -39,6 +39,8 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Shows how many source files mutation generation has gone through, out of how many.
+ *
  * @internal
  */
 final readonly class ConsoleProgressBarLogger implements MutationGenerationLogger

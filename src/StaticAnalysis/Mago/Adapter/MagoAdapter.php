@@ -52,6 +52,8 @@ use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use function version_compare;
 
 /**
+ * Runs Mago, once over the project and then against the mutants the tests failed to kill.
+ *
  * @internal
  */
 final class MagoAdapter implements StaticAnalysisToolAdapter

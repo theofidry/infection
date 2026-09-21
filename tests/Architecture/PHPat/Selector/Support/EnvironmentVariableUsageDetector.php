@@ -43,6 +43,10 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Collects the environment variables a test can be affected by: the ones it reads itself, up its own
+ * hierarchy, plus the ones read by the classes it declares it covers.
+ */
 final readonly class EnvironmentVariableUsageDetector
 {
     public function __construct(

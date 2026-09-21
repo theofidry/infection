@@ -42,6 +42,8 @@ use function str_repeat;
 use function strlen;
 
 /**
+ * The plain-text report, with underlined section headlines.
+ *
  * @internal
  */
 final readonly class TextFileReporter extends BaseTextFileReporter

@@ -40,6 +40,9 @@ use function interface_exists;
 use PHPat\Selector\SelectorInterface;
 use PHPStan\Reflection\ClassReflection;
 
+/**
+ * Selects the events that have no single-event subscriber interface of their own.
+ */
 final readonly class EventClassWithoutCorrespondingSingleEventSubscriber implements SelectorInterface
 {
     public function __construct(

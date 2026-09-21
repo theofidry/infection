@@ -44,6 +44,10 @@ use Symfony\Component\Filesystem\Filesystem;
 use function trim;
 
 /**
+ * Rewrites a relative path in the PHPUnit configuration as an absolute one. The path is composed
+ * rather than resolved, since resolving it would destroy the glob patterns PHPUnit configurations may
+ * contain.
+ *
  * @internal
  */
 final readonly class PathReplacer
