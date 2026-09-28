@@ -194,7 +194,7 @@ final class RunCommandTest extends TestCase
         ];
 
         yield 'minimum MSI not reached' => [
-            'failure' => MinMsiCheckFailed::createForMsi(80.0, 20.0),
+            'failure' => MinMsiCheckFailed::createForMsi(80.0, 20.0, 2),
         ];
 
         yield 'too many timeouts' => [

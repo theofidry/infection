@@ -43,23 +43,34 @@ use UnexpectedValueException;
  */
 final class MinMsiCheckFailed extends UnexpectedValueException
 {
-    public static function createForMsi(float $minMsi, float $msi): self
+    public static function createForMsi(float $minMsi, float $msi, int $testedMutantCount): self
     {
-        return new self(sprintf(
-            'The minimum required MSI percentage should be %s%%, but actual is %s%%. '
-            . 'Improve your tests!',
-            $minMsi,
-            $msi,
-        ));
+        return new self(
+            sprintf(
+                'The minimum required MSI percentage should be %s%%, but actual is %s%%. %s',
+                $minMsi,
+                $msi,
+                self::createFailureAdvice($testedMutantCount),
+            ),
+        );
     }
 
-    public static function createCoveredMsi(float $minMsi, float $coveredCodeMsi): self
+    public static function createCoveredMsi(float $minMsi, float $coveredCodeMsi, int $testedMutantCount): self
     {
-        return new self(sprintf(
-            'The minimum required Covered Code MSI percentage should be %s%%, but actual is '
-            . '%s%%. Improve your tests!',
-            $minMsi,
-            $coveredCodeMsi,
-        ));
+        return new self(
+            sprintf(
+                'The minimum required Covered Code MSI percentage should be %s%%, but actual is %s%%. %s',
+                $minMsi,
+                $coveredCodeMsi,
+                self::createFailureAdvice($testedMutantCount),
+            ),
+        );
+    }
+
+    private static function createFailureAdvice(int $testedMutantCount): string
+    {
+        return $testedMutantCount === 0
+            ? 'No mutations were tested. Set "ignoreMsiWithNoMutations" to true to skip MSI checks in this situation.'
+            : 'Improve your tests!';
     }
 }

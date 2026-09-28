@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Metrics;
 
 use Infection\Console\ConsoleOutput;
+use Psr\Log\LoggerInterface;
 
 /**
  * @internal
@@ -47,6 +48,7 @@ class MinMsiChecker
 
     public function __construct(
         private readonly ConsoleOutput $consoleOutput,
+        private readonly LoggerInterface $logger,
         private readonly bool $ignoreMsiWithNoMutations,
         private readonly float $minMsi,
         private readonly float $minCoveredCodeMsi,
@@ -61,6 +63,14 @@ class MinMsiChecker
         float $msi,
         float $coveredCodeMsi,
     ): void {
+        if ($this->minMsi === 0.0 && $this->minCoveredCodeMsi === 0.0) {
+            $this->logger->notice(
+                'MSI checks were skipped because no minimum MSI thresholds are enabled. Set "minMsi" or "minCoveredMsi" above 0 to enable them.',
+            );
+
+            return;
+        }
+
         $this->checkMinMsi($totalMutantCount, $msi, $coveredCodeMsi);
         $this->checkIfMinMsiCanBeIncreased($msi, $coveredCodeMsi);
     }
@@ -70,6 +80,10 @@ class MinMsiChecker
         if ($this->ignoreMsiWithNoMutations
             && $totalMutantCount === 0
         ) {
+            $this->logger->notice(
+                'MSI checks were skipped because no mutations were tested and "ignoreMsiWithNoMutations" is enabled. Set "ignoreMsiWithNoMutations" to false to fail when the configured MSI thresholds are not met.',
+            );
+
             return;
         }
 
@@ -77,6 +91,7 @@ class MinMsiChecker
             throw MinMsiCheckFailed::createForMsi(
                 $this->minMsi,
                 $msi,
+                $totalMutantCount,
             );
         }
 
@@ -84,6 +99,7 @@ class MinMsiChecker
             throw MinMsiCheckFailed::createCoveredMsi(
                 $this->minCoveredCodeMsi,
                 $coveredCodeMsi,
+                $totalMutantCount,
             );
         }
     }

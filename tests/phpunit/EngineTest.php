@@ -407,7 +407,7 @@ final class EngineTest extends TestCase
             ->expects($this->once())
             ->method('checkMetrics')
             ->with(100, 50.0, 55.0)
-            ->willThrowException(MinMsiCheckFailed::createForMsi(80.0, 50.0))
+            ->willThrowException(MinMsiCheckFailed::createForMsi(80.0, 50.0, 2))
         ;
         $this->metricsCalculator
             ->method('getTimedOutCount')

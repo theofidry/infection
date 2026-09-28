@@ -126,7 +126,7 @@ final class ConsoleLoggerTest extends TestCase
 
     public function test_it_uses_the_io_blocks_when_passing_the_block_context(): void
     {
-        $output = new BufferedOutput(OutputInterface::VERBOSITY_NORMAL);
+        $output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
 
         $logger = new ConsoleLogger(new IO(new StringInput(''), $output));
 
@@ -208,6 +208,10 @@ final class ConsoleLoggerTest extends TestCase
         yield [LogLevel::EMERGENCY, OutputInterface::VERBOSITY_NORMAL, true];
 
         yield [LogLevel::WARNING, OutputInterface::VERBOSITY_NORMAL, true];
+
+        yield [LogLevel::NOTICE, OutputInterface::VERBOSITY_NORMAL, false];
+
+        yield [LogLevel::NOTICE, OutputInterface::VERBOSITY_VERBOSE, true];
 
         yield [LogLevel::INFO, OutputInterface::VERBOSITY_NORMAL, false];
 

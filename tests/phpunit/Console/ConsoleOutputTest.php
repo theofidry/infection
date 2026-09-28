@@ -44,6 +44,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Terminal;
 
 #[CoversClass(ConsoleOutput::class)]
@@ -59,7 +60,7 @@ final class ConsoleOutputTest extends TestCase
             $this->markTestSkipped('This test assumes 100 columns wide display and Unix line endings');
         }
 
-        $this->output = new BufferedOutput();
+        $this->output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
 
         $this->consoleOutput = new ConsoleOutput(
             new ConsoleLogger(

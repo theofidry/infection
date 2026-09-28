@@ -44,7 +44,7 @@ final class MinMsiCheckFailedTest extends TestCase
 {
     public function test_it_can_be_created_for_min_msi(): void
     {
-        $exception = MinMsiCheckFailed::createForMsi(73.26, 52.1);
+        $exception = MinMsiCheckFailed::createForMsi(73.26, 52.1, 2);
 
         $this->assertSame(
             'The minimum required MSI percentage should be 73.26%, but actual is 52.1%. Improve your tests!',
@@ -54,7 +54,7 @@ final class MinMsiCheckFailedTest extends TestCase
 
     public function test_it_can_be_created_for_min_covered_code_msi(): void
     {
-        $exception = MinMsiCheckFailed::createCoveredMsi(73.26, 52.1);
+        $exception = MinMsiCheckFailed::createCoveredMsi(73.26, 52.1, 2);
 
         $this->assertSame(
             'The minimum required Covered Code MSI percentage should be 73.26%, but actual is 52.1%. Improve your tests!',
