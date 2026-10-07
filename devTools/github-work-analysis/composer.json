@@ -1,0 +1,64 @@
+{
+    "name": "infection/github-work-analysis",
+    "description": "Offline analysis of completed GitHub work in Infection",
+    "type": "project",
+    "license": "BSD-3-Clause",
+    "require": {
+        "php": "^8.4",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "symfony/clock": "^8.0",
+        "symfony/console": "^8.0",
+        "symfony/filesystem": "^8.0",
+        "symfony/framework-bundle": "^8.0",
+        "symfony/http-client": "^8.0",
+        "symfony/runtime": "^8.0",
+        "symfony/yaml": "^8.0",
+        "thecodingmachine/safe": "^3.4",
+        "webmozart/assert": "^1.11"
+    },
+    "require-dev": {
+        "carthage-software/mago": "^1.47",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpunit/phpunit": "^12.5",
+        "thecodingmachine/phpstan-safe-rule": "^1.4",
+        "webmozarts/strict-phpunit": "^7.24"
+    },
+    "autoload": {
+        "psr-4": {
+            "Infection\\GitHubWorkAnalysis\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Infection\\GitHubWorkAnalysis\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/console"
+    ],
+    "scripts": {
+        "format": "mago format",
+        "format-check": "mago format --check",
+        "test": "phpunit",
+        "phpstan": "phpstan analyse --no-progress",
+        "check": [
+            "@format-check",
+            "@phpstan",
+            "@test"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true,
+            "symfony/runtime": true
+        },
+        "platform": {
+            "php": "8.4.0"
+        },
+        "sort-packages": true
+    }
+}

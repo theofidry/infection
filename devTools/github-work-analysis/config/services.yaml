@@ -1,0 +1,69 @@
+parameters:
+    github_work_analysis.github_token: null
+    github_work_analysis.source_database: '%kernel.project_dir%/var/github.sqlite'
+    github_work_analysis.result_database: '%kernel.project_dir%/var/github-work-analysis.sqlite'
+    github_work_analysis.dashboard_template: '%kernel.project_dir%/resources/report/pull-request-category-dashboard.html'
+    github_work_analysis.dashboard_report: '%kernel.project_dir%/var/pull-requests-by-category-over-time.html'
+    github_work_analysis.database_busy_timeout_milliseconds: 5000
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Infection\GitHubWorkAnalysis\Command\:
+        resource: '../src/Command/'
+
+    Infection\GitHubWorkAnalysis\Analysis\AnalysisRunner: ~
+    Infection\GitHubWorkAnalysis\Analysis\ExplicitReference\ReferenceExtractor: ~
+    Infection\GitHubWorkAnalysis\Analysis\ExplicitReference\ExplicitReferenceProcessor: ~
+    Infection\GitHubWorkAnalysis\Analysis\PullRequestCategory\PullRequestCategorizer: ~
+    Infection\GitHubWorkAnalysis\Analysis\PullRequestCategory\PullRequestCategoryProcessor: ~
+    Infection\GitHubWorkAnalysis\Analysis\Processor\:
+        resource: '../src/Analysis/Processor/'
+
+    Symfony\Component\Filesystem\Filesystem: ~
+
+    Infection\GitHubWorkAnalysis\Database\Connection\SqliteConnectionFactory: ~
+    Infection\GitHubWorkAnalysis\Database\Connection\Synchronization\SchemaInitializer: ~
+    Infection\GitHubWorkAnalysis\Database\Connection\Synchronization\ConnectionFactory: ~
+    Infection\GitHubWorkAnalysis\Database\Connection\Analysis\SchemaInitializer: ~
+    Infection\GitHubWorkAnalysis\Database\Connection\Analysis\ConnectionFactory: ~
+    github_work_analysis.analysis_connection:
+        class: PDO
+        factory: ['@Infection\GitHubWorkAnalysis\Database\Connection\Analysis\ConnectionFactory', 'create']
+    Infection\GitHubWorkAnalysis\Database\Connection\Reporting\ConnectionFactory: ~
+    github_work_analysis.reporting_connection:
+        class: PDO
+        factory: ['@Infection\GitHubWorkAnalysis\Database\Connection\Reporting\ConnectionFactory', 'create']
+    PDO:
+        class: PDO
+        factory: ['@Infection\GitHubWorkAnalysis\Database\Connection\Synchronization\ConnectionFactory', 'create']
+
+    Infection\GitHubWorkAnalysis\Database\Repository\PdoProjectRepositoryRepository: ~
+    Infection\GitHubWorkAnalysis\Database\Repository\PdoPullRequestRepository: ~
+    Infection\GitHubWorkAnalysis\Database\Repository\PdoRepositoryRepository: ~
+    Infection\GitHubWorkAnalysis\Database\Repository\PdoSynchronizationRepository: ~
+    Infection\GitHubWorkAnalysis\Database\Repository\PdoSynchronizationStatusRepository: ~
+    Infection\GitHubWorkAnalysis\Database\Repository\PdoWorkItemRepository: ~
+    Infection\GitHubWorkAnalysis\Entity\ProjectRepository\ProjectRepositoryRepository:
+        alias: Infection\GitHubWorkAnalysis\Database\Repository\PdoProjectRepositoryRepository
+    Infection\GitHubWorkAnalysis\Entity\PullRequest\PullRequestRepository:
+        alias: Infection\GitHubWorkAnalysis\Database\Repository\PdoPullRequestRepository
+    Infection\GitHubWorkAnalysis\Entity\Repository\RepositoryRepository:
+        alias: Infection\GitHubWorkAnalysis\Database\Repository\PdoRepositoryRepository
+    Infection\GitHubWorkAnalysis\Entity\Synchronization\SynchronizationRepository:
+        alias: Infection\GitHubWorkAnalysis\Database\Repository\PdoSynchronizationRepository
+    Infection\GitHubWorkAnalysis\Entity\SynchronizationStatus\SynchronizationStatusRepository:
+        alias: Infection\GitHubWorkAnalysis\Database\Repository\PdoSynchronizationStatusRepository
+    Infection\GitHubWorkAnalysis\Entity\WorkItem\WorkItemRepository:
+        alias: Infection\GitHubWorkAnalysis\Database\Repository\PdoWorkItemRepository
+
+    Infection\GitHubWorkAnalysis\GitHub\HttpGitHubClient: ~
+    Infection\GitHubWorkAnalysis\GitHub\GitHubClient:
+        alias: Infection\GitHubWorkAnalysis\GitHub\HttpGitHubClient
+    Infection\GitHubWorkAnalysis\Synchronization\ItemImporter: ~
+    Infection\GitHubWorkAnalysis\Synchronization\Synchronizer: ~
+    Infection\GitHubWorkAnalysis\Report\PullRequestCategoryDashboardGenerator: ~
+    Infection\GitHubWorkAnalysis\Report\PullRequestCategoryDashboardDataFetcher: ~
+    Infection\GitHubWorkAnalysis\Report\PullRequestCategoryDashboardRenderer: ~

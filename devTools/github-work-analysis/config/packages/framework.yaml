@@ -1,0 +1,13 @@
+framework:
+    secret: github-work-analysis
+    http_client:
+        scoped_clients:
+            github.client:
+                scope: '^https://api\.github\.com/'
+                auth_bearer: '%env(default:github_work_analysis.github_token:GH_TOKEN)%'
+                headers:
+                    Accept: 'application/vnd.github+json'
+                    X-GitHub-Api-Version: '2022-11-28'
+                    User-Agent: 'infection-github-dataset'
+                timeout: 40
+                max_redirects: 0
