@@ -81,9 +81,36 @@ final class SourceSymbolSelectorParserTest extends TestCase
         yield 'leading namespace separator' => [
             '\App\Service\Mailer',
             new SourceSymbolSelector(
-                'App\Service\Mailer',
+                '\App\Service\Mailer',
                 null,
                 null,
+            ),
+        ];
+
+        yield 'explicit global namespace' => [
+            '\Mailer',
+            new SourceSymbolSelector(
+                '\Mailer',
+                null,
+                null,
+            ),
+        ];
+
+        yield 'explicit global namespace and line' => [
+            '\Mailer::32',
+            new SourceSymbolSelector(
+                '\Mailer',
+                null,
+                32,
+            ),
+        ];
+
+        yield 'explicit global namespace and method line' => [
+            '\Mailer::send::32',
+            new SourceSymbolSelector(
+                '\Mailer',
+                'send',
+                32,
             ),
         ];
 

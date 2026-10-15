@@ -37,6 +37,7 @@ namespace Infection\Source\Matcher;
 
 use Infection\Configuration\SourceSymbol\SourceSymbolSelector;
 use Infection\PhpParser\Visitor\FullyQualifiedClassNameManipulator;
+use function ltrim;
 use PhpParser\Node;
 use function str_contains;
 use function strcasecmp;
@@ -122,8 +123,19 @@ final readonly class SourceSymbolMatcher
         Node\Name $className,
         SourceSymbolSelector $selector,
     ): bool {
-        return str_contains($selector->className, '\\')
-            ? strcasecmp($className->toString(), $selector->className) === 0
-            : strcasecmp($shortClassName->toString(), $selector->className) === 0;
+        if (str_contains($selector->className, '\\')) {
+            return strcasecmp(
+                $className->toString(),
+                ltrim(
+                    $selector->className,
+                    '\\',
+                ),
+            ) === 0;
+        }
+
+        return strcasecmp(
+            $shortClassName->toString(),
+            $selector->className,
+        ) === 0;
     }
 }

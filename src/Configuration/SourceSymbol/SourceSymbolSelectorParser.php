@@ -39,7 +39,6 @@ use function Safe\preg_match;
 use function sprintf;
 use function str_contains;
 use function str_starts_with;
-use function substr;
 use Webmozart\Assert\Assert;
 
 /**
@@ -55,7 +54,7 @@ final class SourceSymbolSelectorParser
 
     private const string SELECTOR_PATTERN = <<<'REGEX'
         {^
-            (?<class>%s)                       # Class name, optionally namespaced
+            (?<class>\\?%s)                       # Class name, optionally namespaced
             (?:::(?<coordinate>%s|[1-9]\d*))?  # Optional method name or source line
             (?:::(?<line>[1-9]\d*))?           # Optional source line after a method name
         $}xD
@@ -70,10 +69,6 @@ final class SourceSymbolSelectorParser
     {
         // Existing files win before this parser is called, so Windows paths such as
         // C:\project\src\Foo.php are not confused with source symbols.
-        $candidate = str_starts_with($value, '\\')
-            ? substr($value, 1)
-            : $value;
-
         $pattern = sprintf(
             self::SELECTOR_PATTERN,
             self::CLASS_NAME,
@@ -81,7 +76,7 @@ final class SourceSymbolSelectorParser
         );
         $matches = [];
 
-        if (preg_match($pattern, $candidate, $matches) !== 1) {
+        if (preg_match($pattern, $value, $matches) !== 1) {
             if (str_starts_with($value, '\\') || str_contains($value, '::')) {
                 throw InvalidSourceSymbolSelector::create($value);
             }

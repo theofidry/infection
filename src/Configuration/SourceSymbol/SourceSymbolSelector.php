@@ -43,6 +43,7 @@ namespace Infection\Configuration\SourceSymbol;
 final readonly class SourceSymbolSelector
 {
     /**
+     * @param class-string $className A leading namespace separator is preserved so global classes can be selected without matching short names.
      * @param positive-int|null $line Line number counted from the beginning of the source file, starting at 1.
      *                                For example, Invoice::calculateTotal::42 selects line 42 of the file
      *                                containing Invoice::calculateTotal, not the 42nd line of the method.
