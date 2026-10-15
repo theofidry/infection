@@ -40,10 +40,12 @@ use function array_key_exists;
 use function array_map;
 use function array_unique;
 use function array_values;
+use function count;
 use function dirname;
 use function explode;
 use function implode;
 use function in_array;
+use Infection\Command\Option\TestFrameworkExtraArgsOption;
 use Infection\Configuration\Entry\Logs;
 use Infection\Configuration\Entry\Mago;
 use Infection\Configuration\Entry\PhpStan;
@@ -54,7 +56,8 @@ use Infection\Configuration\SourceFilter\GitDiffFilter;
 use Infection\Configuration\SourceFilter\IncompleteGitDiffFilter;
 use Infection\Configuration\SourceFilter\PlainFilter;
 use Infection\Configuration\SourceFilter\PositionalPathsFilter;
-use Infection\Configuration\SourceFilter\SourceFileFilter;
+use Infection\Configuration\SourceFilter\SourceFilter;
+use Infection\Configuration\SourceSymbol\SourceSymbolSelector;
 use Infection\FileSystem\FileSystem;
 use Infection\FileSystem\Locator\FileOrDirectoryNotFound;
 use Infection\FileSystem\TmpDirProvider;
@@ -68,6 +71,7 @@ use Infection\Reporter\FileReporter;
 use Infection\Resource\Processor\CpuCoresCountProvider;
 use Infection\Source\Exception\NoSourceFound;
 use Infection\TestFramework\TestFrameworkTypes;
+use function is_numeric;
 use function ltrim;
 use OndraM\CiDetector\CiDetector;
 use OndraM\CiDetector\CiDetectorInterface;
@@ -100,7 +104,7 @@ class ConfigurationFactory
         private readonly Git $git,
         private readonly ProjectDirectoryProvider $projectDirectoryProvider,
         private readonly CpuCoresCountProvider $cpuCoresCountProvider,
-        private readonly PositionalPathsClassifier $positionalPathsClassifier,
+        private readonly PositionalArgumentsClassifier $positionalArgumentsClassifier,
         private readonly FileSystem $fileSystem,
     ) {
     }
@@ -426,21 +430,19 @@ class ConfigurationFactory
     }
 
     /**
-     * @return array{0: PlainFilter|null, 1: string|null}
+     * @return array{0: PlainFilter|null, 1: string|null, 2: list<SourceSymbolSelector>}
      */
     private function resolvePositionalPathsFilter(
         PositionalPathsFilter $sourceFilter,
         SchemaConfiguration $schema,
         ?string $testFrameworkExtraArgs,
     ): array {
-        $classified = $this->positionalPathsClassifier->classify(
+        $classified = $this->positionalArgumentsClassifier->classify(
             $sourceFilter->paths,
             $schema,
         );
 
-        $resolvedFilter = $classified->sourcePaths !== []
-            ? new PlainFilter(array_values(array_unique($classified->sourcePaths)))
-            : null;
+        $resolvedFilter = PlainFilter::tryToCreate($classified->sourcePaths);
 
         if ($classified->testPaths !== []) {
             Assert::null(
@@ -451,19 +453,25 @@ class ConfigurationFactory
             $testFrameworkExtraArgs = implode(' ', $classified->testPaths);
         }
 
-        return [$resolvedFilter, $testFrameworkExtraArgs];
+        return [
+            $resolvedFilter,
+            $testFrameworkExtraArgs,
+            $classified->sourceSelectors,
+        ];
     }
 
     /**
-     * @return array{0: SourceFileFilter|null, 1: string|null}
+     * @return array{0: SourceFilter, 1: string|null}
      */
     private function refineFilterIfNecessary(
         PlainFilter|IncompleteGitDiffFilter|PositionalPathsFilter|null $sourceFilter,
         SchemaConfiguration $schema,
         ?string $testFrameworkExtraArgs,
     ): array {
+        $sourceSymbolSelectors = [];
+
         if ($sourceFilter instanceof PositionalPathsFilter) {
-            [$sourceFilter, $testFrameworkExtraArgs] = $this->resolvePositionalPathsFilter(
+            [$sourceFilter, $testFrameworkExtraArgs, $sourceSymbolSelectors] = $this->resolvePositionalPathsFilter(
                 $sourceFilter,
                 $schema,
                 $testFrameworkExtraArgs,
@@ -477,7 +485,10 @@ class ConfigurationFactory
             );
         }
 
-        return [$sourceFilter, $testFrameworkExtraArgs];
+        return [
+            new SourceFilter($sourceFilter, $sourceSymbolSelectors),
+            $testFrameworkExtraArgs,
+        ];
     }
 
     private function retrieveLogs(Logs $logs, string $configDir, ?bool $useGitHubLogger, ?string $gitlabLogFilePath, ?string $htmlLogFilePath, ?string $textLogFilePath, ?string $summaryJsonLogFilePath): Logs

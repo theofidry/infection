@@ -154,7 +154,7 @@ final class RunCommand extends BaseCommand
             ->setDescription('Runs the mutation testing.')
         ;
 
-        PathsArgument::addArgument($this);
+        PathsArgument::addRunArgument($this);
 
         TestFrameworkOption::addOption($this)
             ->addOption(
