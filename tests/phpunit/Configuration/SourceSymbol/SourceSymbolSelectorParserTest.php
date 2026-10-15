@@ -188,5 +188,186 @@ final class SourceSymbolSelectorParserTest extends TestCase
             'App\Mailer::31::32',
             InvalidSourceSymbolSelector::create('App\Mailer::31::32'),
         ];
+
+        yield 'underscores and trailing digits in identifiers' => [
+            '_App2\_Mailer3::_send4',
+            new SourceSymbolSelector(
+                '_App2\_Mailer3',
+                '_send4',
+                null,
+            ),
+        ];
+
+        yield 'non-ASCII identifiers' => [
+            'École\Élève::étudier',
+            new SourceSymbolSelector(
+                'École\Élève',
+                'étudier',
+                null,
+            ),
+        ];
+
+        yield 'minimum absolute line' => [
+            'Mailer::1',
+            new SourceSymbolSelector(
+                'Mailer',
+                null,
+                1,
+            ),
+        ];
+
+        yield 'method and minimum absolute line' => [
+            'Mailer::send::1',
+            new SourceSymbolSelector(
+                'Mailer',
+                'send',
+                1,
+            ),
+        ];
+
+        yield 'empty input' => [
+            '',
+            null,
+        ];
+
+        yield 'bare digit-starting name' => [
+            '1Mailer',
+            null,
+        ];
+
+        yield 'bare class with leading space' => [
+            ' Mailer',
+            null,
+        ];
+
+        yield 'bare class with trailing space' => [
+            'Mailer ',
+            null,
+        ];
+
+        yield 'bare class with trailing newline' => [
+            "Mailer\n",
+            null,
+        ];
+
+        yield 'qualified digit-starting name' => [
+            '\1Mailer',
+            InvalidSourceSymbolSelector::create('\1Mailer'),
+        ];
+
+        yield 'digit-starting namespace segment' => [
+            '\App\1Mailer',
+            InvalidSourceSymbolSelector::create('\App\1Mailer'),
+        ];
+
+        yield 'doubled leading namespace separator' => [
+            '\\\\Mailer',
+            InvalidSourceSymbolSelector::create('\\\\Mailer'),
+        ];
+
+        yield 'doubled internal namespace separator' => [
+            '\\App\\\\Mailer',
+            InvalidSourceSymbolSelector::create('\\App\\\\Mailer'),
+        ];
+
+        yield 'trailing namespace separator' => [
+            '\\App\\Mailer\\',
+            InvalidSourceSymbolSelector::create('\\App\\Mailer\\'),
+        ];
+
+        yield 'namespace separator without a class' => [
+            '\\',
+            InvalidSourceSymbolSelector::create('\\'),
+        ];
+
+        yield 'empty coordinate' => [
+            'Mailer::',
+            InvalidSourceSymbolSelector::create('Mailer::'),
+        ];
+
+        yield 'empty method line' => [
+            'Mailer::send::',
+            InvalidSourceSymbolSelector::create('Mailer::send::'),
+        ];
+
+        yield 'empty method before line' => [
+            'Mailer::::1',
+            InvalidSourceSymbolSelector::create('Mailer::::1'),
+        ];
+
+        yield 'extra coordinate' => [
+            'Mailer::send::1::2',
+            InvalidSourceSymbolSelector::create('Mailer::send::1::2'),
+        ];
+
+        yield 'zero line' => [
+            'Mailer::0',
+            InvalidSourceSymbolSelector::create('Mailer::0'),
+        ];
+
+        yield 'zero method line' => [
+            'Mailer::send::0',
+            InvalidSourceSymbolSelector::create('Mailer::send::0'),
+        ];
+
+        yield 'negative line' => [
+            'Mailer::-1',
+            InvalidSourceSymbolSelector::create('Mailer::-1'),
+        ];
+
+        yield 'negative method line' => [
+            'Mailer::send::-1',
+            InvalidSourceSymbolSelector::create('Mailer::send::-1'),
+        ];
+
+        yield 'line with leading zero' => [
+            'Mailer::01',
+            InvalidSourceSymbolSelector::create('Mailer::01'),
+        ];
+
+        yield 'method line with leading zero' => [
+            'Mailer::send::01',
+            InvalidSourceSymbolSelector::create('Mailer::send::01'),
+        ];
+
+        yield 'digit-starting method name' => [
+            'Mailer::1send',
+            InvalidSourceSymbolSelector::create('Mailer::1send'),
+        ];
+
+        yield 'namespaced method name' => [
+            'Mailer::App\send',
+            InvalidSourceSymbolSelector::create('Mailer::App\send'),
+        ];
+
+        yield 'selector with leading space' => [
+            ' Mailer::send',
+            InvalidSourceSymbolSelector::create(' Mailer::send'),
+        ];
+
+        yield 'selector with trailing space' => [
+            'Mailer::send ',
+            InvalidSourceSymbolSelector::create('Mailer::send '),
+        ];
+
+        yield 'selector with internal space' => [
+            'Mailer:: send',
+            InvalidSourceSymbolSelector::create('Mailer:: send'),
+        ];
+
+        yield 'selector with trailing newline' => [
+            "Mailer::send\n",
+            InvalidSourceSymbolSelector::create("Mailer::send\n"),
+        ];
+
+        yield 'line with trailing newline' => [
+            "Mailer::1\n",
+            InvalidSourceSymbolSelector::create("Mailer::1\n"),
+        ];
+
+        yield 'method line with trailing newline' => [
+            "Mailer::send::1\n",
+            InvalidSourceSymbolSelector::create("Mailer::send::1\n"),
+        ];
     }
 }
