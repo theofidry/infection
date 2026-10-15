@@ -38,8 +38,8 @@ namespace Infection\Configuration;
 use Infection\Configuration\SourceSymbol\SourceSymbolSelector;
 
 /**
- * Result of positional path classification: source paths (equivalent to --filter)
- * and test paths (equivalent to --test-framework-extra-args, space-joined).
+ * Groups positional arguments into source paths, test paths, and source symbol selectors.
+ * Source paths and symbol selectors limit the code selected for mutation; test paths limit the tests run.
  *
  * @internal
  */
