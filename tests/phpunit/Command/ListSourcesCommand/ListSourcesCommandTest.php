@@ -105,12 +105,58 @@ final class ListSourcesCommandTest extends TestCase
     /**
      * @param list<string> $paths
      */
+    #[DataProvider('pathFiltersProvider')]
+    public function test_it_lists_files_for_positional_path_filters(
+        array $paths,
+        string $expected,
+    ): void {
+        $tester = $this->runCommand(['paths' => $paths]);
+
+        $this->assertSame(
+            $expected,
+            Str::toUnixLineEndings($tester->getDisplay()),
+            'Source or test paths must allow listing files even when symbol selectors are also supplied.',
+        );
+        $tester->assertCommandIsSuccessful();
+    }
+
+    public static function pathFiltersProvider(): iterable
+    {
+        yield 'ambiguous short name' => [
+            ['File'],
+            "File1.php\nFile2.php\n",
+        ];
+
+        yield 'absolute source directory with trailing slash' => [
+            [self::FIXTURES_DIR . '/'],
+            "File1.php\nFile2.php\n",
+        ];
+
+        yield 'explicit path fragment' => [
+            ['Fixtures/'],
+            "File1.php\nFile2.php\n",
+        ];
+
+        yield 'method selector with a source path' => [
+            ['File1.php', 'SomeClass::method'],
+            "File1.php\n",
+        ];
+
+        yield 'method selector with a test path' => [
+            ['../ListSourcesCommandTest.php', 'SomeClass::method'],
+            "File1.php\nFile2.php\n",
+        ];
+    }
+
+    /**
+     * @param list<string> $paths
+     */
     #[DataProvider('symbolSelectorsProvider')]
     public function test_it_rejects_source_symbol_selectors(array $paths): void
     {
         $this->expectExceptionObject(
             new InvalidArgumentException(
-                'The config:list-sources command does not support source symbol selectors. Pass source file or directory paths instead.',
+                'The config:list-sources command requires source or test paths when source symbol selectors are provided.',
             ),
         );
 
@@ -119,12 +165,12 @@ final class ListSourcesCommandTest extends TestCase
 
     public static function symbolSelectorsProvider(): iterable
     {
-        yield 'class selector' => [
-            ['SomeClass'],
+        yield 'explicit short class selector' => [
+            ['SomeClass\\'],
         ];
 
-        yield 'method selector with a source path' => [
-            ['File1.php', 'SomeClass::method'],
+        yield 'method selector alone' => [
+            ['SomeClass::method'],
         ];
     }
 

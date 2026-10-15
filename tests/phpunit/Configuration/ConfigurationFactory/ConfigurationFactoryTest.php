@@ -1538,7 +1538,7 @@ final class ConfigurationFactoryTest extends TestCase
                 ),
         ];
 
-        yield 'positional source selectors are kept independently from test paths' => [
+        yield 'positional source selectors preserve ambiguous path filters and test paths' => [
             $defaultScenario
                 ->withInput(
                     $defaultInputBuilder->withSourceFilter(
@@ -1552,7 +1552,7 @@ final class ConfigurationFactoryTest extends TestCase
                 )
                 ->withExpected(
                     $defaultConfigurationBuilder
-                        ->withSourceFilter(null)
+                        ->withSourceFilter(new PlainFilter(['UnifiedDiffOutputBuilder']))
                         ->withSourceSymbolSelectors(
                             new SourceSymbolSelector('Differ', 'diff', null),
                             new SourceSymbolSelector('UnifiedDiffOutputBuilder', null, null),

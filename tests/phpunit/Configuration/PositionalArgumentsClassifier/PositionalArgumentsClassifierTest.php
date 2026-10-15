@@ -75,6 +75,7 @@ final class PositionalArgumentsClassifierTest extends TestCase
         $this->assertEquals(
             $scenario->expectedClassifiedPositionalArguments(),
             $actual,
+            'Positional arguments should distinguish source paths, test paths, and symbol selectors.',
         );
     }
 
@@ -83,6 +84,36 @@ final class PositionalArgumentsClassifierTest extends TestCase
         $baseScenario = Scenario::empty()->withSourceDirectories(['src']);
 
         yield 'no paths' => [$baseScenario];
+
+        yield 'lowercase bare file filter' => [
+            $baseScenario
+                ->withPaths(['mailer.php'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    ['mailer.php'],
+                    [],
+                    [],
+                )),
+        ];
+
+        yield 'digit-starting bare file filter' => [
+            $baseScenario
+                ->withPaths(['1Foo.php'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    ['1Foo.php'],
+                    [],
+                    [],
+                )),
+        ];
+
+        yield 'underscore-starting bare file filter' => [
+            $baseScenario
+                ->withPaths(['_mailer.php'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    ['_mailer.php'],
+                    [],
+                    [],
+                )),
+        ];
 
         yield 'single source file path' => [
             $baseScenario
@@ -217,7 +248,84 @@ final class PositionalArgumentsClassifierTest extends TestCase
         yield 'short class selector' => [
             $baseScenario
                 ->withPaths(['Plus_'])
-                ->withExpected(new ClassifiedPositionalArguments([], [], [new SourceSymbolSelector('Plus_', null, null)])),
+                ->withExpected(new ClassifiedPositionalArguments(['Plus_'], [], [new SourceSymbolSelector('Plus_', null, null)])),
+        ];
+
+        yield 'trailing slash forces a partial path filter' => [
+            $baseScenario
+                ->withPaths(['Differ/'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    ['Differ/'],
+                    [],
+                    [],
+                )),
+        ];
+
+        yield 'trailing slash on an existing directory outside sources selects tests' => [
+            $baseScenario
+                ->withPaths(['Differ/'])
+                ->withExistingFiles(['/project/Differ/DifferTest.php'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    [],
+                    ['Differ/'],
+                    [],
+                )),
+        ];
+
+        yield 'trailing slash on an existing configured source directory selects sources' => [
+            $baseScenario
+                ->withPaths(['Differ/'])
+                ->withSourceDirectories(['Differ'])
+                ->withExistingFiles(['/project/Differ/Differ.php'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    ['Differ/'],
+                    [],
+                    [],
+                )),
+        ];
+
+        yield 'trailing backslash forces a short class selector' => [
+            $baseScenario
+                ->withPaths(['Differ\\'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    [],
+                    [],
+                    [
+                        new SourceSymbolSelector(
+                            'Differ',
+                            null,
+                            null,
+                        ),
+                    ],
+                )),
+        ];
+
+        yield 'leading backslash selects only the global class' => [
+            $baseScenario
+                ->withPaths(['\Differ'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    [],
+                    [],
+                    [
+                        new SourceSymbolSelector(
+                            '\Differ',
+                            null,
+                            null,
+                        ),
+                    ],
+                )),
+        ];
+
+        yield 'existing directory still takes precedence over a short class' => [
+            $baseScenario
+                ->withPaths(['Differ'])
+                ->withSourceDirectories(['Differ'])
+                ->withExistingFiles(['/project/Differ/File.php'])
+                ->withExpected(new ClassifiedPositionalArguments(
+                    ['Differ'],
+                    [],
+                    [],
+                )),
         ];
 
         yield 'symbolic php source token' => [
@@ -320,14 +428,14 @@ final class PositionalArgumentsClassifierTest extends TestCase
             $baseScenario
                 ->withPaths(['Mailer', 'tests/Unit/Service/'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPositionalArguments([], ['tests/Unit/Service/'], [new SourceSymbolSelector('Mailer', null, null)])),
+                ->withExpected(new ClassifiedPositionalArguments(['Mailer'], ['tests/Unit/Service/'], [new SourceSymbolSelector('Mailer', null, null)])),
         ];
 
         yield 'multiple short class selectors and test folder' => [
             $baseScenario
                 ->withPaths(['Mailer', 'Plus_', 'tests/Unit/Service/'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPositionalArguments([], ['tests/Unit/Service/'], [
+                ->withExpected(new ClassifiedPositionalArguments(['Mailer', 'Plus_'], ['tests/Unit/Service/'], [
                     new SourceSymbolSelector('Mailer', null, null),
                     new SourceSymbolSelector('Plus_', null, null),
                 ])),
@@ -344,14 +452,14 @@ final class PositionalArgumentsClassifierTest extends TestCase
             $baseScenario
                 ->withPaths(['tests/Unit/Service/', 'Mailer'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPositionalArguments([], ['tests/Unit/Service/'], [new SourceSymbolSelector('Mailer', null, null)])),
+                ->withExpected(new ClassifiedPositionalArguments(['Mailer'], ['tests/Unit/Service/'], [new SourceSymbolSelector('Mailer', null, null)])),
         ];
 
         yield 'test folder and multiple short class selectors in reversed order' => [
             $baseScenario
                 ->withPaths(['tests/Unit/Service/', 'Mailer', 'Plus_'])
                 ->withExistingFiles(['/project/tests/Unit/Service/MailerTest.php'])
-                ->withExpected(new ClassifiedPositionalArguments([], ['tests/Unit/Service/'], [
+                ->withExpected(new ClassifiedPositionalArguments(['Mailer', 'Plus_'], ['tests/Unit/Service/'], [
                     new SourceSymbolSelector('Mailer', null, null),
                     new SourceSymbolSelector('Plus_', null, null),
                 ])),
@@ -399,16 +507,16 @@ final class PositionalArgumentsClassifierTest extends TestCase
                 ->withExpected(InvalidSourceSymbolSelector::create('App\Foo::method:32')),
         ];
 
+        yield 'invalid class with trailing marker' => [
+            $baseScenario
+                ->withPaths(['1Differ\\'])
+                ->withExpected(InvalidSourceSymbolSelector::create('1Differ\\')),
+        ];
+
         yield 'path-shaped argument that does not exist on disk' => [
             $baseScenario
                 ->withPaths(['scr/Foo.php'])
                 ->withExpected(new InvalidArgumentException('Invalid path argument "scr/Foo.php": multiple paths must be passed as separate arguments.')),
-        ];
-
-        yield 'digit-starting name' => [
-            $baseScenario
-                ->withPaths(['1Foo.php'])
-                ->withExpected(new InvalidArgumentException('Invalid path argument "1Foo.php": multiple paths must be passed as separate arguments.')),
         ];
     }
 

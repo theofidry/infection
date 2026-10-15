@@ -216,6 +216,27 @@ final class InitialTestRunCommandTest extends TestCase
             ]),
         ];
 
+        yield 'ambiguous short name also supplies a source filter' => [
+            ['paths' => ['SomeClass']],
+            new PlainFilter(['SomeClass']),
+        ];
+
+        yield 'method selector with a source path' => [
+            ['paths' => [
+                'Foo.php',
+                'SomeClass::method',
+            ]],
+            new PlainFilter(['Foo.php']),
+        ];
+
+        yield 'method selector with a test path' => [
+            ['paths' => [
+                '../InitialTestRunCommandTest.php',
+                'SomeClass::method',
+            ]],
+            null,
+        ];
+
         yield 'Git filtering resolves the default base' => [
             ['--git-diff-filter' => 'AM'],
             new GitDiffFilter(
@@ -269,7 +290,7 @@ final class InitialTestRunCommandTest extends TestCase
 
         $this->expectExceptionObject(
             new InvalidArgumentException(
-                'The initial-test:run command does not support source symbol selectors. Pass source file, directory, or test paths instead.',
+                'The initial-test:run command requires source or test paths when source symbol selectors are provided.',
             ),
         );
 
@@ -278,15 +299,12 @@ final class InitialTestRunCommandTest extends TestCase
 
     public static function symbolSelectorsProvider(): iterable
     {
-        yield 'class selector' => [
-            ['SomeClass'],
+        yield 'explicit class selector' => [
+            ['\SomeClass'],
         ];
 
-        yield 'method selector with a source path' => [
-            [
-                'Foo.php',
-                'SomeClass::method',
-            ],
+        yield 'method selector alone' => [
+            ['SomeClass::method'],
         ];
     }
 

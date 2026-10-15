@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly INFECTION="../../../${1:-bin/infection}"
 
-output="$(php "$INFECTION" ../../../tests/phpunit/Differ Differ::diff UnifiedDiffOutputBuilder --with-uncovered --dry-run --no-progress --no-interaction --show-mutations=max 2>&1)"
+output="$(php "$INFECTION" run ../../../tests/phpunit/Differ Differ::diff 'UnifiedDiffOutputBuilder\' --with-uncovered --dry-run --no-progress --no-interaction --show-mutations=max 2>&1)"
 
 grep --fixed-strings 'src/Differ/Differ.php' <<< "$output"
 grep --fixed-strings 'src/Differ/UnifiedDiffOutputBuilder.php' <<< "$output"

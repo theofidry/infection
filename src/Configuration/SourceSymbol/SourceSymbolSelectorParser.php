@@ -38,7 +38,9 @@ namespace Infection\Configuration\SourceSymbol;
 use function Safe\preg_match;
 use function sprintf;
 use function str_contains;
+use function str_ends_with;
 use function str_starts_with;
+use function substr;
 use Webmozart\Assert\Assert;
 
 /**
@@ -52,9 +54,11 @@ final class SourceSymbolSelectorParser
     // PHP function naming rules also apply to methods: https://www.php.net/manual/en/functions.user-defined.php
     private const string METHOD_NAME = '[A-Za-z_\x80-\xff][A-Za-z\d_\x80-\xff]*';
 
+    private const string LINE_PATTERN = '/^[1-9]\d*$/D';
+
     private const string SELECTOR_PATTERN = <<<'REGEX'
         {^
-            (?<class>\\?%s)                       # Class name, optionally namespaced
+            (?<className>\\?%s)                       # Class name, optionally namespaced
             (?:::(?<coordinate>%s|[1-9]\d*))?  # Optional method name or source line
             (?:::(?<line>[1-9]\d*))?           # Optional source line after a method name
         $}xD
@@ -67,8 +71,46 @@ final class SourceSymbolSelectorParser
      */
     public function parse(string $value): ?SourceSymbolSelector
     {
-        // Existing files win before this parser is called, so Windows paths such as
-        // C:\project\src\Foo.php are not confused with source symbols.
+        $matches = self::matchSelector($value);
+
+        if ($matches === null) {
+            return null;
+        }
+
+        [
+            'className' => $className,
+            'coordinate' => $coordinate,
+            'line' => $line,
+        ] = $matches;
+
+        if (
+            $coordinate !== ''
+            && preg_match(self::LINE_PATTERN, $coordinate) === 1
+        ) {
+            if ($line !== '') {
+                throw InvalidSourceSymbolSelector::create($value);
+            }
+
+            return new SourceSymbolSelector(
+                $className,
+                null,
+                self::parseLine($coordinate, $value),
+            );
+        }
+
+        return new SourceSymbolSelector(
+            $className,
+            $coordinate === '' ? null : $coordinate,
+            self::tryParseLine($line, $value),
+        );
+    }
+
+    /**
+     * @throws InvalidSourceSymbolSelector
+     * @return array{className: string, coordinate: string, line: string}|null
+     */
+    private static function matchSelector(string $value): ?array
+    {
         $pattern = sprintf(
             self::SELECTOR_PATTERN,
             self::CLASS_NAME,
@@ -76,42 +118,56 @@ final class SourceSymbolSelectorParser
         );
         $matches = [];
 
-        if (preg_match($pattern, $value, $matches) !== 1) {
-            if (str_starts_with($value, '\\') || str_contains($value, '::')) {
+        // A trailing backslash forces class selection without becoming part of the class name.
+        $selector = str_ends_with($value, '\\')
+            ? substr($value, 0, -1)
+            : $value;
+
+        if (preg_match($pattern, $selector, $matches) !== 1) {
+            if (self::looksLikeExplicitSymbolSelector($value)) {
                 throw InvalidSourceSymbolSelector::create($value);
             }
 
             return null;
         }
 
-        Assert::isArray($matches);
-        $coordinate = $matches['coordinate'] ?? '';
-        $line = $matches['line'] ?? '';
-        Assert::keyExists($matches, 'class');
+        Assert::isArray(
+            $matches,
+            'A successful selector match must provide captured groups.',
+        );
+        Assert::keyExists(
+            $matches,
+            'className',
+            'A successful selector match must capture the class name.',
+        );
 
-        if ($coordinate !== '' && preg_match('/^[1-9]\d*$/D', $coordinate) === 1) {
-            if ($line !== '') {
-                throw InvalidSourceSymbolSelector::create($value);
-            }
+        return [
+            'className' => $matches['className'],
+            'coordinate' => $matches['coordinate'] ?? '',
+            'line' => $matches['line'] ?? '',
+        ];
+    }
 
-            return new SourceSymbolSelector(
-                $matches['class'],
-                null,
-                self::parseLine(
-                    $coordinate,
-                    $value,
-                ),
-            );
-        }
+    private static function looksLikeExplicitSymbolSelector(string $value): bool
+    {
+        return str_starts_with($value, '\\')
+            || str_ends_with($value, '\\')
+            || str_contains($value, '::');
+    }
 
-        return new SourceSymbolSelector(
-            $matches['class'],
-            $coordinate === '' ? null : $coordinate,
-            $line === '' ? null : self::parseLine(
+    /**
+     * @return positive-int|null
+     */
+    private static function tryParseLine(
+        string $line,
+        string $value,
+    ): ?int {
+        return $line === ''
+            ? null
+            : self::parseLine(
                 $line,
                 $value,
-            ),
-        );
+            );
     }
 
     /**

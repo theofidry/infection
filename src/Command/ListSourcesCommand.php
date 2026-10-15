@@ -121,10 +121,17 @@ final class ListSourcesCommand extends BaseCommand
 
     private static function assertNoSymbolSelectors(Configuration $configuration): void
     {
+        if (
+            $configuration->sourceFilter->filtersFiles()
+            || $configuration->testFrameworkExtraOptions !== ''
+        ) {
+            return;
+        }
+
         Assert::isEmpty(
             $configuration->sourceFilter->symbolSelectors,
             sprintf(
-                'The %s command does not support source symbol selectors. Pass source file or directory paths instead.',
+                'The %s command requires source or test paths when source symbol selectors are provided.',
                 self::NAME,
             ),
         );

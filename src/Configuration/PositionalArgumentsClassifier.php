@@ -35,13 +35,14 @@ declare(strict_types=1);
 
 namespace Infection\Configuration;
 
-use function ctype_upper;
 use function dirname;
 use Infection\Configuration\Schema\SchemaConfiguration;
+use Infection\Configuration\SourceSymbol\InvalidSourceSymbolSelector;
 use Infection\Configuration\SourceSymbol\SourceSymbolSelectorParser;
 use Infection\FileSystem\FileSystem;
 use function sprintf;
 use function str_contains;
+use function str_ends_with;
 use function str_starts_with;
 use Symfony\Component\Filesystem\Path;
 use Webmozart\Assert\Assert;
@@ -49,6 +50,7 @@ use Webmozart\Assert\Assert;
 /**
  * Classifies positional arguments into source paths, test paths, and source
  * symbol selectors.
+ *
  * @internal
  */
 final readonly class PositionalArgumentsClassifier
@@ -65,6 +67,8 @@ final readonly class PositionalArgumentsClassifier
 
     /**
      * @param list<non-empty-string> $paths
+     *
+     * @throws InvalidSourceSymbolSelector
      */
     public function classify(
         array $paths,
@@ -85,12 +89,20 @@ final readonly class PositionalArgumentsClassifier
             $absolutePath = Path::isAbsolute($path)
                 ? $path
                 : Path::join($configDir, $path);
+            $isExplicitPath = str_ends_with($path, '/');
 
-            if (!$this->isValidPath($absolutePath)) {
+            // Existing files and directories take precedence over symbol selectors, so Windows
+            // paths such as C:\project\src\Foo.php are not confused with source symbols.
+            if (!$isExplicitPath && !$this->isValidPath($absolutePath)) {
                 $selector = $this->sourceSymbolSelectorParser->parse($path);
 
                 if ($selector !== null) {
                     $sourceSelectors[] = $selector;
+
+                    // Bare names retain their path-filter meaning as well as selecting a short class name.
+                    if (self::isBareClassName($path)) {
+                        $sourcePaths[] = $path;
+                    }
 
                     continue;
                 }
@@ -177,17 +189,15 @@ final readonly class PositionalArgumentsClassifier
         $isValidPath = $this->isValidPath($absolutePath);
         $isInsideSourceDirectories = self::isInsideSourceDirectories($absolutePath, $absoluteSourceDirs);
 
-        if ($isValidPath && !$isInsideSourceDirectories) {
-            return self::KIND_TEST;
+        if ($isValidPath) {
+            return $isInsideSourceDirectories
+                ? self::KIND_SOURCE
+                : self::KIND_TEST;
         }
 
-        if ($isValidPath && $isInsideSourceDirectories) {
-            return self::KIND_SOURCE;
-        }
-
-        // like `SomeFile` or `SomeFile.php` - bare values behave as --filter values
+        // Unresolved directory fragments and bare names behave as --filter values.
         Assert::true(
-            self::looksLikeClassOrFileName($path),
+            self::looksLikePathFilter($path),
             sprintf(
                 'Invalid path argument "%s": multiple paths must be passed as separate arguments.',
                 $path,
@@ -197,10 +207,19 @@ final readonly class PositionalArgumentsClassifier
         return self::KIND_SOURCE;
     }
 
-    private static function looksLikeClassOrFileName(string $value): bool
+    private static function isBareClassName(string $value): bool
     {
-        return ctype_upper($value[0]) // class and file name starts with Pascal Case (A-Z only, not digits)
-            && !str_contains($value, '/')
+        return !str_contains($value, '\\')
+            && !str_contains($value, '::');
+    }
+
+    private static function looksLikePathFilter(string $value): bool
+    {
+        if (str_ends_with($value, '/')) {
+            return true;
+        }
+
+        return !str_contains($value, '/')
             && !str_contains($value, '\\');
     }
 

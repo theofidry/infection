@@ -55,6 +55,7 @@ use Infection\Configuration\SourceFilter\IncompleteGitDiffFilter;
 use Infection\Configuration\SourceFilter\PlainFilter;
 use Infection\Configuration\SourceFilter\PositionalPathsFilter;
 use Infection\Configuration\SourceFilter\SourceFilter;
+use Infection\Configuration\SourceSymbol\InvalidSourceSymbolSelector;
 use Infection\Configuration\SourceSymbol\SourceSymbolSelector;
 use Infection\FileSystem\FileSystem;
 use Infection\FileSystem\Locator\FileOrDirectoryNotFound;
@@ -113,6 +114,7 @@ class ConfigurationFactory
      *
      * @throws FileOrDirectoryNotFound
      * @throws NoSourceFound
+     * @throws InvalidSourceSymbolSelector
      */
     public function create(
         SchemaConfiguration $schema,
@@ -427,6 +429,8 @@ class ConfigurationFactory
     }
 
     /**
+     * @throws InvalidSourceSymbolSelector
+     *
      * @return array{0: PlainFilter|null, 1: string|null, 2: list<SourceSymbolSelector>}
      */
     private function resolvePositionalPathsFilter(
@@ -458,6 +462,8 @@ class ConfigurationFactory
     }
 
     /**
+     * @throws InvalidSourceSymbolSelector
+     *
      * @return array{0: SourceFilter, 1: string|null}
      */
     private function refineFilterIfNecessary(

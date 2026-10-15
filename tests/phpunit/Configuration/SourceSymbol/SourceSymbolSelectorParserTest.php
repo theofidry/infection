@@ -196,6 +196,34 @@ final class SourceSymbolSelectorParserTest extends TestCase
             ),
         ];
 
+        yield 'trailing class marker' => [
+            'Mailer\\',
+            new SourceSymbolSelector(
+                'Mailer',
+                null,
+                null,
+            ),
+        ];
+
+        yield 'global class with trailing marker' => [
+            '\Mailer\\',
+            new SourceSymbolSelector(
+                '\Mailer',
+                null,
+                null,
+            ),
+        ];
+
+        yield 'invalid class with trailing marker' => [
+            '1Mailer\\',
+            InvalidSourceSymbolSelector::create('1Mailer\\'),
+        ];
+
+        yield 'repeated trailing class marker' => [
+            'Mailer\\\\',
+            InvalidSourceSymbolSelector::create('Mailer\\\\'),
+        ];
+
         yield 'bare file filter' => [
             'Mailer.php',
             null,
@@ -297,9 +325,13 @@ final class SourceSymbolSelectorParserTest extends TestCase
             InvalidSourceSymbolSelector::create('\\App\\\\Mailer'),
         ];
 
-        yield 'trailing namespace separator' => [
+        yield 'qualified class with trailing marker' => [
             '\\App\\Mailer\\',
-            InvalidSourceSymbolSelector::create('\\App\\Mailer\\'),
+            new SourceSymbolSelector(
+                '\\App\\Mailer',
+                null,
+                null,
+            ),
         ];
 
         yield 'namespace separator without a class' => [

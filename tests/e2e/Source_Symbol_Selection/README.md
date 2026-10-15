@@ -1,4 +1,5 @@
 # Source symbol selection
 
 Verifies that positional test paths limit the initial test suite while multiple short source
-symbols independently limit mutation generation.
+symbols independently limit mutation generation. The trailing backslash on a short class selector
+prevents it from also narrowing the collected file paths.
