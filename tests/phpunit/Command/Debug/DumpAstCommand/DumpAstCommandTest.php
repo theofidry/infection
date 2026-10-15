@@ -43,6 +43,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 #[Group('integration')]
@@ -56,10 +57,18 @@ final class DumpAstCommandTest extends FileSystemTestCase
     public function test_it_outputs_the_ast_of_a_file(
         array $command,
         string $expected,
+        string $expectedLogs,
     ): void {
         $tester = $this->createCommandTester();
 
-        $tester->execute($command);
+        $tester->execute(
+            $command,
+            [
+                'verbosity' => OutputInterface::VERBOSITY_VERY_VERBOSE,
+                'interactive' => false,
+                'capture_stderr_separately' => true,
+            ],
+        );
 
         $actual = $tester->getDisplay();
 
@@ -68,6 +77,11 @@ final class DumpAstCommandTest extends FileSystemTestCase
             $expected,
             $actual,
             'The dumped AST should match the command input.',
+        );
+        $this->assertSame(
+            $expectedLogs,
+            $tester->getErrorOutput(normalize: true),
+            'Diagnostic messages should be written to stderr, leaving the AST on stdout.',
         );
     }
 
@@ -104,6 +118,7 @@ final class DumpAstCommandTest extends FileSystemTestCase
                     )
                 )
                 AST,
+            "[info] Could not determine the project directory from Git.\n",
         ];
 
         yield [
@@ -147,6 +162,7 @@ final class DumpAstCommandTest extends FileSystemTestCase
                     )
                 )
                 AST,
+            "[info] Could not determine the project directory from Git.\n",
         ];
 
         yield 'with attributes' => [
@@ -290,6 +306,7 @@ final class DumpAstCommandTest extends FileSystemTestCase
                     )
                 )
                 AST,
+            "[info] Could not determine the project directory from Git.\n",
         ];
 
         yield 'with explicit no changed lines' => [
@@ -456,6 +473,7 @@ final class DumpAstCommandTest extends FileSystemTestCase
                     )
                 )
                 AST,
+            "[info] Could not determine the project directory from Git.\n",
         ];
 
         $fullyEligibleAstWithLineNumbers = <<<'AST'
@@ -629,6 +647,7 @@ final class DumpAstCommandTest extends FileSystemTestCase
                 '--changed-lines-ranges' => '42:42,40:42',
             ],
             $fullyEligibleAstWithLineNumbers,
+            "[info] Could not determine the project directory from Git.\n",
         ];
 
         yield 'with multiple source symbol selectors' => [
@@ -641,6 +660,7 @@ final class DumpAstCommandTest extends FileSystemTestCase
                 ],
             ],
             $fullyEligibleAstWithLineNumbers,
+            "[info] Could not determine the project directory from Git.\n",
         ];
 
         yield 'with a source symbol selector and another source file' => [
@@ -653,6 +673,11 @@ final class DumpAstCommandTest extends FileSystemTestCase
                 ],
             ],
             $fullyEligibleAstWithLineNumbers,
+            <<<'STDERR'
+                [info] Could not determine the project directory from Git.
+                [info] Source file filters are ignored by debug:dump-ast: only the file argument determines which file is dumped.
+
+                STDERR,
         ];
 
         yield 'with a source symbol selector and a test file' => [
@@ -665,6 +690,11 @@ final class DumpAstCommandTest extends FileSystemTestCase
                 ],
             ],
             $fullyEligibleAstWithLineNumbers,
+            <<<'STDERR'
+                [info] Could not determine the project directory from Git.
+                [info] Test paths and test framework options are ignored by debug:dump-ast because it does not run tests.
+
+                STDERR,
         ];
     }
 

@@ -38,17 +38,20 @@ namespace Infection\Command\Debug;
 use function array_map;
 use function explode;
 use Infection\Command\BaseCommand;
+use Infection\Command\Git\LoggerFactory;
 use Infection\Command\Git\Option\BaseOption;
 use Infection\Command\Option\ConfigurationOption;
 use Infection\Command\Option\PathsArgument;
 use Infection\Command\Option\SourceFilterOptions;
+use Infection\Configuration\Configuration;
 use Infection\Console\IO;
 use Infection\Container\Container;
 use Infection\Differ\ChangedLinesRange;
 use Infection\FileSystem\FileSystem;
-use Infection\Logger\Console\ConsoleLogger;
+use Infection\FileSystem\Locator\FileOrDirectoryNotFound;
 use Infection\PhpParser\Visitor\AddIdToTraversedNodesVisitor\AddIdToTraversedNodesVisitor;
 use Infection\PhpParser\Visitor\MarkTraversedNodesAsVisitedVisitor;
+use Infection\Source\Exception\NoSourceFound;
 use Infection\Source\MatcherLine\SimpleSourceLineMatcher;
 use Infection\Source\MatcherLine\SourceLineMatcher;
 use Infection\TestFramework\Tracing\Trace\EmptyTrace;
@@ -69,6 +72,8 @@ use Webmozart\Assert\Assert;
  */
 final class DumpAstCommand extends BaseCommand
 {
+    private const string NAME = 'debug:dump-ast';
+
     private const string FILE_PATH_ARGUMENT = 'file';
 
     private const string SHOW_ATTRIBUTES = 'show-attributes';
@@ -80,7 +85,7 @@ final class DumpAstCommand extends BaseCommand
     public function __construct(
         private readonly FileSystem $fileSystem,
     ) {
-        parent::__construct('debug:dump-ast');
+        parent::__construct(self::NAME);
     }
 
     protected function configure(): void
@@ -130,7 +135,7 @@ final class DumpAstCommand extends BaseCommand
         $shouldShowAttributes = self::shouldShowAttributes($io);
         $changedLinesRanges = self::getChangedLinesRanges($io);
         $configFile = ConfigurationOption::get($io);
-        $logger = new ConsoleLogger($io);
+        $logger = LoggerFactory::create($io->getOutput());
         self::configureFormatter($io);
 
         $container = $this->createContainer(
@@ -138,6 +143,11 @@ final class DumpAstCommand extends BaseCommand
             $io,
             $configFile,
             $changedLinesRanges,
+        );
+
+        self::logIgnoredFilters(
+            $container->getConfiguration(),
+            $logger,
         );
 
         $showsEligibility = self::shouldShowEligibility(
@@ -221,8 +231,30 @@ final class DumpAstCommand extends BaseCommand
         return (bool) $io->getInput()->getOption(self::SHOW_ATTRIBUTES);
     }
 
+    private static function logIgnoredFilters(
+        Configuration $configuration,
+        LoggerInterface $logger,
+    ): void {
+        if ($configuration->sourceFilter->filtersFiles()) {
+            $logger->info(
+                'Source file filters are ignored by {command}: only the file argument determines which file is dumped.',
+                ['command' => self::NAME],
+            );
+        }
+
+        if ($configuration->testFrameworkExtraOptions !== '') {
+            $logger->info(
+                'Test paths and test framework options are ignored by {command} because it does not run tests.',
+                ['command' => self::NAME],
+            );
+        }
+    }
+
     /**
      * @param list<ChangedLinesRange>|null $changedLinesRanges
+     *
+     * @throws FileOrDirectoryNotFound
+     * @throws NoSourceFound
      */
     private static function shouldShowEligibility(
         Container $container,
