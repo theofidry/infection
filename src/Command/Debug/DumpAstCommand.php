@@ -105,9 +105,8 @@ final class DumpAstCommand extends BaseCommand
             InputArgument::REQUIRED,
             'Path to the file to parse.',
         );
-        $this->addArgument(
-            PathsArgument::NAME,
-            InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
+        PathsArgument::addArgument(
+            $this,
             'Limit eligible nodes to the given source selectors, for example Differ::diff or Differ::diff::32.',
         );
         $this->addOption(

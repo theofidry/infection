@@ -53,19 +53,14 @@ final class PathsArgument
 
     public const string NAME = 'paths';
 
-    public static function addArgument(Command $command): Command
-    {
-        return self::addArgumentWithDescription(
-            $command,
-            'Limit mutation testing to the given source and/or test paths. Path kind is inferred from the configured source directories and test-like paths. Pass as many paths as needed: `infection run src/A.php src/B.php tests/ATest.php`.',
-        );
-    }
-
-    public static function addRunArgument(Command $command): Command
-    {
-        return self::addArgumentWithDescription(
-            $command,
-            'Limit mutation testing to the given source paths, test paths, and/or source selectors. A selector targets a class, method, or absolute source line, for example `Differ`, `Differ::diff`, or `Differ::diff::32`. Pass as many arguments as needed: `infection run tests/DifferTest.php Differ::diff`.',
+    public static function addArgument(
+        Command $command,
+        string $description = 'Limit mutation testing to the given source and/or test paths. Path kind is inferred from the configured source directories and test-like paths. Pass as many paths as needed: `infection run src/A.php src/B.php tests/ATest.php`.',
+    ): Command {
+        return $command->addArgument(
+            self::NAME,
+            InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
+            $description,
         );
     }
 
@@ -79,15 +74,6 @@ final class PathsArgument
                 array_map(trim(...), $io->getInput()->getArgument(self::NAME)),
                 static fn (string $path): bool => $path !== '',
             ),
-        );
-    }
-
-    private static function addArgumentWithDescription(Command $command, string $description): Command
-    {
-        return $command->addArgument(
-            self::NAME,
-            InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
-            $description,
         );
     }
 }
