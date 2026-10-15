@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Configuration\SourceSymbol;
 
 use function Safe\preg_match;
+use function sprintf;
 use function str_contains;
 use function str_starts_with;
 use function substr;
@@ -46,15 +47,19 @@ use Webmozart\Assert\Assert;
  */
 final class SourceSymbolSelectorParser
 {
-    private const string CLASS_NAME = '[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*(?:\\\\[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*)*';
+    // PHP identifier naming rules: https://www.php.net/manual/en/language.oop5.basic.php
+    private const string CLASS_NAME = '[A-Za-z_\x80-\xff][A-Za-z\d_\x80-\xff]*(?:\\\\[A-Za-z_\x80-\xff][A-Za-z\d_\x80-\xff]*)*';
 
-    private const string METHOD_NAME = '[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*';
+    // PHP function naming rules also apply to methods: https://www.php.net/manual/en/functions.user-defined.php
+    private const string METHOD_NAME = '[A-Za-z_\x80-\xff][A-Za-z\d_\x80-\xff]*';
 
-    private const string SELECTOR_PATTERN = '/^(?<class>'
-        . self::CLASS_NAME
-        . ')(?:::(?<coordinate>'
-        . self::METHOD_NAME
-        . '|[1-9][0-9]*))?(?:::(?<line>[1-9][0-9]*))?$/D';
+    private const string SELECTOR_PATTERN = <<<'REGEX'
+        {^
+            (?<class>%s)                       # Class name, optionally namespaced
+            (?:::(?<coordinate>%s|[1-9]\d*))?  # Optional method name or source line
+            (?:::(?<line>[1-9]\d*))?           # Optional source line after a method name
+        $}xD
+        REGEX;
 
     /**
      * Parses the first source-selector grammar without consulting the autoloader.
@@ -69,9 +74,14 @@ final class SourceSymbolSelectorParser
             ? substr($value, 1)
             : $value;
 
+        $pattern = sprintf(
+            self::SELECTOR_PATTERN,
+            self::CLASS_NAME,
+            self::METHOD_NAME,
+        );
         $matches = [];
 
-        if (preg_match(self::SELECTOR_PATTERN, $candidate, $matches) !== 1) {
+        if (preg_match($pattern, $candidate, $matches) !== 1) {
             if (str_starts_with($value, '\\') || str_contains($value, '::')) {
                 throw InvalidSourceSymbolSelector::create($value);
             }
@@ -84,7 +94,7 @@ final class SourceSymbolSelectorParser
         $line = $matches['line'] ?? '';
         Assert::keyExists($matches, 'class');
 
-        if ($coordinate !== '' && preg_match('/^[1-9][0-9]*$/D', $coordinate) === 1) {
+        if ($coordinate !== '' && preg_match('/^[1-9]\d*$/D', $coordinate) === 1) {
             if ($line !== '') {
                 throw InvalidSourceSymbolSelector::create($value);
             }
