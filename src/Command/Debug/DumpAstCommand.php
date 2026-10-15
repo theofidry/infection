@@ -140,8 +140,11 @@ final class DumpAstCommand extends BaseCommand
             $changedLinesRanges,
         );
 
-        $showsEligibility = $changedLinesRanges !== null
-            || $container->getConfiguration()->sourceFilter->symbolSelectors !== [];
+        $showsEligibility = self::shouldShowEligibility(
+            $container,
+            $changedLinesRanges,
+        );
+
         $nodes = $this->createAst($container, $file);
 
         $io->write(
@@ -216,6 +219,19 @@ final class DumpAstCommand extends BaseCommand
     private static function shouldShowAttributes(IO $io): bool
     {
         return (bool) $io->getInput()->getOption(self::SHOW_ATTRIBUTES);
+    }
+
+    /**
+     * @param list<ChangedLinesRange>|null $changedLinesRanges
+     */
+    private static function shouldShowEligibility(
+        Container $container,
+        ?array $changedLinesRanges,
+    ): bool {
+        $hasSymbolSelectors = $container->getConfiguration()->sourceFilter->symbolSelectors !== [];
+
+        return $changedLinesRanges !== null
+            || $hasSymbolSelectors;
     }
 
     /**
@@ -294,7 +310,10 @@ final class DumpAstCommand extends BaseCommand
                 output: $io->getOutput(),
                 configFile: $configFile,
                 withUncovered: true,
-                sourceFilter: SourceFilterOptions::get($io, PathsArgument::get($io)),
+                sourceFilter: SourceFilterOptions::get(
+                    $io,
+                    PathsArgument::get($io),
+                ),
             )
         ;
 
