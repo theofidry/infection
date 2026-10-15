@@ -39,11 +39,14 @@ use Infection\Command\ListSourcesCommand;
 use Infection\Console\Application;
 use Infection\Container\Container;
 use Infection\Framework\Str;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use function Safe\chdir;
 use function Safe\getcwd;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 #[Group('integration')]
@@ -86,21 +89,61 @@ final class ListSourcesCommandTest extends TestCase
 
         $actual = $tester->getDisplay();
 
-        $this->assertStringContainsString('File1.php', $actual);
-        $this->assertStringNotContainsString('File2.php', $actual);
-        $this->assertStringContainsString('The "--filter" option is deprecated', $actual);
+        $this->assertSame(
+            "File1.php\n",
+            Str::toUnixLineEndings($actual),
+            'Stdout should contain only the selected source paths.',
+        );
+        $this->assertStringContainsString(
+            'The "--filter" option is deprecated',
+            $tester->getErrorOutput(normalize: true),
+            'The deprecation warning should be written to stderr.',
+        );
         $tester->assertCommandIsSuccessful();
     }
 
     /**
-     * @param array<string, string> $input
+     * @param list<string> $paths
+     */
+    #[DataProvider('symbolSelectorsProvider')]
+    public function test_it_rejects_source_symbol_selectors(array $paths): void
+    {
+        $this->expectExceptionObject(
+            new InvalidArgumentException(
+                'The config:list-sources command does not support source symbol selectors. Pass source file or directory paths instead.',
+            ),
+        );
+
+        $this->runCommand(['paths' => $paths]);
+    }
+
+    public static function symbolSelectorsProvider(): iterable
+    {
+        yield 'class selector' => [
+            ['SomeClass'],
+        ];
+
+        yield 'method selector with a source path' => [
+            ['File1.php', 'SomeClass::method'],
+        ];
+    }
+
+    /**
+     * @param array<string, string|list<string>> $input
      */
     private function runCommand(array $input): CommandTester
     {
         $application = new Application(Container::create());
         $tester = new CommandTester($application->find('config:list-sources'));
 
-        $tester->execute($input);
+        $tester->execute(
+            $input,
+            [
+                'verbosity' => OutputInterface::VERBOSITY_VERY_VERBOSE,
+                'interactive' => false,
+                'capture_stderr_separately' => true,
+            ],
+        );
 
         return $tester;
     }

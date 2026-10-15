@@ -36,17 +36,21 @@ declare(strict_types=1);
 namespace Infection\Command;
 
 use function array_map;
+use Infection\Command\Git\LoggerFactory;
 use Infection\Command\Option\ConfigurationOption;
 use Infection\Command\Option\PathsArgument;
 use Infection\Command\Option\SourceFilterOptions;
+use Infection\Configuration\Configuration;
 use Infection\Console\IO;
-use Infection\Logger\Console\ConsoleLogger;
 use Infection\Source\Collector\SourceCollector;
 use Infection\Source\Exception\NoSourceFound;
 use function Safe\getcwd;
 use function sort;
 use SplFileInfo;
+use function sprintf;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Filesystem\Path;
+use Webmozart\Assert\Assert;
 
 /**
  * @internal
@@ -74,12 +78,19 @@ final class ListSourcesCommand extends BaseCommand
 
     protected function executeCommand(IO $io): bool
     {
+        $diagnosticIo = self::createDiagnosticIo($io);
+
         $container = $this->getApplication()->getContainer()->withValues(
-            logger: new ConsoleLogger($io),
+            logger: LoggerFactory::create($io->getOutput()),
             output: $io->getOutput(),
             configFile: ConfigurationOption::get($io),
-            sourceFilter: SourceFilterOptions::get($io, PathsArgument::get($io)),
+            sourceFilter: SourceFilterOptions::get(
+                $diagnosticIo,
+                PathsArgument::get($io),
+            ),
         );
+
+        self::assertNoSymbolSelectors($container->getConfiguration());
 
         $filePaths = self::collectPaths(
             getcwd(),
@@ -89,6 +100,34 @@ final class ListSourcesCommand extends BaseCommand
         $io->writeln($filePaths);
 
         return true;
+    }
+
+    // This is a workaround for the `$io->warning()` call we are doing for
+    // the --filter option which bypasses the logger, hence here whether
+    // it lands in the stdout or stderr.
+    // This may be worth fixing before this patch...
+    private static function createDiagnosticIo(IO $io): IO
+    {
+        $output = $io->getOutput();
+        $errorOutput = $output instanceof ConsoleOutputInterface
+            ? $output->getErrorOutput()
+            : $output;
+
+        return new IO(
+            $io->getInput(),
+            $errorOutput,
+        );
+    }
+
+    private static function assertNoSymbolSelectors(Configuration $configuration): void
+    {
+        Assert::isEmpty(
+            $configuration->sourceFilter->symbolSelectors,
+            sprintf(
+                'The %s command does not support source symbol selectors. Pass source file or directory paths instead.',
+                self::NAME,
+            ),
+        );
     }
 
     /**
