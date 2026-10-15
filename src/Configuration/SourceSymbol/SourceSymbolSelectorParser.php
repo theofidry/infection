@@ -102,23 +102,36 @@ final class SourceSymbolSelectorParser
             return new SourceSymbolSelector(
                 $matches['class'],
                 null,
-                self::parseLine($coordinate),
+                self::parseLine(
+                    $coordinate,
+                    $value,
+                ),
             );
         }
 
         return new SourceSymbolSelector(
             $matches['class'],
             $coordinate === '' ? null : $coordinate,
-            $line === '' ? null : self::parseLine($line),
+            $line === '' ? null : self::parseLine(
+                $line,
+                $value,
+            ),
         );
     }
 
     /**
      * @return positive-int
      */
-    private static function parseLine(string $line): int
-    {
+    private static function parseLine(
+        string $line,
+        string $value,
+    ): int {
         $parsedLine = (int) $line;
+        $lineOverflowsInteger = (string) $parsedLine !== $line;
+
+        if ($lineOverflowsInteger) {
+            throw InvalidSourceSymbolSelector::lineOutOfRange($value);
+        }
 
         Assert::positiveInteger(
             $parsedLine,

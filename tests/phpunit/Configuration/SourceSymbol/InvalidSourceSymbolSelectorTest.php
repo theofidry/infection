@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Tests\Configuration\SourceSymbol;
 
 use Infection\Configuration\SourceSymbol\InvalidSourceSymbolSelector;
+use const PHP_INT_MAX;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -54,6 +55,16 @@ final class InvalidSourceSymbolSelectorTest extends TestCase
                 - Class::line
                 - Class::method::line
                 MESSAGE,
+            $exception->getMessage(),
+        );
+    }
+
+    public function test_it_explains_the_line_number_limit(): void
+    {
+        $exception = InvalidSourceSymbolSelector::lineOutOfRange('App\Mailer::send::99999999999999999999');
+
+        $this->assertSame(
+            'Invalid source selector "App\Mailer::send::99999999999999999999": the line number must not exceed ' . PHP_INT_MAX . '.',
             $exception->getMessage(),
         );
     }

@@ -38,6 +38,7 @@ namespace Infection\Tests\Configuration\SourceSymbol;
 use Infection\Configuration\SourceSymbol\InvalidSourceSymbolSelector;
 use Infection\Configuration\SourceSymbol\SourceSymbolSelector;
 use Infection\Configuration\SourceSymbol\SourceSymbolSelectorParser;
+use const PHP_INT_MAX;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -59,7 +60,11 @@ final class SourceSymbolSelectorParserTest extends TestCase
 
         $actual = $parser->parse($input);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals(
+            $expected,
+            $actual,
+            'The parsed selector must preserve the requested class, method, and line.',
+        );
     }
 
     public static function selectorProvider(): iterable
@@ -125,6 +130,34 @@ final class SourceSymbolSelectorParserTest extends TestCase
                 'send',
                 32,
             ),
+        ];
+
+        yield 'maximum absolute line' => [
+            'Mailer::' . PHP_INT_MAX,
+            new SourceSymbolSelector(
+                'Mailer',
+                null,
+                PHP_INT_MAX,
+            ),
+        ];
+
+        yield 'method and maximum absolute line' => [
+            'Mailer::send::' . PHP_INT_MAX,
+            new SourceSymbolSelector(
+                'Mailer',
+                'send',
+                PHP_INT_MAX,
+            ),
+        ];
+
+        yield 'overflowing absolute line' => [
+            'Mailer::' . PHP_INT_MAX . '0',
+            InvalidSourceSymbolSelector::lineOutOfRange('Mailer::' . PHP_INT_MAX . '0'),
+        ];
+
+        yield 'method and overflowing absolute line' => [
+            'Mailer::send::' . PHP_INT_MAX . '0',
+            InvalidSourceSymbolSelector::lineOutOfRange('Mailer::send::' . PHP_INT_MAX . '0'),
         ];
 
         yield 'bare short class' => [

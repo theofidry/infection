@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace Infection\Configuration\SourceSymbol;
 
 use InvalidArgumentException;
+use const PHP_INT_MAX;
 use function sprintf;
 
 /**
@@ -55,6 +56,17 @@ final class InvalidSourceSymbolSelector extends InvalidArgumentException
                     - Class::method::line
                     MESSAGE,
                 $value,
+            ),
+        );
+    }
+
+    public static function lineOutOfRange(string $value): self
+    {
+        return new self(
+            sprintf(
+                'Invalid source selector "%s": the line number must not exceed %d.',
+                $value,
+                PHP_INT_MAX,
             ),
         );
     }
