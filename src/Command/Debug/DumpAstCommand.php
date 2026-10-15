@@ -236,14 +236,14 @@ final class DumpAstCommand extends BaseCommand
         LoggerInterface $logger,
     ): void {
         if ($configuration->sourceFilter->filtersFiles()) {
-            $logger->info(
+            $logger->warning(
                 'Source file filters are ignored by {command}: only the file argument determines which file is dumped.',
                 ['command' => self::NAME],
             );
         }
 
         if ($configuration->testFrameworkExtraOptions !== '') {
-            $logger->info(
+            $logger->warning(
                 'Test paths and test framework options are ignored by {command} because it does not run tests.',
                 ['command' => self::NAME],
             );
