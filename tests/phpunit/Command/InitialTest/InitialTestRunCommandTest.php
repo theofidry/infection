@@ -49,6 +49,7 @@ use Infection\Git\Git;
 use Infection\Process\Runner\InitialTestsFailed;
 use Infection\TestFramework\Contracts\InitialRunResults;
 use Infection\TestFramework\Contracts\TestFramework;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -247,6 +248,48 @@ final class InitialTestRunCommandTest extends TestCase
         ];
     }
 
+    /**
+     * @param list<string> $paths
+     */
+    #[DataProvider('symbolSelectorsProvider')]
+    public function test_it_rejects_source_symbol_selectors_before_running_tests(array $paths): void
+    {
+        $testFramework = $this->createMock(TestFramework::class);
+        $testFramework
+            ->expects($this->never())
+            ->method('executeInitialRun')
+        ;
+
+        $container = Container::create()->cloneWithService(
+            TestFramework::class,
+            $testFramework,
+        );
+        $application = new Application($container);
+        $tester = new CommandTester($application->find('initial-test:run'));
+
+        $this->expectExceptionObject(
+            new InvalidArgumentException(
+                'The initial-test:run command does not support source symbol selectors. Pass source file, directory, or test paths instead.',
+            ),
+        );
+
+        $tester->execute(['paths' => $paths]);
+    }
+
+    public static function symbolSelectorsProvider(): iterable
+    {
+        yield 'class selector' => [
+            ['SomeClass'],
+        ];
+
+        yield 'method selector with a source path' => [
+            [
+                'Foo.php',
+                'SomeClass::method',
+            ],
+        ];
+    }
+
     private function createCommandTester(
         ?InitialTestsFailed $failure = null,
         ?SourceFileFilter $expectedSourceFilter = null,
@@ -285,7 +328,7 @@ final class InitialTestRunCommandTest extends TestCase
             function (Container $container) use ($testFrameworkMock, $expectedSourceFilter): TestFramework {
                 $this->assertEquals(
                     $expectedSourceFilter,
-                    $container->getConfiguration()->sourceFilter,
+                    $container->getConfiguration()->sourceFilter->fileFilter,
                     'The initial test run should use the requested source filter.',
                 );
 
