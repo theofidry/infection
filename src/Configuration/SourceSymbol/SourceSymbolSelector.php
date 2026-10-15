@@ -36,14 +36,16 @@ declare(strict_types=1);
 namespace Infection\Configuration\SourceSymbol;
 
 /**
- * A positional source selector. Line numbers are absolute source-file lines.
+ * Identifies a class, optionally narrowed to a method and/or source line, to select code for mutation.
  *
  * @internal
  */
 final readonly class SourceSymbolSelector
 {
     /**
-     * @param positive-int|null $line
+     * @param positive-int|null $line Line number counted from the beginning of the source file, starting at 1.
+     *                                For example, Invoice::calculateTotal::42 selects line 42 of the file
+     *                                containing Invoice::calculateTotal, not the 42nd line of the method.
      */
     public function __construct(
         public string $className,
