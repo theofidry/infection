@@ -1,5 +1,5 @@
 # Source symbol selection
 
-Verifies that positional test paths limit the initial test suite while multiple short source
-symbols independently limit mutation generation. The trailing backslash on a short class selector
-prevents it from also narrowing the collected file paths.
+Verifies that the positional selector `Calculator::add` limits mutation generation to that method.
+Both methods are covered: `add()` has one `Plus` mutation and `addThree()` has two.
+Only the mutation in `add()` should be generated and killed.

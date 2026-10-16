@@ -4,19 +4,14 @@
     "threads": 1,
     "source": {
         "directories": [
-            "../../../src"
+            "src"
         ]
     },
     "logs": {
-        "summary": "infection.log"
-    },
-    "phpUnit": {
-        "configDir": "../../..",
-        "customPath": "../../../vendor/bin/phpunit"
+        "summary": "var/infection.log"
     },
     "mutators": {
-        "NotIdentical": true,
-        "PublicVisibility": true
+        "Plus": true
     },
     "tmpDir": "infection"
 }
