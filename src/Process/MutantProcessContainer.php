@@ -37,7 +37,10 @@ namespace Infection\Process;
 
 use function array_key_exists;
 use Infection\Mutant\DetectionStatus;
+use Infection\Mutant\Evaluation\MutationEvaluationResultReducer;
+use Infection\Mutant\MutantExecutionResult;
 use Infection\Process\Factory\LazyMutantProcessFactory;
+use Webmozart\Assert\Assert;
 
 /**
  * @internal
@@ -87,6 +90,35 @@ class MutantProcessContainer
     public function getCurrent(): MutantProcess
     {
         return $this->processes[$this->currentProcessIndex];
+    }
+
+    public function getMutantExecutionResult(): MutantExecutionResult
+    {
+        $attempts = [];
+        $result = null;
+
+        foreach ($this->processes as $process) {
+            $result = $process->getMutantExecutionResult();
+            $evaluationResult = $result->getMutationEvaluationResult();
+
+            if ($evaluationResult === null) {
+                continue;
+            }
+
+            foreach ($evaluationResult->attempts as $attempt) {
+                $attempts[] = $attempt;
+            }
+        }
+
+        Assert::notNull($result, 'A process result must exist because the constructor registers the initial process.');
+
+        if ($attempts === []) {
+            return $result;
+        }
+
+        return $result->withMutationEvaluationResult(
+            MutationEvaluationResultReducer::reduce($attempts),
+        );
     }
 
     private function getCurrentMutantProcessDetectionStatus(): DetectionStatus

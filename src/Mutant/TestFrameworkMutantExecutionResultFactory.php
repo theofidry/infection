@@ -60,7 +60,7 @@ final readonly class TestFrameworkMutantExecutionResultFactory implements Mutant
         $mutant = $mutantProcess->getMutant();
         $mutation = $mutant->getMutation();
 
-        return new MutantExecutionResult(
+        return (new MutantExecutionResult(
             $process->getCommandLine(),
             $this->retrieveProcessOutput($process),
             $this->retrieveDetectionStatus($mutantProcess),
@@ -77,7 +77,7 @@ final readonly class TestFrameworkMutantExecutionResultFactory implements Mutant
             $mutant->getMutatedCode(),
             $mutant->getTests(),
             $mutantProcess->getFinishedAt() - $process->getStartTime(),
-        );
+        ))->withEvaluationAttempt('phpunit');
     }
 
     private function retrieveProcessOutput(Process $process): string
