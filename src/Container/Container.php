@@ -74,6 +74,7 @@ use Infection\Event\Subscriber\DispatchPcntlSignalSubscriber;
 use Infection\Event\Subscriber\InitialStaticAnalysisExecutionLoggerSubscriber;
 use Infection\Event\Subscriber\InitialTestsExecutionLoggerSubscriber;
 use Infection\Event\Subscriber\MutationAnalysisLoggerSubscriber;
+use Infection\Event\Subscriber\MutationGenerationBufferedLoggerSubscriber;
 use Infection\Event\Subscriber\MutationGenerationLoggerSubscriber;
 use Infection\Event\Subscriber\MutationTestingResultsCollectorSubscriber;
 use Infection\Event\Subscriber\ReportAfterMutationTestingFinishedSubscriber;
@@ -394,6 +395,7 @@ final class Container extends DIContainer
                 $subscriberFactories = [
                     $container->get(InitialTestsExecutionLoggerSubscriber::class),
                     $container->get(MutationGenerationLoggerSubscriber::class),
+                    $container->get(MutationGenerationBufferedLoggerSubscriber::class),
                     $container->get(MutationTestingResultsCollectorSubscriber::class),
                     $container->get(MutationAnalysisLoggerSubscriber::class),
                     $container->get(ReportAfterMutationTestingFinishedSubscriber::class),
@@ -441,6 +443,10 @@ final class Container extends DIContainer
             },
             InitialStaticAnalysisExecutionLogger::class => static fn (self $container): InitialStaticAnalysisExecutionLogger => $container->get(InitialStaticAnalysisExecutionLoggerFactory::class)->create(),
             MutationGenerationLogger::class => static fn (self $container): MutationGenerationLogger => $container->get(MutationGenerationLoggerFactory::class)->create(),
+            MutationGenerationBufferedLoggerSubscriber::class => static fn (self $container): MutationGenerationBufferedLoggerSubscriber => new MutationGenerationBufferedLoggerSubscriber(
+                $container->getLogger(),
+                $container->getOutput(),
+            ),
             MutationGenerationLoggerFactory::class => static fn (self $container): MutationGenerationLoggerFactory => new MutationGenerationLoggerFactory(
                 $container->getConfiguration()->noProgress,
                 $container->getOutput(),
@@ -464,7 +470,7 @@ final class Container extends DIContainer
                 $container->getSourceLineMatcher(),
                 $container->getLineRangeCalculator(),
                 $container->getConfiguration()->mutateOnlyCoveredCode(),
-                $container->getLogger(),
+                $container->get(MutationGenerationBufferedLoggerSubscriber::class),
                 array_keys($container->getConfiguration()->mutators),
             ),
             FileReporterFactory::class => static function (self $container): FileReporterFactory {
