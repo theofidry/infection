@@ -41,7 +41,9 @@ use function array_unique;
 use function array_values;
 use function explode;
 use Generator;
+use function get_object_vars;
 use Infection\Mutator\ProfileList;
+use function is_array;
 use Override;
 use PhpParser\Comment;
 use PhpParser\Node;
@@ -51,6 +53,7 @@ use Psr\Log\LoggerInterface;
 use function Safe\preg_match_all;
 use function sprintf;
 use function trim;
+use WeakMap;
 
 /**
  * Attaches mutator exclusions from comments to the annotated node and its descendants.
@@ -71,6 +74,11 @@ final class ExcludeIgnoredMutatorsVisitor extends NodeVisitorAbstract
     private readonly array $knownMutatorNamesByKey;
 
     /**
+     * @var WeakMap<Node, list<Comment>>
+     */
+    private WeakMap $commentsByNode;
+
+    /**
      * @param list<string> $knownMutatorNames
      */
     public function __construct(
@@ -82,8 +90,26 @@ final class ExcludeIgnoredMutatorsVisitor extends NodeVisitorAbstract
     }
 
     #[Override]
+    public function beforeTraverse(array $nodes): null
+    {
+        $this->commentsByNode = new WeakMap();
+        $this->registerCommentsForSiblings($nodes);
+
+        return null;
+    }
+
+    #[Override]
     public function enterNode(Node $node): null
     {
+        /** @var array<string, Node|array<Node|null>|scalar|null> $subNodes */
+        $subNodes = get_object_vars($node);
+
+        foreach ($subNodes as $children) {
+            if (is_array($children)) {
+                $this->registerCommentsForSiblings($children);
+            }
+        }
+
         $annotatedMutators = $this->findIgnoredMutators($node);
 
         $this->warnAboutUnknownMutators($node, $annotatedMutators);
@@ -113,11 +139,47 @@ final class ExcludeIgnoredMutatorsVisitor extends NodeVisitorAbstract
     }
 
     /**
+     * @param array<Node|null> $nodes
+     */
+    private function registerCommentsForSiblings(array $nodes): void
+    {
+        $previousNode = null;
+
+        foreach ($nodes as $node) {
+            if ($node === null) {
+                continue;
+            }
+
+            $comments = $node->getComments();
+
+            if ($comments !== []) {
+                $this->commentsByNode[$node] = [];
+
+                foreach ($comments as $comment) {
+                    // php-parser attaches trailing comments to the next sibling (including Nop).
+                    // Resolve ownership before visiting siblings so descendants inherit exclusions.
+                    // Keep the original comments intact for the other visitors and code printing.
+                    $owner = $previousNode !== null && $previousNode->getEndLine() === $comment->getStartLine()
+                        ? $previousNode
+                        : $node;
+
+                    $this->commentsByNode[$owner] = [
+                        ...($this->commentsByNode[$owner] ?? []),
+                        $comment,
+                    ];
+                }
+            }
+
+            $previousNode = $node;
+        }
+    }
+
+    /**
      * @return list<string>
      */
     private function findIgnoredMutators(Node $node): array
     {
-        $comments = $node->getComments();
+        $comments = $this->commentsByNode[$node] ?? $node->getComments();
 
         if ($comments === []) {
             // False positive: this mutation affects performance without changing behaviour.

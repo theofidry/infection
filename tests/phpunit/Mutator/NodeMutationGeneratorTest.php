@@ -232,6 +232,7 @@ final class NodeMutationGeneratorTest extends VisitorTestCase
             ],
         ];
 
+<<<<<<< Updated upstream
         yield 'nested annotations are additive and stop at their scope' => [
             <<<'PHP'
                 <?php
@@ -251,6 +252,16 @@ final class NodeMutationGeneratorTest extends VisitorTestCase
                 class Outside {
                     public function values(): array {
                         return [false, true];
+=======
+        yield 'a trailing annotation leaves the following statement mutable' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true; // @infection-ignore TrueValue
+                        $b = true;
+>>>>>>> Stashed changes
                     }
                 }
                 PHP,
@@ -260,6 +271,7 @@ final class NodeMutationGeneratorTest extends VisitorTestCase
                     'code' => <<<'PHP'
                         <?php
 
+<<<<<<< Updated upstream
                         /** @infection-ignore ArrayItemRemoval */
                         class Example {
                             /** @infection-ignore FalseValue */
@@ -395,6 +407,12 @@ final class NodeMutationGeneratorTest extends VisitorTestCase
                         class Outside {
                             public function values(): array {
                                 return [true];
+=======
+                        class Example {
+                            public function values(): void {
+                                $a = true; // @infection-ignore TrueValue
+                                $b = false;
+>>>>>>> Stashed changes
                             }
                         }
                         PHP,

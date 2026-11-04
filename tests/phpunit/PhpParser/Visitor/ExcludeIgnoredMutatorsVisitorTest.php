@@ -937,6 +937,433 @@ final class ExcludeIgnoredMutatorsVisitorTest extends VisitorTestCase
                     'message' => 'Unknown mutator "*" in @infection-ignore at /source.php:4.',
                     'context' => [],
                 ],
+<<<<<<< Updated upstream
+=======
+                [
+                    'level' => LogLevel::WARNING,
+                    'message' => 'Unknown mutator "False" in @infection-ignore at /source.php:4.',
+                    'context' => [],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @param class-string<Node> $nodeClass
+     * @param list<list<string>> $expectedIgnoredMutators
+     * @param list<array{level: string, message: string, context: array<string, mixed>}> $expectedLogRecords
+     */
+    #[DataProvider('nodeExclusionProvider')]
+    public function test_it_attaches_mutator_exclusions_to_the_expected_nodes(
+        string $code,
+        string $nodeClass,
+        array $expectedIgnoredMutators,
+        array $expectedLogRecords = [],
+    ): void {
+        $nodes = $this->parse($code);
+        $logger = new TestLogger();
+
+        (new NodeTraverser(
+            new ParentConnectingVisitor(),
+            new ExcludeIgnoredMutatorsVisitor(
+                $logger,
+                '/source.php',
+                [],
+            ),
+        ))->traverse($nodes);
+
+        $selectedNodes = (new NodeFinder())->findInstanceOf(
+            $nodes,
+            $nodeClass,
+        );
+
+        $actual = take($selectedNodes)
+            ->cast(ExcludeIgnoredMutatorsVisitor::getIgnoredMutators(...))
+            ->toList()
+        ;
+
+        $this->assertSame($expectedIgnoredMutators, $actual);
+        $this->assertSame($expectedLogRecords, $logger->records);
+    }
+
+    public static function nodeExclusionProvider(): iterable
+    {
+        yield 'a trailing annotation excludes only the middle statement' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true;
+                        $b = true; // @infection-ignore TrueValue
+                        $c = true;
+                    }
+                }
+                PHP,
+            Expression::class,
+            [
+                [],
+                ['TrueValue'],
+                [],
+            ],
+        ];
+
+        yield 'a trailing annotation excludes its own statement instead of the following statement' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true; // @infection-ignore TrueValue
+                        $b = true;
+                    }
+                }
+                PHP,
+            Expression::class,
+            [
+                ['TrueValue'],
+                [],
+            ],
+        ];
+
+        yield 'a trailing annotation excludes the final statement in a method' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true; // @infection-ignore TrueValue
+                    }
+                }
+                PHP,
+            Expression::class,
+            [
+                ['TrueValue'],
+            ],
+        ];
+
+        yield 'a trailing annotation at file scope excludes its own statement' => [
+            <<<'PHP'
+                <?php
+
+                $a = true; // @infection-ignore TrueValue
+                $b = true;
+                PHP,
+            Expression::class,
+            [
+                ['TrueValue'],
+                [],
+            ],
+        ];
+
+        yield 'trailing and preceding annotations on the same statement add exclusions for descendants' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        // @infection-ignore FalseValue
+                        $a = [false, true]; // @infection-ignore TrueValue
+                        $b = true;
+                    }
+                }
+                PHP,
+            ConstFetch::class,
+            [
+                ['FalseValue', 'TrueValue'],
+                ['FalseValue', 'TrueValue'],
+                [],
+            ],
+        ];
+
+        yield 'trailing and preceding annotations stay on their respective statements and reach descendants' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true; // @infection-ignore TrueValue
+                        // @infection-ignore FalseValue
+                        $b = false;
+                    }
+                }
+                PHP,
+            ConstFetch::class,
+            [
+                ['TrueValue'],
+                ['FalseValue'],
+            ],
+        ];
+
+        yield 'a trailing hash comment excludes its own statement' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true; # @infection-ignore TrueValue
+                        $b = true;
+                    }
+                }
+                PHP,
+            Expression::class,
+            [
+                ['TrueValue'],
+                [],
+            ],
+        ];
+
+        yield 'a trailing block comment excludes its own statement' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true; /* @infection-ignore TrueValue */
+                        $b = true;
+                    }
+                }
+                PHP,
+            Expression::class,
+            [
+                ['TrueValue'],
+                [],
+            ],
+        ];
+
+        yield 'an unknown trailing name warns at the start of its own multiline statement' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = [
+                            true,
+                        ]; // @infection-ignore UnknownMutator
+                        $b = true;
+                    }
+                }
+                PHP,
+            Expression::class,
+            [
+                ['UnknownMutator'],
+                [],
+            ],
+            [
+                [
+                    'level' => LogLevel::WARNING,
+                    'message' => 'Unknown mutator "UnknownMutator" in @infection-ignore at /source.php:5.',
+                    'context' => [],
+                ],
+            ],
+        ];
+
+        yield 'an empty trailing annotation warns at its own statement' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    public function values(): void {
+                        $a = true; // @infection-ignore
+                        $b = true;
+                    }
+                }
+                PHP,
+            Expression::class,
+            [
+                [],
+                [],
+            ],
+            [
+                [
+                    'level' => LogLevel::WARNING,
+                    'message' => 'No mutator names in @infection-ignore at /source.php:5.',
+                    'context' => [],
+                ],
+            ],
+        ];
+
+        yield 'multiple mutators in a method docblock reach all descendant values' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    /** @infection-ignore ArrayItemRemoval, FalseValue */
+                    public function values(): array {
+                        return [false, true];
+                    }
+                }
+                PHP,
+            ConstFetch::class,
+            [
+                ['ArrayItemRemoval', 'FalseValue'],
+                ['ArrayItemRemoval', 'FalseValue'],
+            ],
+        ];
+
+        yield 'nested class and method annotations add exclusions without leaking to siblings' => [
+            <<<'PHP'
+                <?php
+
+                /** @infection-ignore ArrayItemRemoval */
+                class Example {
+                    /** @infection-ignore FalseValue */
+                    public function first(): array {
+                        return [false, true];
+                    }
+
+                    public function second(): array {
+                        return [false, true];
+                    }
+                }
+
+                class Outside {
+                    public function values(): array {
+                        return [false, true];
+                    }
+                }
+                PHP,
+            Return_::class,
+            [
+                ['ArrayItemRemoval', 'FalseValue'],
+                ['ArrayItemRemoval'],
+                [],
+            ],
+        ];
+
+        yield 'ignore-all does not alter inherited mutator names' => [
+            <<<'PHP'
+                <?php
+
+                /** @infection-ignore ArrayItemRemoval */
+                class Example {
+                    public function ignored(): array {
+                        // @infection-ignore-all
+                        return [false, true];
+                    }
+
+                    public function outside(): bool {
+                        return false;
+                    }
+                }
+                PHP,
+            Return_::class,
+            [
+                ['ArrayItemRemoval'],
+                ['ArrayItemRemoval'],
+            ],
+        ];
+
+        $ignoredArrayItem = <<<'PHP'
+            <?php
+
+            class Example {
+                public function values(): array {
+                    return [
+                        // @infection-ignore FalseValue
+                        false,
+                        false,
+                    ];
+                }
+            }
+            PHP;
+
+        yield 'an array item annotation reaches its descendants without leaking to its sibling' => [
+            $ignoredArrayItem,
+            ConstFetch::class,
+            [
+                ['FalseValue'],
+                [],
+            ],
+        ];
+
+        yield 'an array item annotation does not reach its parent array' => [
+            $ignoredArrayItem,
+            Array_::class,
+            [
+                [],
+            ],
+        ];
+
+        $arrayItemWithIgnoredArrayMutator = <<<'PHP'
+            <?php
+
+            class Example {
+                public function values(): array {
+                    return [
+                        // @infection-ignore ArrayItemRemoval
+                        false,
+                    ];
+                }
+            }
+            PHP;
+
+        yield 'an array mutator name on an item still reaches its descendants' => [
+            $arrayItemWithIgnoredArrayMutator,
+            ConstFetch::class,
+            [
+                ['ArrayItemRemoval'],
+            ],
+        ];
+
+        yield 'an array mutator name on an item does not reach the parent array' => [
+            $arrayItemWithIgnoredArrayMutator,
+            Array_::class,
+            [
+                [],
+            ],
+        ];
+
+        yield 'all listed mutator names reach every descendant value' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    /** @infection-ignore ArrayItemRemoval, FalseValue, TrueValue */
+                    public function values(): array {
+                        return [false, true];
+                    }
+                }
+                PHP,
+            ConstFetch::class,
+            [
+                ['ArrayItemRemoval', 'FalseValue', 'TrueValue'],
+                ['ArrayItemRemoval', 'FalseValue', 'TrueValue'],
+            ],
+        ];
+
+        yield 'commas do not require surrounding spaces' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    /** @infection-ignore ArrayItemRemoval,FalseValue,TrueValue */
+                    public function values(): array {
+                        return [false, true];
+                    }
+                }
+                PHP,
+            Return_::class,
+            [
+                ['ArrayItemRemoval', 'FalseValue', 'TrueValue'],
+            ],
+        ];
+
+        yield 'extra spaces around names are allowed' => [
+            <<<'PHP'
+                <?php
+
+                class Example {
+                    /** @infection-ignore   ArrayItemRemoval   ,   FalseValue  ,   TrueValue */
+                    public function values(): array {
+                        return [false, true];
+                    }
+                }
+                PHP,
+            Return_::class,
+            [
+                ['ArrayItemRemoval', 'FalseValue', 'TrueValue'],
+>>>>>>> Stashed changes
             ],
         ];
     }

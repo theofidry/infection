@@ -6,10 +6,10 @@ namespace Ignore_Specific_Mutations;
 
 final class SourceClass
 {
-    /** @infection-ignore ArrayItemRemoval, FalseValue, UnknownMutator */
+    /** @infection-ignore ArrayItemRemoval, UnknownMutator */
     public function selectivelyIgnored(): array
     {
-        return [false, true];
+        return [false, true]; // @infection-ignore FalseValue
     }
 
     public function notIgnored(): array

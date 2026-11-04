@@ -3,6 +3,10 @@
 `@infection-ignore ArrayItemRemoval, FalseValue` excludes the listed mutators
 on the annotated node and its descendants. Other mutators remain enabled.
 
+A trailing annotation applies to the statement on the same line. The fixture
+combines a method docblock excluding `ArrayItemRemoval` with a trailing annotation
+excluding `FalseValue` on the return statement.
+
 Spaces around commas are optional: `@infection-ignore ArrayItemRemoval,FalseValue`
 and `@infection-ignore   ArrayItemRemoval   ,   FalseValue` are also accepted.
 
